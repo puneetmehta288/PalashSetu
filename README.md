@@ -30,37 +30,41 @@ BhashaSetu employs a **web-first mobile architecture** that packages a polished 
 |  • AI Model Setup & Download (IndicTrans2 320M Distilled)                     |
 |  • Cloud Content Sync & Version Manifest                                      |
 |  • Educational Video & PDF Localization Packages                              |
-|  • Fast Generation of Custom Pedagogy Assets                                  |
-|                                                                               |
-|                                    | (One-time Sync & Download)               |
-|                                    v                                          |
-|                                                                               |
-|  [ CLASSROOM MODE: 100% OFFLINE TABLET ]                                      |
-|  +-------------------------------------------------------------------------+  |
-|  | Android Tablet (Android 9+, ~2 GB RAM)                                  |  |
-|  |                                                                         |  |
-|  |  +-------------------------------------------------------------------+  |  |
-|  |  | React 18 + TypeScript + Vite (Tablet-First UI)                    |  |  |
-|  |  | • Dashboard • Live Voice Translation • Lesson & Worksheet Plans    |  |  |
-|  |  | • Interactive Ol Chiki Flashcards • Video & PDF Offline Player     |  |  |
-|  |  +-------------------------------------------------------------------+  |  |
-|  |  | Capacitor Native Bridge (@capacitor/android, filesystem, network)   |  |  |
-|  |  +-------------------------------------------------------------------+  |  |
-|  |  | Local SQLite & Storage (Pre-cached Santali Audio, Offline SQLite)   |  |  |
-|  |  +-------------------------------------------------------------------+  |  |
-|  |  | Local Translation Engine (IndicTrans2 PyTorch CPU / FLN Dict)       |  |  |
-|  |  +-------------------------------------------------------------------+  |  |
-|  +-------------------------------------------------------------------------+  |
-+-------------------------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------+
+| PALASHSETU TWO-TIER ARCHITECTURE (100% OFFLINE CLASSROOM READY)                                    |
++---------------------------------------------------------------------------------------------------+
+|                                                                                                   |
+|  [TIER 1: ON-TABLET CLASSROOM EDGE] (< 90 MB RAM, Zero Python/PyTorch on Tablet)                  |
+|  Runs on Any Low-Cost Tablet (Android 9+, 1GB-2GB RAM) in 100% Airplane Mode                      |
+|  +---------------------------------------------------------------------------------------------+  |
+|  | React 18 + TypeScript + Vite (Tablet-First UI)                                              |  |
+|  | • 1-Tap Dialogue Translator • 36 NIPUN Lessons • Dynamic Worksheets • 30+ SVG Flashcards    |  |
+|  +---------------------------------------------------------------------------------------------+  |
+|  | Client-Side FLN Linguistic Engine (Longest-Match Regex, Grammar Particles, Universal Numerals)|  |
+|  | • 0ms Offline Latency • 100% Local JavaScript • No Server Needed in Classroom               |  |
+|  +---------------------------------------------------------------------------------------------+  |
+|  | On-Device Acoustic Synthesizer (santaliSpeech.ts) • Zero Cloud TTS • Native Speech Synthesis|  |
+|  +---------------------------------------------------------------------------------------------+  |
+|  | Capacitor Native Bridge (@capacitor/android, preferences, local SQLite storage)             |  |
+|  +---------------------------------------------------------------------------------------------+  |
+|                                                  ▲                                                |
+|                        Sync Manifest via Local Wi-Fi / Hotspot (Preparation Mode)                 |
+|                                                  ▼                                                |
+|  [TIER 2: SCHOOL HUB / TEACHER WORKSTATION] (Runs on Teacher Laptop / School PC)                  |
+|  +---------------------------------------------------------------------------------------------+  |
+|  | Python 3.10+ FastAPI Backend (app.main:app)                                                 |  |
+|  | • AI4Bharat IndicTrans2 320M Neural NMT (hin_Deva <-> sat_Olck)                             |  |
+|  | • Heavy Textbook PDF Localization & Educational Video Caption Generator                     |  |
+|  | • Sync Engine & Content Manifest Provider (/api/v1/sync)                                    |  |
+|  +---------------------------------------------------------------------------------------------+  |
++---------------------------------------------------------------------------------------------------+
 ```
 
 ### Technology Stack:
-* **Frontend UI:** React 18.3, TypeScript 5.5, Vite 5.4, React Router DOM 6.26.
-* **Mobile Shell:** Capacitor 6.1 (`@capacitor/android`, `@capacitor/filesystem`, `@capacitor/network`, `@capacitor/preferences`, `@capacitor/haptics`).
-* **Backend Server:** Python 3.10+ / FastAPI 0.141, Starlette, Uvicorn, Pydantic 2.13.
-* **Database & Storage:** SQLite + SQLAlchemy 2.0 (Sync engine for maximum Android/desktop compatibility).
-* **Neural Translation (NMT):** AI4Bharat IndicTrans2 (`ai4bharat/indictrans2-indic-indic-dist-320M`) with PyTorch & `IndicTransToolkit`.
-* **Speech Pipeline:** Real-time Web Speech Recognition (`hi-IN`) & Android On-Device Speech Recognizer; gTTS & local audio narration.
+* **Tablet Edge Client (Tier 1):** React 18.3, TypeScript 5.5, Vite 5.4, Capacitor 6.1 (`@capacitor/android`, `@capacitor/filesystem`, `@capacitor/network`, `@capacitor/preferences`). Runs standalone on mobile WebView under 90MB RAM with zero Python runtime.
+* **On-Device Acoustic Phonetic Engine:** Custom `santaliSpeech.ts` phonetic transliterator and local audio provider for 100% offline pronunciation with zero cloud TTS endpoints.
+* **School Hub Backend (Tier 2):** Python 3.10+ / FastAPI 0.115, Uvicorn, SQLAlchemy 2.0, SQLite.
+* **Neural Translation (NMT):** AI4Bharat IndicTrans2 (`ai4bharat/indictrans2-indic-indic-dist-320M`) with PyTorch & `IndicTransToolkit` (hosted on Teacher Laptop / Hub during lesson preparation).
 * **Document & Media Processing:** `pdfplumber` & `reportlab` for bilingual side-by-side reconstruction.
 
 ---
