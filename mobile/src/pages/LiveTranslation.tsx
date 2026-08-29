@@ -3,9 +3,11 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOlChiki, convertOlChikiToDigits, numberToSantaliWords } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
+import { COMPREHENSIVE_HINDI_TO_SANTALI } from '../data/santali_comprehensive_dictionary';
 
-// Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
+// Comprehensive Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
+  ...COMPREHENSIVE_HINDI_TO_SANTALI,
   // Common Sentences
   'नमस्ते बच्चों!': 'ᱡᱚᱦᱟᱨ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ!',
   'अपनी किताब खोलो।': 'ᱟᱢᱟᱜ ᱯᱩᱛᱷᱤ ᱡᱷᱤᱡᱽ ᱢᱮ᱾',
@@ -550,28 +552,33 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           </button>
           <button
             onClick={() => {
-              setMode('student');
-              setSourceText('');
-              setTranslatedText('');
-              setPronunciation('');
+              sfx.playTap();
+              alert(
+                '🚧 Student Voice Recognition (Santali ➔ Hindi) Coming Soon in v2.0!\n\n' +
+                'Google Speech Services currently supports Hindi & English voice recognition on Android devices. ' +
+                'Direct Santali ASR via AI4Bharat IndicWav2Vec is in development for PalashSetu v2.0.\n\n' +
+                'Teacher Instruction (Hindi ➔ Santali) is 100% active and offline!'
+              );
             }}
             style={{
-              padding: '10px 22px',
+              padding: '10px 20px',
               borderRadius: '16px',
               border: 'none',
-              backgroundColor: mode === 'student' ? '#c05621' : 'transparent',
-              color: mode === 'student' ? '#ffffff' : '#475569',
+              backgroundColor: 'transparent',
+              color: '#64748b',
               fontWeight: 700,
-              fontSize: '0.92rem',
+              fontSize: '0.88rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: mode === 'student' ? '0 2px 8px rgba(192,86,33,0.25)' : 'none',
               transition: 'all 0.15s ease',
             }}
           >
-            👧 <strong>Student Mode</strong>: Santali → Hindi
+            <span>👧 <strong>Student</strong>: Santali → Hindi</span>
+            <span style={{ fontSize: '0.72rem', backgroundColor: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '10px', fontWeight: 800, border: '1px solid #fde68a' }}>
+              🔒 Coming Soon v2.0
+            </span>
           </button>
         </div>
       </div>
