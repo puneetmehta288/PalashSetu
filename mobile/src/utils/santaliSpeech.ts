@@ -254,8 +254,7 @@ export function transliterateOlChikiToPhonetic(text: string): string {
  * Automatically detects Ol Chiki and converts to phonetic speech audio.
  */
 export function speakText(text: string, options?: { lang?: string; rate?: number; onEnd?: () => void }) {
-  if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) {
-    console.warn('Speech synthesis is not supported in this environment');
+  if (!text || typeof window === 'undefined') {
     return;
   }
 
@@ -270,11 +269,17 @@ export function speakText(text: string, options?: { lang?: string; rate?: number
     }
 
     // 🎙️ Native Android OS Hardware TTS Bridge (Highest priority on Android APK)
-    if (typeof window !== 'undefined' && (window as any).AndroidVoiceBridge?.speak) {
+    if ((window as any).AndroidVoiceBridge?.speak) {
       (window as any).AndroidVoiceBridge.speak(textToSpeak);
       if (options?.onEnd) {
         setTimeout(options.onEnd, 1500);
       }
+      return;
+    }
+
+    // Web browser speechSynthesis fallback
+    if (!('speechSynthesis' in window)) {
+      console.warn('Speech synthesis is not supported in this environment');
       return;
     }
 

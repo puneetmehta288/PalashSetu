@@ -13,6 +13,18 @@ import java.util.Locale;
 
 public class MainActivity extends BridgeActivity {
     private TextToSpeech nativeTts;
+    private boolean isTtsReady = false;
+    private String pendingSpeak = null;
+
+    private void speakNative(String text) {
+        if (text == null || text.trim().isEmpty()) return;
+        if (nativeTts != null) {
+            try {
+                android.widget.Toast.makeText(MainActivity.this, "🔊 " + text, android.widget.Toast.LENGTH_SHORT).show();
+            } catch (Exception ignored) {}
+            nativeTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "PalashSetuTTS_" + System.currentTimeMillis());
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -21,11 +33,23 @@ public class MainActivity extends BridgeActivity {
         // Initialize Native Android TextToSpeech Engine
         nativeTts = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
+                isTtsReady = true;
                 int result = nativeTts.setLanguage(new Locale("hi", "IN"));
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    nativeTts.setLanguage(new Locale("en", "IN"));
+                if (result < 0) {
+                    result = nativeTts.setLanguage(new Locale("hi"));
+                }
+                if (result < 0) {
+                    result = nativeTts.setLanguage(new Locale("en", "IN"));
+                }
+                if (result < 0) {
+                    nativeTts.setLanguage(Locale.getDefault());
                 }
                 nativeTts.setSpeechRate(0.85f);
+                if (pendingSpeak != null) {
+                    final String toSpeak = pendingSpeak;
+                    pendingSpeak = null;
+                    runOnUiThread(() -> speakNative(toSpeak));
+                }
             }
         });
 
@@ -51,8 +75,10 @@ public class MainActivity extends BridgeActivity {
                 public void speak(String text) {
                     if (text == null || text.trim().isEmpty()) return;
                     runOnUiThread(() -> {
-                        if (nativeTts != null) {
-                            nativeTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "PalashSetuTTS_" + System.currentTimeMillis());
+                        if (!isTtsReady) {
+                            pendingSpeak = text;
+                        } else {
+                            speakNative(text);
                         }
                     });
                 }
