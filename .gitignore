@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+.env
+
+# Node
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Android
+build/
+.gradle/
+local.properties
+*.apk
+*.aab
+
+# Models (Ignore weights & downloads, keep README)
+models/*
+!models/README.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/train/*
+!data/train/.gitkeep
+data/validation/*
+!data/validation/.gitkeep
+data/test/*
+!data/test/.gitkeep
+*.sqlite
+*.db
+
+# Media
+*.mp3
+*.wav
+*.mp4

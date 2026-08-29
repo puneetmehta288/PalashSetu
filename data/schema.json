@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {"type": "string"},
+    "hindi_text": {"type": "string"},
+    "santali_text": {"type": "string"},
+    "domain": {"type": "string"},
+    "grade": {"type": "integer"},
+    "subject": {"type": "string"},
+    "topic": {"type": "string"},
+    "learning_outcome": {"type": "string"},
+    "source": {"type": "string"},
+    "license": {"type": "string"},
+    "validation_status": {"type": "string", "enum": ["unvalidated", "machine_translated", "human_validated", "expert_validated"]}
+  },
+  "required": ["id", "hindi_text", "domain"]
+}

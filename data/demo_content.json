@@ -1,0 +1,29 @@
+{
+  "lesson": {
+    "title_hi": "कक्षा 1 गणित: 1 से 10 तक गिनती",
+    "title_sat": "Class 1 Mathematics: Counting 1-10 [DEMO]",
+    "grade": 1,
+    "subject": "Mathematics",
+    "topic": "Counting 1-10",
+    "validation_status": "unvalidated"
+  },
+  "numbers": [
+    {"id": "num_1", "hindi_text": "एक", "santali_text": "[DEMO SANTALI 1]", "emoji": "1️⃣", "validation_status": "unvalidated"},
+    {"id": "num_2", "hindi_text": "दो", "santali_text": "[DEMO SANTALI 2]", "emoji": "2️⃣", "validation_status": "unvalidated"},
+    {"id": "num_3", "hindi_text": "तीन", "santali_text": "[DEMO SANTALI 3]", "emoji": "3️⃣", "validation_status": "unvalidated"},
+    {"id": "num_4", "hindi_text": "चार", "santali_text": "[DEMO SANTALI 4]", "emoji": "4️⃣", "validation_status": "unvalidated"},
+    {"id": "num_5", "hindi_text": "पाँच", "santali_text": "[DEMO SANTALI 5]", "emoji": "5️⃣", "validation_status": "unvalidated"},
+    {"id": "num_6", "hindi_text": "छह", "santali_text": "[DEMO SANTALI 6]", "emoji": "6️⃣", "validation_status": "unvalidated"},
+    {"id": "num_7", "hindi_text": "सात", "santali_text": "[DEMO SANTALI 7]", "emoji": "7️⃣", "validation_status": "unvalidated"},
+    {"id": "num_8", "hindi_text": "आठ", "santali_text": "[DEMO SANTALI 8]", "emoji": "8️⃣", "validation_status": "unvalidated"},
+    {"id": "num_9", "hindi_text": "नौ", "santali_text": "[DEMO SANTALI 9]", "emoji": "9️⃣", "validation_status": "unvalidated"},
+    {"id": "num_10", "hindi_text": "दस", "santali_text": "[DEMO SANTALI 10]", "emoji": "🔟", "validation_status": "unvalidated"}
+  ],
+  "questions": [
+    {"id": "q_1", "hindi_text": "दो सेब और तीन सेब कितने होते हैं?", "santali_text": "[DEMO SANTALI Q1]", "validation_status": "unvalidated"},
+    {"id": "q_2", "hindi_text": "पाँच के बाद क्या आता है?", "santali_text": "[DEMO SANTALI Q2]", "validation_status": "unvalidated"},
+    {"id": "q_3", "hindi_text": "दस उंगलियां दिखाओ।", "santali_text": "[DEMO SANTALI Q3]", "validation_status": "unvalidated"},
+    {"id": "q_4", "hindi_text": "कौन सा नंबर बड़ा है, चार या सात?", "santali_text": "[DEMO SANTALI Q4]", "validation_status": "unvalidated"},
+    {"id": "q_5", "hindi_text": "आठ में से एक घटाएं तो क्या बचेगा?", "santali_text": "[DEMO SANTALI Q5]", "validation_status": "unvalidated"}
+  ]
+}

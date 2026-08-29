@@ -1,0 +1,172 @@
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--surface-bg);
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.content-area {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Glassmorphism Card Utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+/* 3D Flip Card Effect */
+.perspective-container {
+  perspective: 1000px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.flip-card-front {
+  background: #ffffff;
+  border: 2px solid #fed7aa;
+}
+
+.flip-card-back {
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  transform: rotateY(180deg);
+  border: 2px solid #334155;
+}
+
+/* Desktop Defaults for Mobile Controls */
+.mobile-hamburger-btn {
+  display: none !important;
+}
+
+.mobile-close-btn {
+  display: none !important;
+}
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* ==========================================================================
+   📱 Mobile & Tablet Responsive Breakpoints (<= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .content-area {
+    padding: 1rem 0.85rem 5rem 0.85rem; /* Extra bottom padding for bottom nav */
+  }
+
+  /* Hamburger & Close Buttons */
+  .mobile-hamburger-btn {
+    display: flex !important;
+  }
+
+  .mobile-close-btn {
+    display: block !important;
+  }
+
+  /* Mobile Slide-Over Sidebar Drawer */
+  .app-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    height: 100vh;
+    z-index: 999;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.4);
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .app-sidebar.mobile-open {
+    left: 0 !important;
+  }
+
+  .header-model-pill {
+    display: none !important;
+  }
+
+  /* Mobile Bottom Navigation Bar */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    z-index: 90;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 4px;
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 10px;
+    transition: all 0.15s ease;
+    flex: 1;
+  }
+
+  .bottom-nav-item.active {
+    color: #c05621;
+    background-color: #fffaf0;
+    font-weight: 800;
+  }
+
+  .bottom-nav-icon {
+    font-size: 1.3rem;
+    line-height: 1.1;
+  }
+}
