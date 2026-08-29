@@ -230,4 +230,4 @@ BhashaSetu/
 ```
 
 ---
-*Developed for Smart India Hackathon 2026 — Team BhashaSetu.*
+*Developed for Smart India Hackathon 2026 — Team Psyduck.*
