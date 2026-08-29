@@ -33,23 +33,24 @@ export const useSpeechRecognition = (defaultLang = 'hi-IN') => {
       };
 
       recognition.onresult = (event: any) => {
-        let finalTranscript = '';
-        let interim = '';
+        let finalStr = '';
+        let interimStr = '';
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        for (let i = 0; i < event.results.length; ++i) {
           const item = event.results[i];
           if (item.isFinal) {
-            finalTranscript += item[0].transcript;
+            finalStr += item[0].transcript + ' ';
           } else {
-            interim += item[0].transcript;
+            interimStr += item[0].transcript;
           }
         }
 
-        if (finalTranscript) {
-          setTranscript((prev) => (prev ? `${prev} ${finalTranscript}` : finalTranscript));
+        const cleaned = finalStr.trim();
+        if (cleaned) {
+          setTranscript(cleaned);
           setInterimTranscript('');
         } else {
-          setInterimTranscript(interim);
+          setInterimTranscript(interimStr);
         }
       };
 

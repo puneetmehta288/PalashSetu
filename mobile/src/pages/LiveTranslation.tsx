@@ -119,7 +119,7 @@ const LiveTranslation: React.FC = () => {
 // Common multi-word phrase patterns (Longest Match First)
 const PHRASE_PATTERNS: Array<[RegExp, string]> = [
   // Compound Greetings & Classroom Intros
-  [/["'“”«»]?नमस्ते\s+बच्चों[!।,.\s"'“”«»]*/gi, 'ᱡᱚᱦᱟᱨ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ! '],
+  [/["'“”«»]?नमस्ते\s+(बच्चों|बच्चन|बच्चो)[!।,.\s"'“”«»]*/gi, 'ᱡᱚᱦᱟᱨ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ! '],
   [/["'“”«»]?नमस्ते\s+शिक्षक[!।,.\s"'“”«»]*/gi, 'ᱡᱚᱦᱟᱨ ᱢᱟᱪᱮᱛ! '],
   [/आज हम/gi, 'ᱛᱮᱦᱮᱧ ᱟᱵᱚ '],
   [/एक से दस तक/gi, 'ᱢᱤᱫ ᱠᱷᱚᱱ ᱜᱮᱞ ᱦᱟᱹᱵᱤᱡ '],

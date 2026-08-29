@@ -3,16 +3,31 @@ package com.bhashasetu.app;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
+import java.util.Locale;
 
 public class MainActivity extends BridgeActivity {
+    private TextToSpeech nativeTts;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialize Native Android TextToSpeech Engine
+        nativeTts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int result = nativeTts.setLanguage(new Locale("hi", "IN"));
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    nativeTts.setLanguage(new Locale("en", "IN"));
+                }
+                nativeTts.setSpeechRate(0.85f);
+            }
+        });
 
         // Request runtime RECORD_AUDIO permission if not yet granted
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
@@ -32,6 +47,16 @@ public class MainActivity extends BridgeActivity {
             });
 
             this.bridge.getWebView().addJavascriptInterface(new Object() {
+                @android.webkit.JavascriptInterface
+                public void speak(String text) {
+                    if (text == null || text.trim().isEmpty()) return;
+                    runOnUiThread(() -> {
+                        if (nativeTts != null) {
+                            nativeTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "PalashSetuTTS_" + System.currentTimeMillis());
+                        }
+                    });
+                }
+
                 @android.webkit.JavascriptInterface
                 public void openVoiceInputSettings() {
                     try {
@@ -74,5 +99,14 @@ public class MainActivity extends BridgeActivity {
                 }
             }, "AndroidVoiceBridge");
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (nativeTts != null) {
+            nativeTts.stop();
+            nativeTts.shutdown();
+        }
+        super.onDestroy();
     }
 }

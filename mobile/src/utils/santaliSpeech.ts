@@ -269,6 +269,15 @@ export function speakText(text: string, options?: { lang?: string; rate?: number
       voiceLang = 'hi-IN'; // Use Indian voice engine for phonetic output
     }
 
+    // 🎙️ Native Android OS Hardware TTS Bridge (Highest priority on Android APK)
+    if (typeof window !== 'undefined' && (window as any).AndroidVoiceBridge?.speak) {
+      (window as any).AndroidVoiceBridge.speak(textToSpeak);
+      if (options?.onEnd) {
+        setTimeout(options.onEnd, 1500);
+      }
+      return;
+    }
+
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = voiceLang;
     utterance.rate = options?.rate || 0.85; // Crisp pedagogical clarity
