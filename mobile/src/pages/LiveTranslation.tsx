@@ -4,6 +4,7 @@ import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOl
 import { sfx } from '../utils/sfx';
 import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
 import { COMPREHENSIVE_HINDI_TO_SANTALI } from '../data/santali_comprehensive_dictionary';
+import { INDIC_TRANS_MODEL_SANTALI_COUNT } from '../data/santali_model_vocabulary';
 
 // Comprehensive Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
@@ -484,8 +485,13 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       {/* Title Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
-            <span>⚡ Sub-3-Second AI Translation</span>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
+              <span>⚡ Sub-3-Second AI Translation</span>
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
+              <span>📦 {INDIC_TRANS_MODEL_SANTALI_COUNT.toLocaleString()} Model Vocab (100% IndicTrans2 Santali)</span>
+            </div>
           </div>
           <h1 style={{ color: '#0f2744', fontSize: '1.85rem', fontWeight: 800, margin: 0 }}>
             🎙️ Live Classroom Voice Translator
