@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.bhashasetu.app',
-  appName: 'BhashaSetu',
+  appName: 'PalashSetu',
   webDir: 'dist',
   server: {
     androidScheme: 'https'

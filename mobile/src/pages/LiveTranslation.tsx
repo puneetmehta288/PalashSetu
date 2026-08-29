@@ -393,15 +393,19 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       const srcLang = mode === 'teacher' ? 'hin_Deva' : 'sat_Olck';
       const tgtLang = mode === 'teacher' ? 'sat_Olck' : 'hin_Deva';
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300);
+
       const response = await fetch('http://127.0.0.1:8000/api/v1/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           source_text: rawInput,
           source_lang: srcLang,
           target_lang: tgtLang,
         }),
-      });
+      }).finally(() => clearTimeout(timeoutId));
 
       const elapsed = Math.round(performance.now() - startTime);
       setLatencyMs(elapsed || 4);

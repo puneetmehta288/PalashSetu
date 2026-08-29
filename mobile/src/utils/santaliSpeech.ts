@@ -260,8 +260,6 @@ export function speakText(text: string, options?: { lang?: string; rate?: number
   }
 
   try {
-    window.speechSynthesis.cancel(); // Stop any currently playing utterance
-
     let textToSpeak = text;
     let voiceLang = options?.lang || 'hi-IN';
 
@@ -273,17 +271,8 @@ export function speakText(text: string, options?: { lang?: string; rate?: number
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = voiceLang;
-    utterance.rate = options?.rate || 0.85; // Slightly slower for crisp pedagogical clarity
+    utterance.rate = options?.rate || 0.85; // Crisp pedagogical clarity
     utterance.pitch = 1.0;
-
-    // Pick best Indian voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const hindiVoice = voices.find(v => v.lang === 'hi-IN' || v.lang.startsWith('hi')) ||
-                       voices.find(v => v.lang === 'en-IN') ||
-                       voices.find(v => v.lang.includes('IN'));
-    if (hindiVoice) {
-      utterance.voice = hindiVoice;
-    }
 
     if (options?.onEnd) {
       utterance.onend = options.onEnd;
@@ -293,7 +282,22 @@ export function speakText(text: string, options?: { lang?: string; rate?: number
       console.warn('Speech synthesis utterance error:', e);
     };
 
-    window.speechSynthesis.speak(utterance);
+    // Android WebView fix: Cancel existing utterance, resume if suspended, then speak with a tiny delay
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+    window.speechSynthesis.cancel();
+
+    setTimeout(() => {
+      try {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn('Deferred speak error:', e);
+      }
+    }, 60);
   } catch (err) {
     console.error('Error invoking speakText:', err);
   }
