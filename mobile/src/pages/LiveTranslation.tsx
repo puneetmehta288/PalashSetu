@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
-import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOlChiki, convertOlChikiToDigits, numberToSantaliWords } from '../utils/santaliSpeech';
+import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOlChiki, convertOlChikiToDigits, numberToSantaliWords, transliterateDevanagariToOlChiki } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
 import { COMPREHENSIVE_HINDI_TO_SANTALI } from '../data/santali_comprehensive_dictionary';
@@ -362,7 +362,11 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
     } else if (activeDict[w]) {
       resultWords.push(activeDict[w]);
     } else {
-      resultWords.push(w);
+      if (currentMode === 'teacher') {
+        resultWords.push(transliterateDevanagariToOlChiki(cleanWord) + punct);
+      } else {
+        resultWords.push(w);
+      }
     }
   }
 

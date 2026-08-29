@@ -207,6 +207,36 @@ export function isOlChiki(text: string): boolean {
   return /[\u1C50-\u1C7F]/.test(text);
 }
 
+const DEVANAGARI_TO_OL_CHIKI_MAP: Record<string, string> = {
+  'अ': 'ᱚ', 'आ': 'ᱟ', 'इ': 'ᱤ', 'ई': 'ᱤ', 'उ': 'ᱩ', 'ऊ': 'ᱩ',
+  'ए': 'ᱮ', 'ऐ': 'ᱮ', 'ओ': 'ᱳ', 'औ': 'ᱳ', 'ऋ': 'ᱨᱤ',
+  'क': 'ᱠ', 'ख': 'ᱠᱷ', 'ग': 'ᱜ', 'घ': 'ᱜᱷ', 'ङ': 'ᱝ',
+  'च': 'ᱪ', 'छ': 'ᱪᱷ', 'ज': 'ᱡ', 'झ': 'ᱡᱷ', 'ञ': 'ᱧ',
+  'ट': 'ᱴ', 'ठ': 'ᱴᱷ', 'ड': 'ᱰ', 'ढ': 'ᱰᱷ', 'ण': 'ᱬ',
+  'त': 'ᱛ', 'थ': 'ᱛᱷ', 'द': 'ᱫ', 'ध': 'ᱫᱷ', 'न': 'ᱱ',
+  'प': 'ᱯ', 'फ': 'ᱯᱷ', 'ब': 'ᱵ', 'भ': 'ᱵᱷ', 'म': 'ᱢ',
+  'य': 'ᱭ', 'र': 'ᱨ', 'ल': 'ᱞ', 'व': 'ᱣ',
+  'श': 'ᱥ', 'ष': 'ᱥ', 'स': 'ᱥ', 'ह': 'ᱦ',
+  'ड़': 'ᱲ', 'ढ़': 'ᱲᱷ',
+  // Matras
+  'ा': 'ᱟ', 'ि': 'ᱤ', 'ी': 'ᱤ', 'ु': 'ᱩ', 'ू': 'ᱩ',
+  'े': 'ᱮ', 'ै': 'ᱮ', 'ो': 'ᱳ', 'ौ': 'ᱳ', 'ृ': 'ᱨᱤ',
+  'ं': 'ᱸ', 'ः': 'ᱺ', '्': 'ᱽ', 'ँ': 'ᱸ',
+  '०': '᱐', '१': '᱑', '२': '᱒', '३': '᱓', '४': '᱔',
+  '५': '᱕', '६': '᱖', '७': '᱗', '८': '᱘', '९': '᱙',
+  '।': '᱾', '॥': '᱿'
+};
+
+export function transliterateDevanagariToOlChiki(text: string): string {
+  if (!text) return '';
+  let res = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    res += DEVANAGARI_TO_OL_CHIKI_MAP[ch] || ch;
+  }
+  return res;
+}
+
 /**
  * Transliterates Ol Chiki text into phonetic Devanagari representation
  * suitable for Indian TTS engines.
