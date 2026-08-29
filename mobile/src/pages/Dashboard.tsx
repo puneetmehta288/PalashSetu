@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TeacherProfile } from '../services/authService';
 import { sfx } from '../utils/sfx';
+import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
 
 interface DashboardProps {
   activeTeacher?: TeacherProfile | null;
@@ -77,6 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
   const teacherName = activeTeacher?.name || 'Sunita Kumari';
   const assignedGrade = activeTeacher?.assignedGrade || 'Class 1';
   const district = activeTeacher?.district || 'Dumka';
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
 
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -137,6 +139,55 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 1-Tap Offline Classroom Setup Banner */}
+      <div
+        onClick={() => {
+          sfx.playTap();
+          setShowOfflineModal(true);
+        }}
+        style={{
+          backgroundColor: '#fffaf0',
+          border: '1px solid #feebc8',
+          borderRadius: '16px',
+          padding: '1rem 1.25rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(237,137,54,0.12)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#fbd38d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
+            ⚡
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, color: '#9c4221', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>1-Tap Offline Voice & Audio Setup</span>
+              <span style={{ fontSize: '0.7rem', backgroundColor: '#ed8936', color: '#fff', padding: '2px 8px', borderRadius: '10px' }}>OFFLINE PACK</span>
+            </div>
+            <div style={{ fontSize: '0.8rem', color: '#c05621', marginTop: '2px' }}>
+              झारखंड के ग्रामीण स्कूलों के लिए बिना इंटरनेट माइक और आवाज़ डाउनलोड करें
+            </div>
+          </div>
+        </div>
+        <button
+          style={{
+            backgroundColor: '#ed8936',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '10px',
+            padding: '8px 14px',
+            fontWeight: 700,
+            fontSize: '0.82rem',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          Setup Now ➔
+        </button>
       </div>
 
       {/* Main Feature Cards Grid */}
@@ -235,6 +286,12 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
           ))}
         </div>
       </div>
+
+      {/* In-App 1-Tap Offline Voice Setup Modal */}
+      <OfflineVoiceModal
+        isOpen={showOfflineModal}
+        onClose={() => setShowOfflineModal(false)}
+      />
     </div>
   );
 };

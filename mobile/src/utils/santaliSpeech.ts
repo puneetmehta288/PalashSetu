@@ -274,6 +274,18 @@ export function speakText(text: string, options?: { lang?: string; rate?: number
     utterance.rate = options?.rate || 0.85; // Crisp pedagogical clarity
     utterance.pitch = 1.0;
 
+    // Pick best available voice or fallback to Indian/English voice
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      const matched = voices.find(v => v.lang === 'hi-IN' || v.lang.startsWith('hi')) ||
+                      voices.find(v => v.lang === 'en-IN' || v.lang.includes('IN')) ||
+                      voices.find(v => v.lang.startsWith('en'));
+      if (matched) {
+        utterance.voice = matched;
+        utterance.lang = matched.lang;
+      }
+    }
+
     if (options?.onEnd) {
       utterance.onend = options.onEnd;
     }

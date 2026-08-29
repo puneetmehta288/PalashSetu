@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOlChiki, convertOlChikiToDigits, numberToSantaliWords } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
+import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
 
 // Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
@@ -111,6 +112,7 @@ const LiveTranslation: React.FC = () => {
   const [latencyMs, setLatencyMs] = useState<number>(0);
   const [isTranslating, setIsTranslating] = useState(false);
   const [phraseCategory, setPhraseCategory] = useState<'greetings' | 'commands' | 'numeracy' | 'responses'>('greetings');
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
 
   const { isListening, startListening, stopListening, transcript } = useSpeechRecognition();
 
@@ -485,10 +487,36 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           </h1>
         </div>
 
-        {/* Active Model Indicator Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', color: '#166534', fontWeight: 700 }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
-          <span>{activeModel}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* 1-Tap In-App Offline Voice Setup Button */}
+          <button
+            onClick={() => {
+              sfx.playTap();
+              setShowOfflineModal(true);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: '#fffaf0',
+              border: '1px solid #feebc8',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              fontSize: '0.8rem',
+              color: '#c05621',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(237,137,54,0.15)',
+            }}
+          >
+            <span>⚡ 1-Tap Offline Setup</span>
+          </button>
+
+          {/* Active Model Indicator Pill */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', color: '#166534', fontWeight: 700 }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
+            <span>{activeModel}</span>
+          </div>
         </div>
       </div>
 
@@ -822,6 +850,12 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           ))}
         </div>
       </div>
+
+      {/* In-App 1-Tap Offline Voice & TTS Setup Modal */}
+      <OfflineVoiceModal
+        isOpen={showOfflineModal}
+        onClose={() => setShowOfflineModal(false)}
+      />
     </div>
   );
 };
