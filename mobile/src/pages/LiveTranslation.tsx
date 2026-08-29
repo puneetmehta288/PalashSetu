@@ -111,7 +111,7 @@ const LiveTranslation: React.FC = () => {
   const [sourceText, setSourceText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
   const [pronunciation, setPronunciation] = useState('');
-  const [activeModel, setActiveModel] = useState('AI4Bharat IndicTrans2 320M (On-Device Local)');
+  const [activeModel, setActiveModel] = useState('⚡ Palash On-Device Engine (7,500+ Offline Vocab)');
   const [latencyMs, setLatencyMs] = useState<number>(0);
   const [isTranslating, setIsTranslating] = useState(false);
   const [phraseCategory, setPhraseCategory] = useState<'greetings' | 'commands' | 'numeracy' | 'responses'>('greetings');
@@ -403,56 +403,19 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
     const startTime = performance.now();
 
     try {
-      const srcLang = mode === 'teacher' ? 'hin_Deva' : 'sat_Olck';
-      const tgtLang = mode === 'teacher' ? 'sat_Olck' : 'hin_Deva';
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 300);
-
-      const response = await fetch('http://127.0.0.1:8000/api/v1/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          source_text: rawInput,
-          source_lang: srcLang,
-          target_lang: tgtLang,
-        }),
-      }).finally(() => clearTimeout(timeoutId));
-
-      const elapsed = Math.round(performance.now() - startTime);
-      setLatencyMs(elapsed || 4);
-
-      let resultSat = '';
-      if (response.ok) {
-        const data = await response.json();
-        resultSat = data.translated_text;
-        setTranslatedText(resultSat);
-        setPronunciation(computePhonetic(rawInput, resultSat, mode));
-        setActiveModel(data.model_name || 'AI4Bharat IndicTrans2 320M (On-Device Local)');
-      } else {
-        throw new Error('API unavailable, switching to local client dictionary');
-      }
-
-      // 🎙️ AUTOMATIC VOICE-TO-VOICE PLAYBACK: Speak translated voice out loud immediately
-      if (resultSat) {
-        setTimeout(() => {
-          speakText(resultSat, { rate: 0.85 });
-        }, 150);
-      }
-    } catch {
-      const elapsed = Math.round(performance.now() - startTime);
-      setLatencyMs(elapsed || 3);
+      // 100% On-Device Client Linguistic Engine (Zero network delay, instant offline)
       const clientTranslated = translateClientSide(rawInput, mode);
+      const elapsed = Math.max(1, Math.round(performance.now() - startTime));
+      setLatencyMs(elapsed);
       setTranslatedText(clientTranslated);
       setPronunciation(computePhonetic(rawInput, clientTranslated, mode));
-      setActiveModel('AI4Bharat IndicTrans2 320M (On-Device Local)');
+      setActiveModel('⚡ Palash On-Device Engine (7,500+ Offline Vocab)');
 
-      // 🎙️ AUTOMATIC VOICE-TO-VOICE PLAYBACK (Offline Fallback)
+      // 🎙️ AUTOMATIC VOICE-TO-VOICE PLAYBACK: Speak translated voice out loud immediately
       if (clientTranslated) {
         setTimeout(() => {
           speakText(clientTranslated, { rate: 0.85 });
-        }, 150);
+        }, 120);
       }
     } finally {
       setIsTranslating(false);
@@ -491,10 +454,10 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         <div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-              <span>⚡ Sub-3-Second AI Translation</span>
+              <span>⚡ Sub-10ms On-Tablet Engine</span>
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-              <span>📦 {INDIC_TRANS_MODEL_SANTALI_COUNT.toLocaleString()} Model Vocab (100% IndicTrans2 Santali)</span>
+              <span>📦 7,500+ Offline Vocab (100% Standalone)</span>
             </div>
           </div>
           <h1 style={{ color: '#0f2744', fontSize: '1.85rem', fontWeight: 800, margin: 0 }}>
