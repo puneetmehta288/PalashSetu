@@ -15,7 +15,7 @@ const BOTTOM_NAV_ITEMS = [
   { to: '/translate', icon: '🎙️', label: 'Voice' },
   { to: '/flashcards', icon: '🃏', label: 'Cards' },
   { to: '/lessons', icon: '📚', label: 'Lessons' },
-  { to: '/worksheets', icon: '📝', label: 'Math' },
+  { to: '/worksheets', icon: '📝', label: 'Worksheets' },
 ];
 
 const Layout: React.FC<LayoutProps> = ({ activeTeacher, onSwitchTeacher }) => {

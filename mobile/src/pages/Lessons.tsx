@@ -1007,11 +1007,15 @@ const Lessons: React.FC = () => {
 
   const handlePrint = () => {
     sfx.playTap();
-    setIsPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => setIsPrinting(false), 1000);
-    }, 200);
+    if (typeof window !== 'undefined' && (window as any).AndroidVoiceBridge?.print) {
+      (window as any).AndroidVoiceBridge.print();
+    } else {
+      setIsPrinting(true);
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => setIsPrinting(false), 1000);
+      }, 200);
+    }
   };
 
   return (

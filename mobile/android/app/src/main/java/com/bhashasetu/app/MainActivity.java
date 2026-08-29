@@ -58,6 +58,23 @@ public class MainActivity extends BridgeActivity {
                 }
 
                 @android.webkit.JavascriptInterface
+                public void print() {
+                    runOnUiThread(() -> {
+                        try {
+                            if (bridge != null && bridge.getWebView() != null) {
+                                android.print.PrintManager printManager = (android.print.PrintManager) getSystemService(android.content.Context.PRINT_SERVICE);
+                                if (printManager != null) {
+                                    android.print.PrintDocumentAdapter printAdapter = bridge.getWebView().createPrintDocumentAdapter("PalashSetu_Print");
+                                    printManager.print("PalashSetu Worksheet", printAdapter, new android.print.PrintAttributes.Builder().build());
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+
+                @android.webkit.JavascriptInterface
                 public void openVoiceInputSettings() {
                     try {
                         android.content.Intent intent = new android.content.Intent(android.provider.Settings.ACTION_VOICE_INPUT_SETTINGS);

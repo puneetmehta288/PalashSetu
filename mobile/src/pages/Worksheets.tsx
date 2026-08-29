@@ -251,6 +251,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
         question_hin: `${a} + ${b} = ___  (उत्तर Ol Chiki में भी लिखो)`,
         question_sat: `${OL_DIGITS[a]} + ${OL_DIGITS[b]} = ___ (ᱚᱞ ᱪᱤᱠᱤ ᱛᱮ ᱞᱮᱠᱷᱮ)`,
         correct_answer: `${a + b}  (Santali: ${SANTALI_NUMS[a + b - 1] || (a + b)})`,
+        hint: `गिनती करें: ${a} से आगे ${b} कदम गिनें (${SANTALI_NUMS[a-1]} ᱟᱨ ${SANTALI_NUMS[b-1]} = ${SANTALI_NUMS[a+b-1] || a+b})`,
       });
     }
 
@@ -262,6 +263,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
         question_hin: `${a} - ${b} = ___`,
         question_sat: `${OL_DIGITS[a]} - ${OL_DIGITS[b]} = ___`,
         correct_answer: `${a - b}  (${SANTALI_NUMS[a - b - 1] || (a - b)})`,
+        hint: `उलटी गिनती करें: ${a} में से ${b} घटाएँ (${SANTALI_NUMS[a-1]} ᱠᱷᱚᱱ ${SANTALI_NUMS[b-1]} ᱜᱷᱟᱴᱟᱣ)`,
       });
     }
 
@@ -276,6 +278,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
         question_sat: `ᱞᱮᱠᱷᱟ ${n} ᱫᱚ ᱚᱞ ᱪᱤᱠᱤ ᱟᱨ ᱥᱟᱱᱛᱟᱲᱤ ᱛᱮ ᱪᱮᱫ?`,
         options: [correct, wrong1, wrong2].sort(() => Math.random() - 0.5),
         correct_answer: correct,
+        hint: `संथाली गिनती: 1=ᱢᱤᱫ, 2=ᱵᱟᱨ, 3=ᱯᱮ, 4=ᱯᱩᱱ, 5=ᱢᱚᱬᱮ, 6=ᱛᱩᱨᱩᱭ...`,
       });
     }
 
@@ -571,6 +574,21 @@ const Worksheets: React.FC = () => {
     setQuestions(qs);
   };
 
+  // Auto-generate initial worksheet so teachers immediately see content
+  React.useEffect(() => {
+    const qs = generateQuestions('c1_addition', 5);
+    setQuestions(qs);
+  }, []);
+
+  const handlePrint = () => {
+    sfx.playTap();
+    if (typeof window !== 'undefined' && (window as any).AndroidVoiceBridge?.print) {
+      (window as any).AndroidVoiceBridge.print();
+    } else {
+      window.print();
+    }
+  };
+
   const GRADE_ICONS: Record<string, string> = {
     Balvatika: '🧸', 'Class 1': '🎒', 'Class 2': '📖', 'Class 3': '🧮',
   };
@@ -594,15 +612,15 @@ const Worksheets: React.FC = () => {
         {questions.length > 0 && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => { sfx.playTap(); setShowHints(!showHints); }}
-              style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showHints ? '#fef3c7' : '#fff', color: showHints ? '#92400e' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+              style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showHints ? '#fef3c7' : '#fff', color: showHints ? '#92400e' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: showHints ? '0 0 8px rgba(234, 179, 8, 0.4)' : 'none' }}>
               💡 {showHints ? 'Hide Hints' : 'Show Hints'}
             </button>
             <button onClick={() => { if (!showAnswers) sfx.playSuccess(); else sfx.playTap(); setShowAnswers(!showAnswers); }}
-              style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showAnswers ? '#f0fdf4' : '#fff', color: showAnswers ? '#166534' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+              style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showAnswers ? '#f0fdf4' : '#fff', color: showAnswers ? '#166534' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
               {showAnswers ? '👁️ Hide Answers' : '🔑 Show Answer Key'}
             </button>
-            <button onClick={() => { sfx.playTap(); window.print(); }}
-              style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', backgroundColor: '#0f2744', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+            <button onClick={handlePrint}
+              style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', backgroundColor: '#0f2744', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(15,39,68,0.25)' }}>
               🖨️ Print / PDF
             </button>
           </div>
