@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { speakText } from '../utils/santaliSpeech';
+import { sfx } from '../utils/sfx';
 
 // ============================================================
 // NIPUN Bharat - Panchaadi (5-Step) Lesson Plan Engine
@@ -961,6 +962,7 @@ const Lessons: React.FC = () => {
   };
 
   const handleGenerate = async () => {
+    sfx.playGenerate();
     setIsGenerating(true);
     setOpenSection(1);
     setShowAnswers({});
@@ -973,6 +975,7 @@ const Lessons: React.FC = () => {
       await new Promise(r => setTimeout(r, 400));
       setLesson(preset);
       setIsGenerating(false);
+      sfx.playSuccess();
       return;
     }
 
@@ -985,17 +988,37 @@ const Lessons: React.FC = () => {
   };
 
   const playVoice = (text: string) => {
+    sfx.playVoicePing();
     speakText(text, { rate: 0.85 });
   };
 
-  const toggleSection = (idx: number) => setOpenSection(openSection === idx ? null : idx);
-  const toggleAnswer = (idx: number) => setShowAnswers(s => ({ ...s, [idx]: !s[idx] }));
+  const toggleSection = (idx: number) => {
+    sfx.playTap();
+    setOpenSection(openSection === idx ? null : idx);
+  };
+
+  const toggleAnswer = (idx: number) => {
+    if (!showAnswers[idx]) sfx.playSuccess();
+    else sfx.playTap();
+    setShowAnswers(s => ({ ...s, [idx]: !s[idx] }));
+  };
+
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handlePrint = () => {
+    sfx.playTap();
+    setIsPrinting(true);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => setIsPrinting(false), 1000);
+    }, 200);
+  };
 
   return (
     <div className="fade-in" style={{ maxWidth: '980px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
       {/* Header */}
-      <div>
+      <div className="no-print">
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '3px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
           📚 NIPUN Bharat Panchaadi (5-Step) Lesson Studio
         </div>
@@ -1008,7 +1031,7 @@ const Lessons: React.FC = () => {
       </div>
 
       {/* NIPUN Framework Quick Reference */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
+      <div className="no-print panchaadi-overview" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
         {[
           { step: '1', name: 'Adarsh', sat: 'ᱟᱫᱚᱨᱥᱚ', desc: 'Connect to child\'s life', icon: '🌟', color: '#fef3c7' },
           { step: '2', name: 'Bodhan', sat: 'ᱵᱳᱫᱷᱚᱱ', desc: 'Teach core concept', icon: '💡', color: '#dbeafe' },
@@ -1026,7 +1049,7 @@ const Lessons: React.FC = () => {
       </div>
 
       {/* Generator Panel */}
-      <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15,39,68,0.05)', border: '1px solid #e2e8f0' }}>
+      <div className="no-print generator-panel" style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15,39,68,0.05)', border: '1px solid #e2e8f0' }}>
         <h3 style={{ margin: '0 0 1rem', color: '#0f2744', fontSize: '1rem', fontWeight: 800 }}>
           ⚙️ Select Grade, Domain & NIPUN Competency
         </h3>
@@ -1090,8 +1113,18 @@ const Lessons: React.FC = () => {
       {lesson && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
+          {/* Official Printable Sheet Header */}
+          <div style={{ display: isPrinting ? 'block' : 'none', borderBottom: '2px solid #0f2744', paddingBottom: '8px', marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Government of Jharkhand • Department of School Education & Literacy
+            </div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f2744' }}>
+              PALASH MTB-MLE: 5-Part Panchaadi Bilingual Lesson Plan
+            </div>
+          </div>
+
           {/* Lesson Title Card */}
-          <div style={{ background: 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)', borderRadius: '16px', padding: '1.5rem', color: '#ffffff' }}>
+          <div className="print-card" style={{ background: 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)', borderRadius: '16px', padding: '1.5rem', color: '#ffffff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
@@ -1105,7 +1138,7 @@ const Lessons: React.FC = () => {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button onClick={() => window.print()} style={{ backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', padding: '7px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '0.82rem', color: '#ffffff', cursor: 'pointer' }}>
+                <button onClick={handlePrint} className="no-print" style={{ backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', padding: '7px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '0.82rem', color: '#ffffff', cursor: 'pointer' }}>
                   🖨️ Print / PDF
                 </button>
               </div>
@@ -1132,7 +1165,7 @@ const Lessons: React.FC = () => {
           {/* Panchaadi Steps (Accordion) */}
           {lesson.sections.map((section) => {
             const colors = STEP_COLORS[section.step];
-            const isOpen = openSection === section.step;
+            const isOpen = isPrinting || openSection === section.step;
             return (
               <div key={section.step} style={{ borderRadius: '14px', border: `1px solid ${colors.border}`, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 {/* Accordion Header */}
@@ -1164,7 +1197,7 @@ const Lessons: React.FC = () => {
                         <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px' }}>
                           🇮🇳 Hindi (Teacher Instruction)
                         </span>
-                        <button onClick={() => playVoice(section.hin)} style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', padding: '3px 10px', borderRadius: '6px', fontSize: '0.72rem', color: '#334155', cursor: 'pointer', fontWeight: 700 }}>
+                        <button onClick={() => playVoice(section.hin)} className="no-print" style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', padding: '3px 10px', borderRadius: '6px', fontSize: '0.72rem', color: '#334155', cursor: 'pointer', fontWeight: 700 }}>
                           🔊 Listen Hindi
                         </button>
                       </div>
@@ -1179,7 +1212,7 @@ const Lessons: React.FC = () => {
                         <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px' }}>
                           🔤 Santali Ol Chiki (ᱢᱟᱪᱮᱛ ᱟᱲᱟᱝ)
                         </span>
-                        <button onClick={() => playVoice(section.sat)} style={{ backgroundColor: '#fffaf0', border: '1px solid #fed7aa', padding: '3px 10px', borderRadius: '6px', fontSize: '0.72rem', color: '#c05621', cursor: 'pointer', fontWeight: 700 }}>
+                        <button onClick={() => playVoice(section.sat)} className="no-print" style={{ backgroundColor: '#fffaf0', border: '1px solid #fed7aa', padding: '3px 10px', borderRadius: '6px', fontSize: '0.72rem', color: '#c05621', cursor: 'pointer', fontWeight: 700 }}>
                           🔊 Listen Santali
                         </button>
                       </div>
@@ -1194,7 +1227,7 @@ const Lessons: React.FC = () => {
           })}
 
           {/* NIPUN Assessment Prompts */}
-          <div style={{ backgroundColor: '#fffaf0', borderRadius: '16px', padding: '1.5rem', border: '2px solid #fed7aa', boxShadow: '0 4px 12px rgba(237,137,54,0.08)' }}>
+          <div className="print-card" style={{ backgroundColor: '#fffaf0', borderRadius: '16px', padding: '1.5rem', border: '2px solid #fed7aa', boxShadow: '0 4px 12px rgba(237,137,54,0.08)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
               <span style={{ fontSize: '1.4rem' }}>📝</span>
               <div>
@@ -1217,11 +1250,11 @@ const Lessons: React.FC = () => {
                     <div style={{ color: '#c05621', fontWeight: 600, fontSize: '0.88rem', fontFamily: 'serif' }}>
                       {p.question_sat}
                     </div>
-                    <button onClick={() => toggleAnswer(idx)} style={{ marginTop: '8px', backgroundColor: showAnswers[idx] ? '#dcfce7' : '#f1f5f9', border: `1px solid ${showAnswers[idx] ? '#86efac' : '#cbd5e1'}`, padding: '5px 14px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700, color: showAnswers[idx] ? '#166534' : '#334155', cursor: 'pointer' }}>
+                    <button onClick={() => toggleAnswer(idx)} className="no-print" style={{ marginTop: '8px', backgroundColor: showAnswers[idx] ? '#dcfce7' : '#f1f5f9', border: `1px solid ${showAnswers[idx] ? '#86efac' : '#cbd5e1'}`, padding: '5px 14px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700, color: showAnswers[idx] ? '#166534' : '#334155', cursor: 'pointer' }}>
                       {showAnswers[idx] ? '🔽 Hide Answer' : '👁️ Show Answer'}
                     </button>
                   </div>
-                  {showAnswers[idx] && (
+                  {(showAnswers[idx] || isPrinting) && (
                     <div style={{ backgroundColor: '#f0fdf4', padding: '10px 14px', borderTop: '1px solid #bbf7d0' }}>
                       <div style={{ fontSize: '0.88rem', color: '#166534', fontWeight: 700 }}>✅ {p.answer_hin}</div>
                       <div style={{ fontSize: '0.88rem', color: '#065f46', fontWeight: 600, fontFamily: 'serif' }}>{p.answer_sat}</div>

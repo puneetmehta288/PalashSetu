@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { TeacherProfile } from '../services/authService';
+import { sfx } from '../utils/sfx';
 
 interface DashboardProps {
   activeTeacher?: TeacherProfile | null;
@@ -142,10 +143,10 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0f2744', margin: 0 }}>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
               🚀 Classroom Pedagogy & Translation Suite
             </h2>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '2px 0 0' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
               Select a module to conduct interactive classroom sessions or prepare bilingual curriculum.
             </p>
           </div>
@@ -156,13 +157,14 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
             <Link
               key={action.to}
               to={action.to}
+              onClick={() => sfx.playTap()}
               style={{
                 textDecoration: 'none',
-                backgroundColor: '#ffffff',
+                backgroundColor: 'var(--card-bg)',
                 borderRadius: '16px',
                 padding: '1.5rem',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 4px 12px rgba(15, 39, 68, 0.05)',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: 'var(--shadow-md)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -172,13 +174,13 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 39, 68, 0.1)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
                 e.currentTarget.style.borderColor = action.color;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 39, 68, 0.05)';
-                e.currentTarget.style.borderColor = '#e2e8f0';
+                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
@@ -187,7 +189,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
                     width: '52px',
                     height: '52px',
                     borderRadius: '14px',
-                    backgroundColor: `${action.color}15`,
+                    backgroundColor: `${action.color}18`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -202,8 +204,9 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
                     fontWeight: 700,
                     padding: '3px 8px',
                     borderRadius: '12px',
-                    backgroundColor: '#f1f5f9',
-                    color: '#475569',
+                    backgroundColor: 'var(--surface-bg)',
+                    color: 'var(--text-muted)',
+                    border: '1px solid var(--border-subtle)',
                   }}
                 >
                   {action.badge}
@@ -212,14 +215,14 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
 
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f2744', margin: 0 }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
                     {action.title}
                   </h3>
                 </div>
                 <div style={{ fontSize: '0.9rem', color: action.color, fontWeight: 700, marginBottom: '6px' }}>
                   {action.santali}
                 </div>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
                   {action.desc}
                 </p>
               </div>

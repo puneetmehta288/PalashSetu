@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ALL_DECKS, DeckMeta, FlashcardItem } from '../data/nipunDecks';
 import { speakText } from '../utils/santaliSpeech';
+import { sfx } from '../utils/sfx';
 
 // ─── Grade config ────────────────────────────────────────────────────────────
 const GRADES = ['Balvatika', 'Class 1', 'Class 2', 'Class 3'] as const;
@@ -344,6 +345,7 @@ const Flashcards: React.FC = () => {
   const isMastered = currentCard ? mastered.has(currentCard.id) : false;
 
   const advance = (dir: 'next' | 'prev') => {
+    sfx.playTap();
     setSlideDir(dir === 'next' ? 'left' : 'right');
     setRevealed(false);
     setTimeout(() => {
@@ -356,6 +358,7 @@ const Flashcards: React.FC = () => {
   };
 
   const handleGradeChange = (grade: Grade) => {
+    sfx.playTap();
     setSelectedGrade(grade);
     setCurrentIndex(0);
     setRevealed(false);
@@ -365,6 +368,7 @@ const Flashcards: React.FC = () => {
   };
 
   const handleDeckChange = (deckId: string) => {
+    sfx.playTap();
     setSelectedDeckId(deckId);
     setCurrentIndex(0);
     setRevealed(false);
@@ -373,6 +377,12 @@ const Flashcards: React.FC = () => {
   const toggleMastered = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentCard) return;
+    const willMaster = !mastered.has(currentCard.id);
+    if (willMaster) {
+      sfx.playSuccess();
+    } else {
+      sfx.playTap();
+    }
     setMastered(prev => {
       const n = new Set(prev);
       n.has(currentCard.id) ? n.delete(currentCard.id) : n.add(currentCard.id);
@@ -382,6 +392,7 @@ const Flashcards: React.FC = () => {
 
   const playAudio = (text: string, lang = 'hi-IN', e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    sfx.playVoicePing();
     speakText(text, { lang, rate: 0.85 });
   };
 
@@ -502,7 +513,10 @@ const Flashcards: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
               }}
-              onClick={() => setRevealed(r => !r)}
+              onClick={() => {
+                sfx.playFlip();
+                setRevealed(r => !r);
+              }}
             >
               {/* TOP LABEL ROW */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px 8px', borderBottom: `1px solid ${revealed ? '#334155' : '#f1f5f9'}` }}>

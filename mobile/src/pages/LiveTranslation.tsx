@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
-import { speakText } from '../utils/santaliSpeech';
+import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOlChiki, convertOlChikiToDigits, numberToSantaliWords } from '../utils/santaliSpeech';
+import { sfx } from '../utils/sfx';
 
 // Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
@@ -113,29 +114,272 @@ const LiveTranslation: React.FC = () => {
 
   const { isListening, startListening, stopListening, transcript } = useSpeechRecognition();
 
-  const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): string => {
-    const trimmed = text.trim();
-    const activeDict = currentMode === 'teacher' ? CLIENT_HINDI_TO_SANTALI : CLIENT_SANTALI_TO_HINDI;
+// Common multi-word phrase patterns (Longest Match First)
+const PHRASE_PATTERNS: Array<[RegExp, string]> = [
+  // Compound Greetings & Classroom Intros
+  [/["'“”«»]?नमस्ते\s+बच्चों[!।,.\s"'“”«»]*/gi, 'ᱡᱚᱦᱟᱨ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ! '],
+  [/["'“”«»]?नमस्ते\s+शिक्षक[!।,.\s"'“”«»]*/gi, 'ᱡᱚᱦᱟᱨ ᱢᱟᱪᱮᱛ! '],
+  [/आज हम/gi, 'ᱛᱮᱦᱮᱧ ᱟᱵᱚ '],
+  [/एक से दस तक/gi, 'ᱢᱤᱫ ᱠᱷᱚᱱ ᱜᱮᱞ ᱦᱟᱹᱵᱤᱡ '],
+  [/१ से १० तक/gi, '᱑ ᱠᱷᱚᱱ ᱑᱐ ᱦᱟᱹᱵᱤᱡ '],
+  [/1 से 10 तक/gi, '᱑ ᱠᱷᱚᱱ ᱑᱐ ᱦᱟᱹᱵᱤᱡ '],
+  [/गिनती सीखेंगे[।.]?/gi, 'ᱞᱮᱠᱷᱟ ᱵᱚᱱ ᱪᱮᱫᱚᱜᱼᱟ᱾'],
+  [/गिनती सीखो[।.]?/gi, 'ᱞᱮᱠᱷᱟ ᱪᱮᱫᱚᱜ ᱢᱮ᱾'],
+  [/अपनी किताब खोलो[।.]?/gi, 'ᱟᱢᱟᱜ ᱯᱩᱛᱷᱤ ᱡᱷᱤᱡᱽ ᱢᱮ᱾'],
+  [/अपनी जगह पर बैठ जाओ[।.]?/gi, 'ᱟᱢᱟᱜ ᱴᱷᱟᱶ ᱨᱮ ᱫᱩᱲᱩᱵᱽ ᱢᱮ᱾'],
+  [/बैठ जाओ[।.]?/gi, 'ᱫᱩᱲᱩᱵᱽ ᱢᱮ᱾'],
+  [/खड़े हो जाओ[।.]?/gi, 'ᱛᱤᱸᱜᱩᱱ ᱢᱮ᱾'],
+  [/बहुत अच्छा[!।,.\s]*/gi, 'ᱟᱹᱰᱤ ᱵᱮᱥ! '],
+  [/शाबाश[!।,.\s]*/gi, 'ᱥᱟᱵᱟᱥ! '],
+  [/ब्लैकबोर्ड की तरफ देखो[।.]?/gi, 'ᱵᱞᱮᱠᱵᱳᱨᱰ ᱥᱮᱫ ᱧᱮᱞ ᱢᱮ᱾'],
+  [/ध्यान से सुनो और लिखो[।.]?/gi, 'ᱟᱧᱡᱚᱢ ᱢᱮ ᱟᱨ ᱚᱞ ᱢᱮ᱾'],
+  [/ध्यान से सुनो[।.]?/gi, 'ᱟᱧᱡᱚᱢ ᱢᱮ᱾'],
+  [/इन सेबों को गिनो और संख्या बताओ[।.]?/gi, 'ᱱᱚᱣᱟ ᱥᱮᱣ ᱠᱚ ᱞᱮᱠᱷᱟᱭ ᱢᱮ ᱟᱨ ᱮᱞᱠᱷᱟ ᱞᱟᱹᱭ ᱢᱮ᱾'],
+  [/इन सेबों को गिनो[।.]?/gi, 'ᱱᱚᱣᱟ ᱥᱮᱣ ᱠᱚ ᱞᱮᱠᱷᱟᱭ ᱢᱮ᱾'],
+  [/संख्या बताओ[।.]?/gi, 'ᱮᱞᱠᱷᱟ ᱞᱟᱹᱭ ᱢᱮ᱾'],
+  [/पाँच के बाद कौन सी संख्या आती है\??/gi, 'ᱢᱚᱬᱮ ᱛᱟᱭᱚᱢ ᱫᱚ ᱚᱠᱟ ᱮᱞᱠᱷᱟ ᱦᱤᱡᱩᱜᱼᱟ?'],
+  [/पांच के बाद कौन सी संख्या आती है\??/gi, 'ᱢᱚᱬᱮ ᱛᱟᱭᱚᱢ ᱫᱚ ᱚᱠᱟ ᱮᱞᱠᱷᱟ ᱦᱤᱡᱩᱜᱼᱟ?'],
+  [/के बाद/gi, 'ᱛᱟᱭᱚᱢ '],
+  [/के पहले/gi, 'ᱞᱟᱦᱟ '],
+  [/कौन सी संख्या/gi, 'ᱚᱠᱟ ᱮᱞᱠᱷᱟ '],
+  [/आती है\??/gi, 'ᱦᱤᱡᱩᱜᱼᱟ?'],
+  [/समझ आया\??/gi, 'ᱵᱩᱡᱷᱟᱹᱣ ᱠᱮᱫᱼᱟ?'],
+  [/समझ आ गया[।.]?/gi, 'ᱵᱩᱡᱷᱟᱹᱣ ᱠᱮᱫᱼᱟ᱾'],
+  [/हाँ शिक्षक/gi, 'ᱦᱚᱭ ᱢᱟᱪᱮᱛ'],
+  [/यह तीन है/gi, 'ᱱᱚᱣᱟ ᱫᱚ ᱯᱮ ᱠᱟᱱᱟ'],
+  [/यह तीन \(3\) है/gi, 'ᱱᱚᱣᱟ ᱫᱚ ᱯᱮ (᱓) ᱠᱟᱱᱟ'],
+];
 
-    if (activeDict[trimmed]) {
-      return activeDict[trimmed];
+const GRAMMAR_PARTICLES: Record<string, string> = {
+  'से': 'ᱠᱷᱚᱱ',
+  'तक': 'ᱦᱟᱹᱵᱤᱡ',
+  'और': 'ᱟᱨ',
+  'में': 'ᱨᱮ',
+  'पर': 'ᱨᱮ',
+  'को': 'ᱠᱚ',
+  'का': 'ᱨᱮᱭᱟᱜ',
+  'की': 'ᱨᱮᱭᱟᱜ',
+  'के': 'ᱨᱮᱭᱟᱜ',
+  'है': 'ᱠᱟᱱᱟ',
+  'हैं': 'ᱠᱟᱱᱟᱠᱚ',
+  'था': 'ᱛᱟᱦᱮᱸᱠᱟᱱᱟ',
+  'थी': 'ᱛᱟᱦᱮᱸᱠᱟᱱᱟ',
+  'सीखेंगे': 'ᱵᱚᱱ ᱪᱮᱫᱚᱜᱼᱟ',
+  'सीखो': 'ᱪᱮᱫᱚᱜ ᱢᱮ',
+  'बताओ': 'ᱞᱟᱹᱭ ᱢᱮ',
+  'गिनो': 'ᱞᱮᱠᱷᱟᱭ ᱢᱮ',
+  'देखो': 'ᱧᱮᱞ ᱢᱮ',
+  'खोलो': 'ᱡᱷᱤᱡᱽ ᱢᱮ',
+  'पढ़ो': 'ᱯᱟᱲᱦᱟᱣ ᱢᱮ',
+  'पढ़ो': 'ᱯᱟᱲᱦᱟᱣ ᱢᱮ',
+  'लिखो': 'ᱚᱞ ᱢᱮ',
+  'सुनो': 'ᱟᱧᱡᱚᱢ ᱢᱮ',
+  'बैठो': 'ᱫᱩᱲᱩᱵ ᱢᱮ',
+  'जाओ': 'ᱥᱮᱱᱚᱜ ᱢᱮ',
+  'आओ': 'ᱦᱤᱡᱩᱜ ᱢᱮ',
+  'आज': 'ᱛᱮᱦᱮᱧ',
+  'कल': 'ᱜᱟᱯᱟ',
+  'हम': 'ᱟᱵᱚ',
+  'आप': 'ᱟᱢ',
+  'तुम': 'ᱟᱢ',
+  'मैं': 'ᱤᱧ',
+  'सब': 'ᱡᱚᱛᱚ',
+  'सभी': 'ᱡᱚᱛᱚ',
+  'यह': 'ᱱᱚᱣᱟ',
+  'वह': 'ᱚᱱᱟ',
+  'ये': 'ᱱᱚᱣᱟᱠᱚ',
+  'वे': 'ᱚᱱᱟᱠᱚ',
+  'गिनती': 'ᱞᱮᱠᱷᱟ',
+  'संख्या': 'ᱮᱞᱠᱷᱟ',
+  'गणित': 'ᱮᱞᱠᱷᱟ',
+  'किताब': 'ᱯᱩᱛᱷᱤ',
+  'कलम': 'ᱠᱚᱞᱚᱢ',
+  'स्कूल': 'ᱟᱥᱲᱟ',
+  'शिक्षक': 'ᱢᱟᱪᱮᱛ',
+  'बच्चे': 'ᱜᱤᱫᱽᱨᱟᱹᱠᱚ',
+  'बच्चों': 'ᱜᱤᱫᱽᱨᱟᱹᱠᱚ',
+};
+
+const REVERSE_PHRASE_PATTERNS: Array<[RegExp, string]> = [
+  [/["'“”«»]?ᱡᱚᱦᱟᱨ\s+ᱜᱤᱫᱽᱨᱟᱹᱠᱚ[!।,.\s"'“”«»]*/gi, 'नमस्ते बच्चों! '],
+  [/["'“”«»]?ᱡᱚᱦᱟᱨ\s+ᱢᱟᱪᱮᱛ[!।,.\s"'“”«»]*/gi, 'नमस्ते शिक्षक! '],
+  [/ᱛᱮᱦᱮᱧ\s+ᱟᱵᱚ/gi, 'आज हम '],
+  [/ᱢᱤᱫ\s+ᱠᱷᱚᱱ\s+ᱜᱮᱞ\s+ᱦᱟᱹᱵᱤᱡ/gi, 'एक से दस तक '],
+  [/᱑\s+ᱠᱷᱚᱱ\s+᱑᱐\s+ᱦᱟᱹᱵᱤᱡ/gi, '1 से 10 तक '],
+  [/ᱞᱮᱠᱷᱟ\s+ᱵᱚᱱ\s+ᱪᱮᱫᱚᱜᱼᱟ[।.]?/gi, 'गिनती सीखेंगे।'],
+  [/ᱞᱮᱠᱷᱟ\s+ᱪᱮᱫᱚᱜ\s+ᱢᱮ[।.]?/gi, 'गिनती सीखो।'],
+  [/ᱟᱢᱟᱜ\s+ᱯᱩᱛᱷᱤ\s+ᱡᱷᱤᱡᱽ\s+ᱢᱮ[।.]?/gi, 'अपनी किताब खोलो।'],
+  [/ᱟᱢᱟᱜ\s+ᱴᱷᱟᱶ\s+ᱨᱮ\s+ᱫᱩᱲᱩᱵᱽ\s+ᱢᱮ[।.]?/gi, 'अपनी जगह पर बैठ जाओ।'],
+  [/ᱫᱩᱲᱩᱵᱽ\s+ᱢᱮ[।.]?/gi, 'बैठ जाओ।'],
+  [/ᱛᱤᱸᱜᱩᱱ\s+ᱢᱮ[।.]?/gi, 'खड़े हो जाओ।'],
+  [/ᱟᱹᱰᱤ\s+ᱵᱮᱥ[!।,.\s]*/gi, 'बहुत अच्छा! '],
+  [/ᱥᱟᱵᱟᱥ[!।,.\s]*/gi, 'शाबाश! '],
+  [/ᱵᱞᱮᱠᱵᱳᱨᱰ\s+ᱥᱮᱫ\s+ᱧᱮᱞ\s+ᱢᱮ[।.]?/gi, 'ब्लैकबोर्ड की तरफ देखो।'],
+  [/ᱟᱧᱡᱚᱢ\s+ᱢᱮ\s+ᱟᱨ\s+ᱚᱞ\s+ᱢᱮ[।.]?/gi, 'ध्यान से सुनो और लिखो।'],
+  [/ᱟᱧᱡᱚᱢ\s+ᱢᱮ[।.]?/gi, 'ध्यान से सुनो।'],
+  [/ᱱᱚᱣᱟ\s+ᱥᱮᱣ\s+ᱠᱚ\s+ᱞᱮᱠᱷᱟᱭ\s+ᱢᱮ\s+ᱟᱨ\s+ᱮᱞᱠᱷᱟ\s+ᱞᱟᱹᱭ\s+ᱢᱮ[।.]?/gi, 'इन सेबों को गिनो और संख्या बताओ।'],
+  [/ᱱᱚᱣᱟ\s+ᱥᱮᱣ\s+ᱠᱚ\s+ᱞᱮᱠᱷᱟᱭ\s+ᱢᱮ[।.]?/gi, 'इन सेबों को गिनो।'],
+  [/ᱮᱞᱠᱷᱟ\s+ᱞᱟᱹᱭ\s+ᱢᱮ[।.]?/gi, 'संख्या बताओ।'],
+  [/ᱢᱚᱬᱮ\s+ᱛᱟᱭᱚᱢ\s+ᱫᱚ\s+ᱚᱠᱟ\s+ᱮᱞᱠᱷᱟ\s+ᱦᱤᱡᱩᱜᱼᱟ\??/gi, 'पाँच के बाद कौन सी संख्या आती है?'],
+  [/ᱜᱟᱹᱭ,?\s*ᱢᱮᱨᱚᱢ\s*ᱟᱨ\s*ᱦᱟᱹᱛᱤ\s*ᱠᱚ\s*ᱧᱮᱞ\s+ᱢᱮ[।.]?/gi, 'गाय, बकरी और हाथी को देखो।'],
+  [/ᱦᱚᱭ\s+ᱢᱟᱪᱮᱛ,?\s*ᱤᱧᱤᱧ\s+ᱵᱩᱡᱷᱟᱹᱣ\s+ᱠᱮᱫᱼᱟ[।.]?/gi, 'हाँ शिक्षक, मुझे समझ आ गया।'],
+  [/ᱦᱚᱭ\s+ᱢᱟᱪᱮᱛ/gi, 'हाँ शिक्षक'],
+  [/ᱵᱩᱡᱷᱟᱹᱣ\s+ᱠᱮᱫᱼᱟ\??/gi, 'समझ आया?'],
+  [/ᱵᱩᱡᱷᱟᱹᱣ\s+ᱠᱮᱫᱼᱟ[।.]?/gi, 'समझ आ गया।'],
+  [/ᱱᱚᱣᱟ\s+ᱫᱚ\s+ᱯᱮ\s*\(?᱓?\)?\s*ᱠᱟᱱᱟ[।.]?/gi, 'यह तीन (3) है।'],
+  [/ᱛᱟᱭᱚᱢ/gi, 'के बाद '],
+  [/ᱞᱟᱦᱟ/gi, 'के पहले '],
+  [/ᱚᱠᱟ\s+ᱮᱞᱠᱷᱟ/gi, 'कौन सी संख्या '],
+  [/ᱦᱤᱡᱩᱜᱼᱟ\??/gi, 'आती है?'],
+];
+
+const REVERSE_GRAMMAR_PARTICLES: Record<string, string> = {
+  'ᱠᱷᱚᱱ': 'से',
+  'ᱦᱟᱹᱵᱤᱡ': 'तक',
+  'ᱟᱨ': 'और',
+  'ᱨᱮ': 'में',
+  'ᱠᱚ': 'को',
+  'ᱨᱮᱭᱟᱜ': 'का',
+  'ᱟᱜ': 'का',
+  'ᱠᱟᱱᱟ': 'है',
+  'ᱠᱟᱱᱟᱠᱚ': 'हैं',
+  'ᱛᱟᱦᱮᱸᱠᱟᱱᱟ': 'था',
+  'ᱪᱮᱫᱚᱜᱼᱟ': 'सीखेंगे',
+  'ᱪᱮᱫᱚᱜ': 'सीखना',
+  'ᱞᱟᱹᱭ': 'बताना',
+  'ᱞᱟᱹᱭ ᱢᱮ': 'बताओ',
+  'ᱞᱮᱠᱷᱟᱭ': 'गिनना',
+  'ᱞᱮᱠᱷᱟᱭ ᱢᱮ': 'गिनो',
+  'ᱧᱮᱞ': 'देखना',
+  'ᱧᱮᱞ ᱢᱮ': 'देखो',
+  'ᱡᱷᱤᱡᱽ': 'खोलना',
+  'ᱡᱷᱤᱡᱽ ᱢᱮ': 'खोलो',
+  'ᱯᱟᱲᱦᱟᱣ': 'पढ़ना',
+  'ᱯᱟᱲᱦᱟᱣ ᱢᱮ': 'पढ़ो',
+  'ᱚᱞ': 'लिखना',
+  'ᱚᱞ ᱢᱮ': 'लिखो',
+  'ᱟᱧᱡᱚᱢ': 'सुनना',
+  'ᱟᱧᱡᱚᱢ ᱢᱮ': 'सुनो',
+  'ᱫᱩᱲᱩᱵ': 'बैठना',
+  'ᱫᱩᱲᱩᱵ ᱢᱮ': 'बैठो',
+  'ᱫᱩᱲᱩᱵᱽ ᱢᱮ': 'बैठो',
+  'ᱛᱤᱸᱜᱩ': 'खड़े होना',
+  'ᱛᱤᱸᱜᱩᱱ ᱢᱮ': 'खड़े हो जाओ',
+  'ᱥᱮᱱᱚᱜ ᱢᱮ': 'जाओ',
+  'ᱦᱤᱡᱩᱜ ᱢᱮ': 'आओ',
+  'ᱛᱮᱦᱮᱧ': 'आज',
+  'ᱜᱟᱯᱟ': 'कल',
+  'ᱟᱵᱚ': 'हम',
+  'ᱟᱢ': 'तुम',
+  'ᱤᱧ': 'मैं',
+  'ᱡᱚᱛᱚ': 'सब',
+  'ᱞᱮᱠᱷᱟ': 'गिनती',
+  'ᱮᱞᱠᱷᱟ': 'संख्या',
+  'ᱯᱩᱛᱷᱤ': 'किताब',
+  'ᱠᱚᱞᱚᱢ': 'कलम',
+  'ᱟᱥᱲᱟ': 'स्कूल',
+  'ᱢᱟᱪᱮᱛ': 'शिक्षक',
+  'ᱜᱤᱫᱽᱨᱟᱹᱠᱚ': 'बच्चों',
+  'ᱜᱤᱫᱽᱨᱟᱹ': 'बच्चा',
+  'ᱢᱤᱫ': 'एक',
+  'ᱵᱟᱨ': 'दो',
+  'ᱯᱮ': 'तीन',
+  'ᱯᱩᱱ': 'चार',
+  'ᱢᱚᱬᱮ': 'पाँच',
+  'ᱛᱩᱨᱩᱭ': 'छह',
+  'ᱮᱨᱟᱭ': 'सात',
+  'ᱮᱭᱟᱭ': 'सात',
+  'ᱤᱨᱟᱹᱞ': 'आठ',
+  'ᱤᱨᱞ': 'आठ',
+  'ᱟᱨᱮ': 'नौ',
+  'ᱜᱮᱞ': 'दस',
+  '᱑': '1', '᱒': '2', '᱓': '3', '᱔': '4', '᱕': '5',
+  '᱖': '6', '᱗': '7', '᱘': '8', '᱙': '9', '᱑᱐': '10',
+  'ᱜᱟᱹᱭ': 'गाय',
+  'ᱢᱮᱨᱚᱢ': 'बकरी',
+  'ᱦᱟᱹᱛᱤ': 'हाथी',
+  'ᱥᱮᱣ': 'सेब',
+  'ᱫᱟᱜ': 'पानी',
+};
+
+const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): string => {
+  // Strip outer quotes and normalize
+  let cleanInput = text.replace(/^["'“”«»\s]+|["'“”«»\s]+$/g, '').trim();
+  if (!cleanInput) return '';
+
+  const activeDict = currentMode === 'teacher' ? CLIENT_HINDI_TO_SANTALI : CLIENT_SANTALI_TO_HINDI;
+
+  // 1. Direct dictionary match
+  if (activeDict[cleanInput]) {
+    return activeDict[cleanInput];
+  }
+
+  // 2. Phrase-level substitution (Longest Match First)
+  let workingText = cleanInput;
+  const activePhrasePatterns = currentMode === 'teacher' ? PHRASE_PATTERNS : REVERSE_PHRASE_PATTERNS;
+  for (const [regex, replacement] of activePhrasePatterns) {
+    workingText = workingText.replace(regex, replacement);
+  }
+
+  // 3. Word-by-word substitution for any remaining tokens
+  const words = workingText.split(/\s+/);
+  const resultWords: string[] = [];
+  const activeGrammar = currentMode === 'teacher' ? GRAMMAR_PARTICLES : REVERSE_GRAMMAR_PARTICLES;
+
+  for (const w of words) {
+    const punct = w.match(/[।,?!.:;"'()]+/g)?.[0] || '';
+    const cleanWord = w.replace(/[।,?!.:;"'()]/g, '').trim();
+
+    if (!cleanWord) {
+      if (w) resultWords.push(w);
+      continue;
     }
 
-    const words = trimmed.split(/\s+/);
-    const resultWords: string[] = [];
-
-    for (const w of words) {
-      const clean = w.replace(/[।,?!.:;"'()]/g, '');
-      if (activeDict[clean]) {
-        resultWords.push(activeDict[clean]);
-      } else if (activeDict[w]) {
-        resultWords.push(activeDict[w]);
-      } else {
-        resultWords.push(w);
-      }
+    // In Teacher Mode, if already Ol Chiki, don't re-translate
+    if (currentMode === 'teacher' && (isOlChiki(w) || isOlChiki(cleanWord))) {
+      resultWords.push(w);
+      continue;
+    }
+    // In Student Mode, if already Hindi (Devanagari), don't re-translate
+    if (currentMode === 'student' && !isOlChiki(cleanWord) && !isOlChiki(w)) {
+      resultWords.push(w);
+      continue;
     }
 
-    return resultWords.join(' ');
+    if (activeDict[cleanWord]) {
+      resultWords.push(activeDict[cleanWord] + punct);
+    } else if (activeGrammar[cleanWord]) {
+      resultWords.push(activeGrammar[cleanWord] + punct);
+    } else if (activeDict[w]) {
+      resultWords.push(activeDict[w]);
+    } else {
+      resultWords.push(w);
+    }
+  }
+
+  let joined = resultWords.join(' ').replace(/\s+([।,?!.:])/g, '$1').trim();
+  if (currentMode === 'teacher') {
+    joined = convertDigitsToOlChiki(joined);
+  } else {
+    joined = convertOlChikiToDigits(joined).replace(/।᱾/g, '।').replace(/᱾/g, '।');
+  }
+  return joined;
+};
+
+  const computePhonetic = (input: string, output: string, currentMode: 'teacher' | 'student'): string => {
+    const rawClean = input.trim();
+    // Check if input is a pure number (e.g. 67)
+    if (/^\d+$/.test(rawClean)) {
+      const num = parseInt(rawClean, 10);
+      return currentMode === 'teacher' ? numberToSantaliWords(num) : String(num);
+    }
+    // Check if output is pure Ol Chiki numerals
+    const digitsOnly = convertOlChikiToDigits(output.trim());
+    if (/^\d+$/.test(digitsOnly)) {
+      const num = parseInt(digitsOnly, 10);
+      return currentMode === 'teacher' ? numberToSantaliWords(num) : String(num);
+    }
+    return currentMode === 'teacher' ? transliterateOlChikiToPhonetic(output) : output;
   };
 
   const handleTranslate = async (textToTranslate: string) => {
@@ -162,31 +406,57 @@ const LiveTranslation: React.FC = () => {
       const elapsed = Math.round(performance.now() - startTime);
       setLatencyMs(elapsed || 4);
 
+      let resultSat = '';
       if (response.ok) {
         const data = await response.json();
-        setTranslatedText(data.translated_text);
-        setPronunciation(data.translated_text);
+        resultSat = data.translated_text;
+        setTranslatedText(resultSat);
+        setPronunciation(computePhonetic(rawInput, resultSat, mode));
         setActiveModel(data.model_name || 'AI4Bharat IndicTrans2 320M (On-Device Local)');
       } else {
         throw new Error('API unavailable, switching to local client dictionary');
+      }
+
+      // 🎙️ AUTOMATIC VOICE-TO-VOICE PLAYBACK: Speak translated voice out loud immediately
+      if (resultSat) {
+        setTimeout(() => {
+          speakText(resultSat, { rate: 0.85 });
+        }, 150);
       }
     } catch {
       const elapsed = Math.round(performance.now() - startTime);
       setLatencyMs(elapsed || 3);
       const clientTranslated = translateClientSide(rawInput, mode);
       setTranslatedText(clientTranslated);
-      setPronunciation(clientTranslated);
+      setPronunciation(computePhonetic(rawInput, clientTranslated, mode));
       setActiveModel('AI4Bharat IndicTrans2 320M (On-Device Local)');
+
+      // 🎙️ AUTOMATIC VOICE-TO-VOICE PLAYBACK (Offline Fallback)
+      if (clientTranslated) {
+        setTimeout(() => {
+          speakText(clientTranslated, { rate: 0.85 });
+        }, 150);
+      }
     } finally {
       setIsTranslating(false);
     }
   };
 
   const playAudio = (text: string) => {
+    sfx.playVoicePing();
     speakText(text, { rate: 0.85 });
   };
 
+  // 🎙️ Automatic Voice-in -> Translation -> Voice-out loop
+  React.useEffect(() => {
+    if (transcript && !isListening) {
+      setSourceText(transcript);
+      handleTranslate(transcript);
+    }
+  }, [transcript, isListening]);
+
   const handleVoiceToggle = () => {
+    sfx.playTap();
     if (isListening) {
       stopListening();
       if (transcript) {

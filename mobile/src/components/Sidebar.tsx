@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { sfx } from '../utils/sfx';
 
 interface NavItemConfig {
   to: string;
@@ -120,7 +121,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
               <NavLink
                 key={item.to}
                 to={item.to}
-                onClick={onClose}
+                onClick={() => {
+                  sfx.playTap();
+                  if (onClose) onClose();
+                }}
                 style={({ isActive }) => ({
                   display: 'flex',
                   alignItems: 'center',

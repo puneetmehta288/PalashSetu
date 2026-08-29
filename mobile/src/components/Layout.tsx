@@ -3,6 +3,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { Header } from './Header';
 import { TeacherProfile } from '../services/authService';
+import { sfx } from '../utils/sfx';
 
 interface LayoutProps {
   activeTeacher?: TeacherProfile | null;
@@ -46,6 +47,7 @@ const Layout: React.FC<LayoutProps> = ({ activeTeacher, onSwitchTeacher }) => {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={() => sfx.playTap()}
               className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
             >
               <span className="bottom-nav-icon">{item.icon}</span>

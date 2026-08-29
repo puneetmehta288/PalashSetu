@@ -170,3 +170,117 @@
     line-height: 1.1;
   }
 }
+
+/* ==========================================================================
+   🖨️ Professional Multi-Page Print & PDF Optimization Rules
+   ========================================================================== */
+@media print {
+  /* Hide all app chrome, navigation bars, headers, buttons, and generator panels */
+  header,
+  .sidebar,
+  .mobile-bottom-nav,
+  .no-print,
+  .panchaadi-overview,
+  .generator-panel,
+  button {
+    display: none !important;
+  }
+
+  /* CRITICAL: Force html, body, and all app containers to be completely unconstrained in height and overflow */
+  html, body {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    font-size: 10pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    position: static !important;
+  }
+
+  .app-container {
+    display: block !important;
+    background: #ffffff !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    position: static !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .main-content {
+    display: block !important;
+    background: #ffffff !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    position: static !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .content-area {
+    display: block !important;
+    background: #ffffff !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    position: static !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  .printable-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Keep cards intact and let them flow smoothly across multiple pages */
+  .print-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 12px !important;
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Force clean page breaks where desired */
+  .print-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  /* Ensure colors and backgrounds print cleanly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

@@ -165,6 +165,41 @@ const OL_CHIKI_TO_DEVANAGARI: Record<string, string> = {
   '᱙': 'आरे ',
 };
 
+export const DIGIT_MAP_LATIN_TO_OL_CHIKI: Record<string, string> = {
+  '0': '᱐', '1': '᱑', '2': '᱒', '3': '᱓', '4': '᱔',
+  '5': '᱕', '6': '᱖', '7': '᱗', '8': '᱘', '9': '᱙',
+  '०': '᱐', '१': '᱑', '२': '᱒', '३': '᱓', '४': '᱔',
+  '५': '᱕', '६': '᱖', '७': '᱗', '८': '᱘', '९': '᱙',
+};
+
+export const DIGIT_MAP_OL_CHIKI_TO_LATIN: Record<string, string> = {
+  '᱐': '0', '᱑': '1', '᱒': '2', '᱓': '3', '᱔': '4',
+  '᱕': '5', '᱖': '6', '᱗': '7', '᱘': '8', '᱙': '9',
+};
+
+export function convertDigitsToOlChiki(text: string): string {
+  return text.replace(/[0-9०-९]/g, d => DIGIT_MAP_LATIN_TO_OL_CHIKI[d] || d);
+}
+
+export function convertOlChikiToDigits(text: string): string {
+  return text.replace(/[᱐-᱙]/g, d => DIGIT_MAP_OL_CHIKI_TO_LATIN[d] || d);
+}
+
+const SANTALI_DIGIT_WORDS = ['शून्य', 'मिद', 'बार', 'पे', 'पुन', 'मोणे', 'तुरुय', 'एयाय', 'इरल', 'आरे', 'गेल'];
+
+export function numberToSantaliWords(n: number): string {
+  if (n <= 10) return SANTALI_DIGIT_WORDS[n] || String(n);
+  if (n < 20) return `गेल ${SANTALI_DIGIT_WORDS[n - 10]}`;
+  if (n < 100) {
+    const tens = Math.floor(n / 10);
+    const rem = n % 10;
+    const tensWord = `${SANTALI_DIGIT_WORDS[tens]} गेल`;
+    return rem === 0 ? tensWord : `${tensWord} ${SANTALI_DIGIT_WORDS[rem]}`;
+  }
+  if (n === 100) return 'साय';
+  return String(n);
+}
+
 /**
  * Checks if a string contains Ol Chiki script characters (U+1C50 - U+1C7F)
  */

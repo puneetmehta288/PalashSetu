@@ -28,6 +28,20 @@
   --font-santali: 'Noto Sans Ol Chiki', var(--font-main);
 }
 
+:root.dark-mode, body.dark-mode {
+  --primary-deep: #050b14;
+  --primary: #0f172a;
+  --primary-light: #1e293b;
+  --surface-bg: #0a0e17;
+  --card-bg: #111827;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-subtle: #1f293d;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.7);
+}
+
 * {
   margin: 0;
   padding: 0;

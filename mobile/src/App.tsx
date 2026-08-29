@@ -16,6 +16,7 @@ import Settings from './pages/Settings';
 import AuthLogin from './pages/AuthLogin';
 import AuthRegister from './pages/AuthRegister';
 import { authService, TeacherProfile } from './services/authService';
+import { ThemeProvider } from './context/ThemeContext';
 
 const AppRoutes: React.FC = () => {
   const navigate = useNavigate();
@@ -69,9 +70,11 @@ const AppRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
 

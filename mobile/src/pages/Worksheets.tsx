@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { sfx } from '../utils/sfx';
 
 // ════════════════════════════════════════════════════════════════════════════
 // NIPUN Bharat Grade-Adaptive Worksheet Generator
@@ -563,6 +564,7 @@ const Worksheets: React.FC = () => {
   };
 
   const generateWorksheet = () => {
+    sfx.playGenerate();
     setShowAnswers(false);
     setShowHints(false);
     const qs = generateQuestions(questionType, numQuestions);
@@ -577,7 +579,7 @@ const Worksheets: React.FC = () => {
     <div className="fade-in" style={{ maxWidth: '980px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '3px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
             📝 NIPUN Bharat Grade-Adaptive Worksheet Engine
@@ -591,15 +593,15 @@ const Worksheets: React.FC = () => {
         </div>
         {questions.length > 0 && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button onClick={() => setShowHints(!showHints)}
+            <button onClick={() => { sfx.playTap(); setShowHints(!showHints); }}
               style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showHints ? '#fef3c7' : '#fff', color: showHints ? '#92400e' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
               💡 {showHints ? 'Hide Hints' : 'Show Hints'}
             </button>
-            <button onClick={() => setShowAnswers(!showAnswers)}
+            <button onClick={() => { if (!showAnswers) sfx.playSuccess(); else sfx.playTap(); setShowAnswers(!showAnswers); }}
               style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showAnswers ? '#f0fdf4' : '#fff', color: showAnswers ? '#166534' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
               {showAnswers ? '👁️ Hide Answers' : '🔑 Show Answer Key'}
             </button>
-            <button onClick={() => window.print()}
+            <button onClick={() => { sfx.playTap(); window.print(); }}
               style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', backgroundColor: '#0f2744', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
               🖨️ Print / PDF
             </button>
@@ -608,7 +610,7 @@ const Worksheets: React.FC = () => {
       </div>
 
       {/* Configuration Panel */}
-      <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15,39,68,0.05)', border: '1px solid #e2e8f0' }}>
+      <div className="no-print generator-panel" style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15,39,68,0.05)', border: '1px solid #e2e8f0' }}>
         <h3 style={{ margin: '0 0 1rem', color: '#0f2744', fontSize: '1rem', fontWeight: 800 }}>
           ⚙️ Configure Worksheet
         </h3>
@@ -683,7 +685,7 @@ const Worksheets: React.FC = () => {
 
       {/* Printable Worksheet */}
       {questions.length > 0 && (
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '2.5rem 2rem', boxShadow: '0 8px 24px rgba(0,0,0,0.06)', border: '2px solid #e2e8f0' }}>
+        <div className="printable-sheet" style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '2.5rem 2rem', boxShadow: '0 8px 24px rgba(0,0,0,0.06)', border: '2px solid #e2e8f0' }}>
           {/* School Header */}
           <div style={{ textAlign: 'center', borderBottom: '2px dashed #cbd5e1', paddingBottom: '1.25rem', marginBottom: '1.5rem' }}>
             <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>
@@ -709,7 +711,7 @@ const Worksheets: React.FC = () => {
           {/* Questions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {questions.map((q, idx) => (
-              <div key={q.id} style={{ padding: '1.1rem 1.25rem', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', position: 'relative' }}>
+              <div key={q.id} className="print-card" style={{ padding: '1.1rem 1.25rem', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', position: 'relative' }}>
                 {/* Question number + type badge */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
                   <span style={{ fontSize: '0.72rem', backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>

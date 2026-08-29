@@ -7,7 +7,6 @@ aiosqlite==0.20.0
 python-multipart==0.0.9
 pdfplumber==0.11.0
 reportlab==4.2.0
-gTTS==2.5.1
 torch>=2.0.0
 transformers>=4.44.0
 sentencepiece==0.2.0
