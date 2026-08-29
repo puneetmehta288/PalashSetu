@@ -1,11 +1,59 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+export interface UseSpeechRecognitionOptions {
+  defaultLang?: string;
+}
+
+/**
+ * Strips speech recognition artifact loops and repetitions
+ * e.g. "कैसे कैसे हो कैसे हो बच्चों कैसे हो बच्चों" -> "कैसे हो बच्चों"
+ */
+function cleanSpeechText(text: string): string {
+  if (!text) return '';
+  let cleaned = text.trim();
+
+  // 1. Remove consecutive duplicated words: "कैसे कैसे" -> "कैसे"
+  const words = cleaned.split(/\s+/);
+  const dedupedWords: string[] = [];
+  for (let i = 0; i < words.length; i++) {
+    if (i === 0 || words[i].toLowerCase() !== words[i - 1].toLowerCase()) {
+      dedupedWords.push(words[i]);
+    }
+  }
+  cleaned = dedupedWords.join(' ');
+
+  // 2. Check if string contains doubled sentence: "कैसे हो बच्चों कैसे हो बच्चों" -> "कैसे हो बच्चों"
+  const tokens = cleaned.split(/\s+/);
+  if (tokens.length >= 2 && tokens.length % 2 === 0) {
+    const mid = tokens.length / 2;
+    const firstHalf = tokens.slice(0, mid).join(' ');
+    const secondHalf = tokens.slice(mid).join(' ');
+    if (firstHalf.toLowerCase() === secondHalf.toLowerCase()) {
+      cleaned = firstHalf;
+    }
+  }
+
+  // 3. Remove 3x or nx subphrase repetition
+  const currentTokens = cleaned.split(/\s+/);
+  for (let len = 1; len <= Math.floor(currentTokens.length / 2); len++) {
+    const candidate = currentTokens.slice(0, len).join(' ');
+    const candidatePattern = new RegExp(`^(${candidate}\\s*)+$`, 'i');
+    if (candidatePattern.test(cleaned)) {
+      cleaned = candidate;
+      break;
+    }
+  }
+
+  return cleaned;
+}
+
 export const useSpeechRecognition = (defaultLang = 'hi-IN') => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(true);
+
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -23,7 +71,8 @@ export const useSpeechRecognition = (defaultLang = 'hi-IN') => {
 
     try {
       const recognition = new SpeechRecognition();
-      recognition.continuous = true;
+      // Use single-sentence mode to prevent compounding loops on Android
+      recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = defaultLang;
 
@@ -33,24 +82,26 @@ export const useSpeechRecognition = (defaultLang = 'hi-IN') => {
       };
 
       recognition.onresult = (event: any) => {
-        let finalStr = '';
-        let interimStr = '';
+        let bestTranscript = '';
+        let isFinalResult = false;
 
+        // In Android, inspect all results up to latest
         for (let i = 0; i < event.results.length; ++i) {
           const item = event.results[i];
-          if (item.isFinal) {
-            finalStr += item[0].transcript + ' ';
-          } else {
-            interimStr += item[0].transcript;
+          if (item && item[0] && item[0].transcript) {
+            bestTranscript = item[0].transcript;
+            if (item.isFinal) {
+              isFinalResult = true;
+            }
           }
         }
 
-        const cleaned = finalStr.trim();
-        if (cleaned) {
+        const cleaned = cleanSpeechText(bestTranscript);
+        if (isFinalResult && cleaned) {
           setTranscript(cleaned);
           setInterimTranscript('');
-        } else {
-          setInterimTranscript(interimStr);
+        } else if (cleaned) {
+          setInterimTranscript(cleaned);
         }
       };
 

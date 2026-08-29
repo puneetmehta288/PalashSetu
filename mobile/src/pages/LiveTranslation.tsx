@@ -467,11 +467,10 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
     sfx.playTap();
     if (isListening) {
       stopListening();
-      if (transcript) {
-        setSourceText(transcript);
-        handleTranslate(transcript);
-      }
     } else {
+      setSourceText('');
+      setTranslatedText('');
+      setPronunciation('');
       startListening();
     }
   };
