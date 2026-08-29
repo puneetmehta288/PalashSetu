@@ -13,7 +13,7 @@ Most remote village schools (Anganwadis, Balvatikas, and Government Primary Scho
 
 **PalashSetu** is a **100% standalone, fully on-device Android tablet application**. It requires **no external server, no laptop, no Wi-Fi, and no cloud APIs** during school hours. Everything runs directly inside the Android tablet with sub-5ms latency and an ultra-low memory footprint (~55 MB RAM).
 
-> **Note on Architecture Scope:** Development environments, localhost servers, and Vercel deployments were used exclusively as data extraction, model tokenization, and pipeline-building labs during engineering. **The delivered product is the self-contained Android APK (`PalashSetu-v1.0-debug.apk`) operating entirely on the tablet.**
+> **App Type:** Standalone Android Mobile & Tablet Application (`PalashSetu-v1.0-debug.apk`). Runs 100% on-device on low-cost government school tablets with zero internet connectivity.
 
 ---
 
