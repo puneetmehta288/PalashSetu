@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd mobile && npm install && npm run build",
+  "outputDirectory": "mobile/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
