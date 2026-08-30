@@ -7,11 +7,9 @@ import Lessons from './pages/Lessons';
 import LessonView from './pages/LessonView';
 import Worksheets from './pages/Worksheets';
 import WorksheetView from './pages/WorksheetView';
-import PDFLocalizer from './pages/PDFLocalizer';
-import VideoLocalizer from './pages/VideoLocalizer';
+import JCERTTextbooks from './pages/JCERTTextbooks';
 import Flashcards from './pages/Flashcards';
 import FlashcardView from './pages/FlashcardView';
-import OfflineLibrary from './pages/OfflineLibrary';
 import Settings from './pages/Settings';
 import AuthLogin from './pages/AuthLogin';
 import AuthRegister from './pages/AuthRegister';
@@ -53,15 +51,14 @@ const AppRoutes: React.FC = () => {
       >
         <Route index element={<Dashboard activeTeacher={activeTeacher} />} />
         <Route path="translate" element={<LiveTranslation />} />
+        <Route path="flashcards" element={<Flashcards />} />
+        <Route path="flashcards/:topic" element={<FlashcardView />} />
         <Route path="lessons" element={<Lessons />} />
         <Route path="lessons/:id" element={<LessonView />} />
         <Route path="worksheets" element={<Worksheets />} />
         <Route path="worksheets/:id" element={<WorksheetView />} />
-        <Route path="pdf" element={<PDFLocalizer />} />
-        <Route path="video" element={<VideoLocalizer />} />
-        <Route path="flashcards" element={<Flashcards />} />
-        <Route path="flashcards/:topic" element={<FlashcardView />} />
-        <Route path="library" element={<OfflineLibrary />} />
+        <Route path="books" element={<JCERTTextbooks />} />
+        <Route path="pdf" element={<JCERTTextbooks />} />
         <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>

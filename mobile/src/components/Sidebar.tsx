@@ -15,9 +15,7 @@ const NAV_ITEMS: NavItemConfig[] = [
   { to: '/flashcards', icon: '🃏', label: 'Flashcards', badge: '30+ SVG' },
   { to: '/lessons', icon: '📚', label: 'Lesson Studio', badge: 'NIPUN' },
   { to: '/worksheets', icon: '📝', label: 'Worksheets', badge: 'Dynamic' },
-  { to: '/video', icon: '🎬', label: 'Video Localizer' },
-  { to: '/pdf', icon: '📄', label: 'PDF Translator' },
-  { to: '/library', icon: '📦', label: 'Offline Library' },
+  { to: '/books', icon: '📖', label: 'JCERT Books', badge: 'Bilingual' },
   { to: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 

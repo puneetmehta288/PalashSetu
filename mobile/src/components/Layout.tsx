@@ -16,6 +16,7 @@ const BOTTOM_NAV_ITEMS = [
   { to: '/flashcards', icon: '🃏', label: 'Cards' },
   { to: '/lessons', icon: '📚', label: 'Lessons' },
   { to: '/worksheets', icon: '📝', label: 'Worksheets' },
+  { to: '/books', icon: '📖', label: 'Books' },
 ];
 
 const Layout: React.FC<LayoutProps> = ({ activeTeacher, onSwitchTeacher }) => {
