@@ -100,20 +100,21 @@ Most remote village schools (Anganwadis, Balvatikas, and Government Primary Scho
 
 ---
 
-### 2. 📚 NIPUN Bharat Lesson Generator (`/lessons`)
-* Pre-loaded with complete structured pedagogy for **Class 1 & 2 Foundational Numeracy (FLN)**.
-* Follows the **Panchaadi (5-step) framework**: Adhiti (Warmup), Bodh (Concept), Abhyas (Activity), Prayog (Script), and Prasar (Assessment).
-
-### 3. 📝 Dynamic Bilingual Worksheet Generator (`/worksheets`)
-* Generates randomized, printable bilingual worksheets on the tablet.
-* Supports: Object Counting, Number-Word Matching, Number Ordering, and Fill-in-the-Blanks.
-
-### 4. 🃏 Illustrated Ol Chiki Flashcards (`/flashcards`)
-* 30+ interactive flashcards for numbers 0–100, fruits, animals, and school objects.
+### 2. 🃏 Illustrated Ol Chiki Flashcards (`/flashcards`)
+* 30+ interactive 3D flip flashcards across 4 grade levels (Balvatika to Class 3).
 * Displays visual graphics, Hindi word, Ol Chiki script, and 1-tap phonetic audio playback.
 
-### 5. 📦 Offline Pedagogical Library (`/library`)
-* Offline repository storing lessons, practice worksheets, and reference guides saved directly on the tablet's storage.
+### 3. 📚 NIPUN Bharat Lesson Studio (`/lessons`)
+* Pre-loaded with **36 complete structured lessons** covering Balvatika to Class 3 Foundational Literacy & Numeracy.
+* Follows the **Panchaadi (5-step) framework**: Adhiti (Warmup), Bodh (Concept), Abhyas (Activity), Prayog (Script), and Prasar (Assessment).
+
+### 4. 📝 Dynamic Bilingual Worksheet Generator (`/worksheets`)
+* Generates infinite randomized, printable bilingual worksheets on the tablet.
+* Supports: Object Counting, Number-Word Matching, Number Ordering, Addition/Subtraction drills, and Shape Recognition.
+
+### 5. 📖 Official JCERT State Textbooks Library (`/books`)
+* Complete official Jharkhand state primary curriculum textbooks in **Mathematics, Language, and EVS**.
+* Covers **Balvatika, Class 1, Class 2, and Class 3** chapters with side-by-side Hindi and Santali Ol Chiki texts, native acoustic audio pronunciation on every paragraph, and 1-tap A4 printable handout export.
 
 ---
 
