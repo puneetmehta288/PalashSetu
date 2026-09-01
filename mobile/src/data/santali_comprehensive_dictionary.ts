@@ -5,8 +5,8 @@
  *   - Hand-curated authentic Hindi->Santali pairs: 7503
  *   - AI4Bharat model phonetic tokens added: 0
  * AI4Bharat raw Ol Chiki tokens in model: 5448
- * Unique clean Ol Chiki root words in model: 4597
  */
+export const INDIC_TRANS_MODEL_SANTALI_COUNT = 5448;
 
 export const COMPREHENSIVE_HINDI_TO_SANTALI: Record<string, string> = {
   '-आ': 'ᱼᱟ',
