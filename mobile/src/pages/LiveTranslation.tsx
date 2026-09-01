@@ -3,7 +3,7 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOlChiki, convertOlChikiToDigits, numberToSantaliWords, transliterateDevanagariToOlChiki } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
-import { COMPREHENSIVE_HINDI_TO_SANTALI, INDIC_TRANS_MODEL_SANTALI_COUNT } from '../data/santali_comprehensive_dictionary';
+import { COMPREHENSIVE_HINDI_TO_SANTALI } from '../data/santali_comprehensive_dictionary';
 
 // Comprehensive Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
