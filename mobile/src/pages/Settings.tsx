@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { speakText } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
+import { authService, TeacherProfile } from '../services/authService';
 
 export const JHARKHAND_TRIBAL_DISTRICTS = [
   { name: 'Dumka', sat: 'ᱫᱩᱢᱠᱟᱹ', region: 'Santhal Pargana' },
@@ -16,31 +18,63 @@ export const JHARKHAND_TRIBAL_DISTRICTS = [
 ];
 
 const Settings: React.FC = () => {
-  // 1. Teacher Profile State
-  const [teacherName, setTeacherName] = useState(() => localStorage.getItem('palash_teacher_name') || 'रोहित कुमार (Rohit Kumar)');
-  const [schoolName, setSchoolName] = useState(() => localStorage.getItem('palash_school_name') || 'राजकीय उत्क्रमित मध्य विद्यालय, दुमका');
-  const [selectedDistrict, setSelectedDistrict] = useState(() => localStorage.getItem('palash_district') || 'Dumka');
-  const [primaryClass, setPrimaryClass] = useState(() => localStorage.getItem('palash_primary_class') || 'Class 1');
+  const navigate = useNavigate();
 
-  // 2. Audio & Speech Preferences
+  // 1. Get Logged In Teacher Profile from authService
+  const [activeProfile, setActiveProfile] = useState<TeacherProfile | null>(() => authService.getActiveProfile());
+
+  // 2. Form States initialized from actual active teacher profile
+  const [teacherName, setTeacherName] = useState(activeProfile?.name || 'Sunita Kumari');
+  const [teacherId, setTeacherId] = useState(activeProfile?.teacherId || 'EVV-JH-849201');
+  const [schoolName, setSchoolName] = useState(() => localStorage.getItem('palash_school_name') || 'राजकीय उत्क्रमित मध्य विद्यालय');
+  const [selectedDistrict, setSelectedDistrict] = useState(activeProfile?.district || 'Dumka');
+  const [blockName, setBlockName] = useState(activeProfile?.block || 'Kathikund');
+  const [primaryClass, setPrimaryClass] = useState(activeProfile?.assignedGrade || 'Class 1');
+
+  // 3. Audio & Speech Preferences
   const [speechRate, setSpeechRate] = useState<number>(() => {
     const saved = localStorage.getItem('palash_speech_rate');
     return saved ? parseFloat(saved) : 0.85;
   });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => sfx.isEnabled());
 
-  // 3. UI Feedback state
+  // 4. UI Feedback states
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isPlayingTest, setIsPlayingTest] = useState(false);
+
+  // Sync state if active profile changes
+  useEffect(() => {
+    const profile = authService.getActiveProfile();
+    if (profile) {
+      setActiveProfile(profile);
+      setTeacherName(profile.name);
+      setTeacherId(profile.teacherId);
+      setSelectedDistrict(profile.district);
+      setBlockName(profile.block);
+      setPrimaryClass(profile.assignedGrade);
+    }
+  }, []);
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     sfx.playSuccess();
 
-    localStorage.setItem('palash_teacher_name', teacherName);
+    // 1. Update active teacher in authService
+    if (activeProfile) {
+      const updated = authService.updateProfile(activeProfile.id, {
+        name: teacherName.trim(),
+        teacherId: teacherId.trim(),
+        district: selectedDistrict,
+        block: blockName.trim(),
+        assignedGrade: primaryClass
+      });
+      if (updated) {
+        setActiveProfile(updated);
+      }
+    }
+
+    // 2. Save general preferences
     localStorage.setItem('palash_school_name', schoolName);
-    localStorage.setItem('palash_district', selectedDistrict);
-    localStorage.setItem('palash_primary_class', primaryClass);
     localStorage.setItem('palash_speech_rate', speechRate.toString());
 
     setSavedSuccess(true);
@@ -55,50 +89,65 @@ const Settings: React.FC = () => {
   const handleTestAudio = () => {
     sfx.playVoicePing();
     setIsPlayingTest(true);
-    speakText('ᱡᱚᱦᱟᱨ ᱢᱟᱪᱮᱛ! ᱟᱵᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱟᱨ ᱦᱤᱱᱫᱤ ᱛᱮ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ ᱵᱚᱱ ᱪᱮᱫ ᱟᱠᱚᱣᱟ᱾', {
+    speakText(`ᱡᱚᱦᱟᱨ ${teacherName}! ᱟᱵᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱟᱨ ᱦᱤᱱᱫᱤ ᱛᱮ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ ᱵᱚᱱ ᱪᱮᱫ ᱟᱠᱚᱣᱟ᱾`, {
       rate: speechRate,
       onEnd: () => setIsPlayingTest(false)
     });
   };
 
-  const handleResetDefaults = () => {
-    if (window.confirm('Reset all classroom settings to default?')) {
-      sfx.playTap();
-      setTeacherName('शिक्षक (Teacher)');
-      setSchoolName('प्राथमिक विद्यालय (Primary School)');
-      setSelectedDistrict('Dumka');
-      setPrimaryClass('Class 1');
-      setSpeechRate(0.85);
-      localStorage.clear();
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3000);
-    }
+  const handleSwitchAccount = () => {
+    sfx.playTap();
+    authService.logout();
+    navigate('/login');
   };
 
   return (
     <div className="fade-in" style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
       {/* ─── Page Header ─── */}
-      <div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-          <span style={{ backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-            ⚙️ System Configuration
-          </span>
-          <span style={{ backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-            📴 100% Offline Device Settings
-          </span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+            <span style={{ backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
+              ⚙️ System Configuration
+            </span>
+            <span style={{ backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
+              👤 Active Profile: {teacherName}
+            </span>
+          </div>
+          <h1 style={{ color: '#0f2744', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
+            ⚙️ Teacher & Classroom Settings (ᱥᱟᱡᱟᱣ)
+          </h1>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
+            Synchronized with your logged-in e-Vidyavahini teacher account and tablet hardware.
+          </p>
         </div>
-        <h1 style={{ color: '#0f2744', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
-          ⚙️ Teacher & Classroom Settings (ᱥᱟᱡᱟᱣ)
-        </h1>
-        <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
-          Customize your teacher profile, school district, speech pronunciation speed, and sound effects.
-        </p>
+
+        {/* Switch Account Button */}
+        <button
+          type="button"
+          onClick={handleSwitchAccount}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            backgroundColor: '#f1f5f9',
+            border: '1px solid #cbd5e1',
+            color: '#334155',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            fontWeight: 700,
+            fontSize: '0.82rem',
+            cursor: 'pointer'
+          }}
+        >
+          <span>🔄 Switch Teacher / Logout</span>
+        </button>
       </div>
 
       {savedSuccess && (
         <div style={{ padding: '12px 16px', backgroundColor: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '12px', color: '#065f46', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>✅ Settings saved successfully to this tablet!</span>
+          <span>✅ Settings & Profile for "{teacherName}" updated and saved successfully!</span>
         </div>
       )}
 
@@ -106,17 +155,26 @@ const Settings: React.FC = () => {
       <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* ─── SECTION 1: TEACHER & SCHOOL PROFILE ─── */}
-        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
-            <span style={{ fontSize: '1.3rem' }}>🏫</span>
-            <div>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f2744', margin: 0 }}>
-                Teacher & School Profile
-              </h2>
-              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                Used in generated A4 worksheets, lesson plans, and printed textbook handouts.
+        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', backgroundColor: activeProfile?.avatarColor || '#1a365d', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem' }}>
+                {teacherName.charAt(0)}
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f2744', margin: 0 }}>
+                  Active Teacher Account
+                </h2>
+                <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                  e-Vidyavahini ID: <strong style={{ color: '#0f2744' }}>{teacherId}</strong> • Logged In
+                </div>
               </div>
             </div>
+
+            <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '4px 10px', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 700 }}>
+              🟢 Session Active
+            </span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
@@ -129,7 +187,23 @@ const Settings: React.FC = () => {
                 type="text"
                 value={teacherName}
                 onChange={e => setTeacherName(e.target.value)}
-                placeholder="e.g. रोहित कुमार सिंह"
+                placeholder="e.g. सुनीता कुमारी"
+                required
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
+              />
+            </div>
+
+            {/* Teacher ID */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                Teacher ID / e-Vidyavahini:
+              </label>
+              <input
+                type="text"
+                value={teacherId}
+                onChange={e => setTeacherId(e.target.value)}
+                placeholder="e.g. EVV-JH-849201"
+                required
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
               />
             </div>
@@ -143,7 +217,21 @@ const Settings: React.FC = () => {
                 type="text"
                 value={schoolName}
                 onChange={e => setSchoolName(e.target.value)}
-                placeholder="e.g. उत्क्रमित मध्य विद्यालय"
+                placeholder="e.g. राजकीय उत्क्रमित मध्य विद्यालय"
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
+              />
+            </div>
+
+            {/* Block Name */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                Block (प्रखंड / ᱵᱚᱱᱚᱛ):
+              </label>
+              <input
+                type="text"
+                value={blockName}
+                onChange={e => setBlockName(e.target.value)}
+                placeholder="e.g. Kathikund / Sadar"
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
               />
             </div>
@@ -169,7 +257,7 @@ const Settings: React.FC = () => {
             {/* Primary Class */}
             <div>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                Default Class Level:
+                Primary Assigned Class:
               </label>
               <select
                 value={primaryClass}
@@ -279,7 +367,7 @@ const Settings: React.FC = () => {
               <span>{isPlayingTest ? '🔊 Playing Sample...' : '🔊 Test Voice Engine Output'}</span>
             </button>
             <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-              Sample: <em>"ᱡᱚᱦᱟᱨ ᱢᱟᱪᱮᱛ! ᱟᱵᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱟᱨ ᱦᱤᱱᱫᱤ ᱛᱮ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ ᱵᱚᱱ ᱪᱮᱫ ᱟᱠᱚᱣᱟ᱾"</em>
+              Sample: <em>"ᱡᱚᱦᱟᱨ {teacherName}! ᱟᱵᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱟᱨ ᱦᱤᱱᱫᱤ ᱛᱮ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ ᱵᱚᱱ ᱪᱮᱫ ᱟᱠᱚᱣᱟ᱾"</em>
             </span>
           </div>
         </div>
@@ -326,31 +414,14 @@ const Settings: React.FC = () => {
         </div>
 
         {/* ─── ACTION BUTTONS ─── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <button
-            type="button"
-            onClick={handleResetDefaults}
-            style={{
-              backgroundColor: '#f1f5f9',
-              border: '1px solid #cbd5e1',
-              color: '#64748b',
-              padding: '10px 16px',
-              borderRadius: '12px',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              cursor: 'pointer'
-            }}
-          >
-            🔄 Reset Defaults
-          </button>
-
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px' }}>
           <button
             type="submit"
             style={{
               backgroundColor: '#0f2744',
               color: '#ffffff',
               border: 'none',
-              padding: '12px 24px',
+              padding: '12px 28px',
               borderRadius: '12px',
               fontWeight: 800,
               fontSize: '0.95rem',
@@ -359,7 +430,7 @@ const Settings: React.FC = () => {
               transition: 'all 0.15s ease'
             }}
           >
-            💾 Save Classroom Settings
+            💾 Save Profile & Classroom Settings
           </button>
         </div>
 

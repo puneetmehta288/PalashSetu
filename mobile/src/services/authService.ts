@@ -138,6 +138,15 @@ export const authService = {
     localStorage.setItem(STORAGE_KEY_ACTIVE_SESSION, teacherId);
   },
 
+  updateProfile(id: string, updates: Partial<TeacherProfile>): TeacherProfile | null {
+    const profiles = this.getProfiles();
+    const index = profiles.findIndex((p) => p.id === id);
+    if (index === -1) return null;
+    profiles[index] = { ...profiles[index], ...updates };
+    localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(profiles));
+    return profiles[index];
+  },
+
   logout() {
     localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION);
   },
