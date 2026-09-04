@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Slide 3 - Technical Approach (Tech Stack, System Architecture & Process Flow)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: #0b1329;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* 16:9 Widescreen Presentation Slide Canvas (1280x720) */
+    .slide-canvas {
+      width: 1280px;
+      height: 720px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      padding: 22px 34px 18px 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ─── HEADER ─── */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+
+    .team-badge {
+      background: #f1f5f9;
+      color: #0f2744;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .title-group {
+      text-align: center;
+    }
+
+    .slide-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: #0f2744;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .slide-subtitle {
+      font-size: 12px;
+      font-weight: 700;
+      color: #d97706;
+      letter-spacing: 0.3px;
+    }
+
+    .sih-badge {
+      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sih-text {
+      font-size: 11px;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.2;
+    }
+
+    .problem-id {
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #bfdbfe;
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+    /* ─── TOP SPLIT: TECH STACK (LEFT) + SYSTEM ARCHITECTURE (RIGHT) ─── */
+    .top-split {
+      display: grid;
+      grid-template-columns: 370px 1fr;
+      gap: 16px;
+      height: 385px;
+      margin-bottom: 14px;
+    }
+
+    /* Section Containers */
+    .section-box {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #0f2744;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-tag {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* 1. TECH STACK STYLING */
+    .tech-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .tech-row {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      padding: 6px 10px;
+    }
+
+    .tech-row-header {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .pill-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .pill {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .pill-blue   { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .pill-teal   { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+    .pill-orange { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+    .pill-purple { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+    .pill-gray   { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+    /* 2. SYSTEM ARCHITECTURE (4-LAYER STACK) */
+    .arch-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .arch-layer {
+      border-radius: 7px;
+      padding: 7px 12px;
+      border: 1px solid #e2e8f0;
+      position: relative;
+    }
+
+    .layer-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+
+    .layer-name {
+      font-size: 11px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .layer-badge {
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .layer-content {
+      font-size: 10px;
+      line-height: 1.35;
+      padding-left: 20px;
+    }
+
+    .l1 { background: #eff6ff; border-color: #bfdbfe; color: #1e3a8a; }
+    .l1 .layer-name { color: #1e40af; }
+    .l1 .layer-badge { background: #dbeafe; color: #1d4ed8; }
+
+    .l2 { background: #fffbeb; border-color: #fde68a; color: #78350f; }
+    .l2 .layer-name { color: #b45309; }
+    .l2 .layer-badge { background: #fef3c7; color: #b45309; }
+
+    .l3 { background: #faf5ff; border-color: #e9d5ff; color: #581c87; }
+    .l3 .layer-name { color: #7e22ce; }
+    .l3 .layer-badge { background: #f3e8ff; color: #7e22ce; }
+
+    .l4 { background: #f0fdf4; border-color: #bbf7d0; color: #14532d; }
+    .l4 .layer-name { color: #15803d; }
+    .l4 .layer-badge { background: #dcfce7; color: #15803d; }
+
+    .layer-connector {
+      text-align: center;
+      font-size: 10px;
+      color: #94a3b8;
+      font-weight: 800;
+      line-height: 1;
+      margin: -4px 0;
+    }
+
+    /* ─── BOTTOM SECTION: PROCESS & DATA FLOW ─── */
+    .bottom-flow-box {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .flow-steps {
+      display: grid;
+      grid-template-columns: 1fr auto 1.3fr auto 1fr auto 1fr;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .flow-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      padding: 7px 10px;
+      height: 96px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .flow-card-num {
+      font-size: 9px;
+      font-weight: 800;
+      color: #d97706;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .flow-card-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f2744;
+      line-height: 1.2;
+    }
+
+    .flow-card-desc {
+      font-size: 9.5px;
+      color: #475569;
+      line-height: 1.3;
+    }
+
+    .flow-arrow {
+      font-size: 14px;
+      color: #d97706;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    /* Footer Note */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 4px;
+      border-top: 1px solid #f1f5f9;
+      font-size: 9.5px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slide-canvas">
+    
+    <!-- ─── HEADER ─── -->
+    <header class="slide-header">
+      <div class="team-badge">
+        <span>🦆</span> Team Psyduck
+      </div>
+      
+      <div class="title-group">
+        <h1 class="slide-title">Technical Approach</h1>
+        <div class="slide-subtitle">PalashSetu (पलाश सेतु) • Tech Stack, System Architecture & End-to-End Process Flow</div>
+      </div>
+
+      <div class="sih-badge">
+        <div class="sih-text">
+          SMART INDIA<br>HACKATHON 2026
+        </div>
+        <div class="problem-id">ID: SIH 26042</div>
+      </div>
+    </header>
+
+    <!-- ─── TOP SPLIT: TECH STACK + SYSTEM ARCHITECTURE ─── -->
+    <div class="top-split">
+      
+      <!-- ─── PART 1: TECH STACK ─── -->
+      <div class="section-box">
+        <div class="section-header">
+          <div class="section-title">
+            <span>🛠️</span> Tech Stack Used
+          </div>
+          <span class="section-tag" style="background: #eff6ff; color: #1d4ed8;">100% Offline</span>
+        </div>
+
+        <div class="tech-grid">
+          
+          <!-- Frontend -->
+          <div class="tech-row">
+            <div class="tech-row-header">
+              <span>🎨</span> Client UI & Frontend
+            </div>
+            <div class="pill-wrap">
+              <span class="pill pill-blue">React 18.3</span>
+              <span class="pill pill-blue">TypeScript</span>
+              <span class="pill pill-blue">Vite 5 (SPA)</span>
+              <span class="pill pill-gray">Touch UI (48px+)</span>
+            </div>
+          </div>
+
+          <!-- Native Mobile -->
+          <div class="tech-row">
+            <div class="tech-row-header">
+              <span>📱</span> Mobile & Native Runtime
+            </div>
+            <div class="pill-wrap">
+              <span class="pill pill-teal">Capacitor 6.1</span>
+              <span class="pill pill-teal">Android SDK (API 24–34)</span>
+              <span class="pill pill-gray">Hardware Accel.</span>
+            </div>
+          </div>
+
+          <!-- Linguistic Engine -->
+          <div class="tech-row">
+            <div class="tech-row-header">
+              <span>🧠</span> Linguistic & NLP Core
+            </div>
+            <div class="pill-wrap">
+              <span class="pill pill-orange">AI4Bharat IndicTrans2</span>
+              <span class="pill pill-orange">7,503-Word Lexicon</span>
+              <span class="pill pill-orange">Regex Rule Engine</span>
+            </div>
+          </div>
+
+          <!-- Audio Synthesis -->
+          <div class="tech-row">
+            <div class="tech-row-header">
+              <span>🔊</span> Speech Synthesis & Audio
+            </div>
+            <div class="pill-wrap">
+              <span class="pill pill-purple">santaliSpeech.ts</span>
+              <span class="pill pill-purple">Android Native TTS (hi-IN)</span>
+              <span class="pill pill-gray">Web Audio API</span>
+            </div>
+          </div>
+
+          <!-- Storage -->
+          <div class="tech-row">
+            <div class="tech-row-header">
+              <span>💾</span> Storage & Offline Assets
+            </div>
+            <div class="pill-wrap">
+              <span class="pill pill-gray">Capacitor Preferences</span>
+              <span class="pill pill-gray">Compiled TypeScript</span>
+              <span class="pill pill-gray">Zero Cloud DB</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── PART 2: SYSTEM ARCHITECTURE (4-LAYER) ─── -->
+      <div class="section-box">
+        <div class="section-header">
+          <div class="section-title">
+            <span>🏛️</span> System Architecture (4-Layer Framework)
+          </div>
+          <span class="section-tag" style="background: #f0fdf4; color: #15803d;">Airplane Mode Ready</span>
+        </div>
+
+        <div class="arch-stack">
+          
+          <!-- Layer 1 -->
+          <div class="arch-layer l1">
+            <div class="layer-top-row">
+              <div class="layer-name"><span>📱</span> Layer 1: Tablet-First Pedagogical UI Layer</div>
+              <span class="layer-badge">Presentation</span>
+            </div>
+            <div class="layer-content">
+              <strong>5 Core Classroom Modules:</strong> Live Voice Translator • 30+ Ol Chiki Decks • 36 NIPUN Lesson Plans • Dynamic Worksheets • JCERT Textbooks
+            </div>
+          </div>
+
+          <div class="layer-connector">↕ Two-Way Event & State Dispatch</div>
+
+          <!-- Layer 2 -->
+          <div class="arch-layer l2">
+            <div class="layer-top-row">
+              <div class="layer-name"><span>🧠</span> Layer 2: On-Device Linguistic & NLP Engine</div>
+              <span class="layer-badge">Core Intelligence</span>
+            </div>
+            <div class="layer-content">
+              <strong>7,503-Entry Master Lexicon:</strong> Distilled from AI4Bharat IndicTrans2 • 4-Tier Fallback: Direct Match ➔ Regex Phrasebook ➔ Grammar Parser ➔ Script Transliteration
+            </div>
+          </div>
+
+          <div class="layer-connector">↕ Real-Time Phoneme Compilation</div>
+
+          <!-- Layer 3 -->
+          <div class="arch-layer l3">
+            <div class="layer-top-row">
+              <div class="layer-name"><span>🔊</span> Layer 3: Novel Acoustic-Phonetic TTS Compiler</div>
+              <span class="layer-badge">Audio Synthesis</span>
+            </div>
+            <div class="layer-content">
+              <strong>Zero-Cloud Voice Bridge:</strong> Maps unpronounceable Ol Chiki Unicode (U+1C50–U+1C7F) into Indic phonetic phonemes articulated natively via Android offline TTS at 0.85x speed.
+            </div>
+          </div>
+
+          <div class="layer-connector">↕ Native OS Hardware Execution</div>
+
+          <!-- Layer 4 -->
+          <div class="arch-layer l4">
+            <div class="layer-top-row">
+              <div class="layer-name"><span>⚙️</span> Layer 4: Android Native Hardware & Runtime Bridge</div>
+              <span class="layer-badge">Hardware OS</span>
+            </div>
+            <div class="layer-content">
+              <strong>Target OS:</strong> Android 7.0+ (API 24–34) • Native Offline SpeechRecognizer • Capacitor Preferences • Hardware GPU acceleration enabled
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ─── PART 3: END-TO-END PROCESS & DATA FLOW (BOTTOM) ─── -->
+    <div class="bottom-flow-box">
+      <div class="section-header" style="margin-bottom: 4px; padding-bottom: 4px;">
+        <div class="section-title">
+          <span>🔄</span> End-to-End Data Flow & Process Pipeline
+        </div>
+        <span class="section-tag" style="background: #fff7ed; color: #c2410c;">End-to-End Latency &lt; 250 ms</span>
+      </div>
+
+      <div class="flow-steps">
+        
+        <!-- Step 1 -->
+        <div class="flow-card">
+          <div class="flow-card-num">Step 01 • Input</div>
+          <div class="flow-card-title">🎙️ Speech Input (STT)</div>
+          <div class="flow-card-desc">Teacher speaks Hindi via tablet mic; captured locally by Android SpeechRecognizer.</div>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <!-- Step 2 -->
+        <div class="flow-card" style="border-color: #fde68a; background: #fffdf5;">
+          <div class="flow-card-num" style="color: #b45309;">Step 02 • Parsing</div>
+          <div class="flow-card-title">⚙️ 4-Tier NLP Engine</div>
+          <div class="flow-card-desc">Direct Match ➔ Regex Phrases ➔ Particle Parser (ᱠᱷᱚᱱ, ᱨᱮ) ➔ Ol Chiki Transliteration fallback.</div>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <!-- Step 3 -->
+        <div class="flow-card" style="border-color: #e9d5ff; background: #fdfaff;">
+          <div class="flow-card-num" style="color: #7e22ce;">Step 03 • Audio Gen</div>
+          <div class="flow-card-title">🔊 Acoustic Compiler</div>
+          <div class="flow-card-desc">Ol Chiki Unicode converted into phonetic Indic syllables; dispatched to Android hi-IN TTS.</div>
+        </div>
+
+        <div class="flow-arrow">➔</div>
+
+        <!-- Step 4 -->
+        <div class="flow-card" style="border-color: #bbf7d0; background: #f6fdf8;">
+          <div class="flow-card-num" style="color: #15803d;">Step 04 • Delivery</div>
+          <div class="flow-card-title">🗣️ Classroom Output</div>
+          <div class="flow-card-desc">Instant spoken Santali audio + dual-script display on tablet screen for teacher & children.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── FOOTER ─── -->
+    <footer class="slide-footer">
+      <div><strong>Core Design Principle:</strong> Knowledge Distillation from 320M Model into Sub-Millisecond Hash Lexicon for Budget 2GB RAM Hardware</div>
+      <div>Smart India Hackathon 2026 • Slide 3 of 6</div>
+    </footer>
+
+  </div>
+
+</body>
+</html>
