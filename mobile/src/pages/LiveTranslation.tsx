@@ -99,9 +99,14 @@ const CATEGORIZED_PHRASES = {
   ],
   responses: [
     { santali: 'ᱦᱚᱭ ᱢᱟᱪᱮᱛ, ᱤᱧᱤᱧ ᱵᱩᱡᱷᱟᱹᱣ ᱠᱮᱫᱼᱟ᱾', hindi: 'हाँ शिक्षक, मुझे समझ आ गया।', pronunciation: 'Hoy machet, inying bujhao keda.' },
+    { santali: 'ᱵᱟᱹᱧ ᱵᱩᱡᱷᱟᱹᱣ ᱞᱮᱫᱼᱟ, ᱟᱨᱦᱚᱸ ᱞᱟᱹᱭ ᱢᱮ᱾', hindi: 'मुझे समझ नहीं आया, दोबारा बताइए।', pronunciation: 'Bany bujhao leda, arhon lay me.' },
     { santali: 'ᱱᱚᱣᱟ ᱫᱚ ᱯᱮ (᱓) ᱠᱟᱱᱟ᱾', hindi: 'यह तीन (3) है।', pronunciation: 'Nowa do pe (3) kana.' },
+    { santali: 'ᱫᱟᱜ ᱧᱩᱧ ᱥᱮᱱᱚᱜᱼᱟ?', hindi: 'क्या मैं पानी पीने जा सकता हूँ?', pronunciation: 'Dag nyun senoga?' },
     { santali: 'ᱜᱟᱹᱭ', hindi: 'गाय (Cow)', pronunciation: 'Gai' },
     { santali: 'ᱦᱟᱹᱛᱤ', hindi: 'हाथी (Elephant)', pronunciation: 'Hati' },
+    { santali: 'ᱥᱮᱣ', hindi: 'सेब (Apple)', pronunciation: 'Sew' },
+    { santali: 'ᱦᱚᱭ', hindi: 'हाँ (Yes)', pronunciation: 'Hoy' },
+    { santali: 'ᱵᱟᱝ', hindi: 'नहीं (No)', pronunciation: 'Bang' },
   ],
 };
 
@@ -410,10 +415,10 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       setPronunciation(computePhonetic(rawInput, clientTranslated, mode));
       setActiveModel('⚡ Palash On-Device Engine (7,500+ Offline Vocab)');
 
-      // 🎙️ AUTOMATIC VOICE-TO-VOICE PLAYBACK: Speak translated voice out loud immediately
+      // 🎙️ AUTOMATIC VOICE PLAYBACK: Speak translated voice out loud immediately
       if (clientTranslated) {
         setTimeout(() => {
-          speakText(clientTranslated, { rate: 0.85 });
+          speakText(clientTranslated, { rate: 0.85, lang: mode === 'student' ? 'hi-IN' : undefined });
         }, 120);
       }
     } finally {
@@ -423,7 +428,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
   const playAudio = (text: string) => {
     sfx.playVoicePing();
-    speakText(text, { rate: 0.85 });
+    speakText(text, { rate: 0.85, lang: mode === 'student' ? 'hi-IN' : undefined });
   };
 
   // 🎙️ Automatic Voice-in -> Translation -> Voice-out loop
@@ -436,6 +441,14 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
   const handleVoiceToggle = () => {
     sfx.playTap();
+    if (mode === 'student') {
+      alert(
+        '👧 Student Mode: Interactive Tap-to-Respond Active!\n\n' +
+        'In rural primary classrooms, children use the intuitive 1-tap visual response cards below to speak Hindi to the teacher.\n\n' +
+        'Direct spoken Santali ASR via on-device quantized IndicWav2Vec is planned for PalashSetu v2.0!'
+      );
+      return;
+    }
     if (isListening) {
       stopListening();
     } else {
@@ -502,6 +515,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         <div style={{ display: 'inline-flex', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '20px', gap: '4px', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}>
           <button
             onClick={() => {
+              sfx.playTap();
               setMode('teacher');
               setSourceText('');
               setTranslatedText('');
@@ -528,35 +542,55 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           <button
             onClick={() => {
               sfx.playTap();
-              alert(
-                '🚧 Student Voice Recognition (Santali ➔ Hindi) Coming Soon in v2.0!\n\n' +
-                'Google Speech Services currently supports Hindi & English voice recognition on Android devices. ' +
-                'Direct Santali ASR via AI4Bharat IndicWav2Vec is in development for PalashSetu v2.0.\n\n' +
-                'Teacher Instruction (Hindi ➔ Santali) is 100% active and offline!'
-              );
+              setMode('student');
+              setSourceText('');
+              setTranslatedText('');
+              setPronunciation('');
+              setPhraseCategory('responses');
             }}
             style={{
               padding: '10px 20px',
               borderRadius: '16px',
               border: 'none',
-              backgroundColor: 'transparent',
-              color: '#64748b',
+              backgroundColor: mode === 'student' ? '#c05621' : 'transparent',
+              color: mode === 'student' ? '#ffffff' : '#475569',
               fontWeight: 700,
-              fontSize: '0.88rem',
+              fontSize: '0.92rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
+              boxShadow: mode === 'student' ? '0 2px 8px rgba(192,86,33,0.25)' : 'none',
               transition: 'all 0.15s ease',
             }}
           >
-            <span>👧 <strong>Student</strong>: Santali → Hindi</span>
-            <span style={{ fontSize: '0.72rem', backgroundColor: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '10px', fontWeight: 800, border: '1px solid #fde68a' }}>
-              🔒 Coming Soon v2.0
+            <span>👧 <strong>Student Mode</strong>: Santali → Hindi</span>
+            <span style={{ fontSize: '0.72rem', backgroundColor: mode === 'student' ? 'rgba(255,255,255,0.25)' : '#fed7aa', color: mode === 'student' ? '#ffffff' : '#9a3412', padding: '2px 8px', borderRadius: '10px', fontWeight: 800 }}>
+              👆 Tap-to-Respond
             </span>
           </button>
         </div>
       </div>
+
+      {/* Student Mode Tap-to-Respond Informational Banner */}
+      {mode === 'student' && (
+        <div style={{ backgroundColor: '#fffaf0', border: '1px solid #fbd38d', borderRadius: '12px', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.4rem' }}>👧👆</span>
+            <div>
+              <div style={{ fontWeight: 800, color: '#9c4221', fontSize: '0.9rem' }}>
+                Interactive Tap-to-Respond Active (Balvatika & Primary FLN)
+              </div>
+              <div style={{ color: '#7b341e', fontSize: '0.82rem' }}>
+                Tribal children tap visual Ol Chiki response cards below to speak Hindi to the teacher. (Direct Santali voice ASR is part of our v2.0 roadmap).
+              </div>
+            </div>
+          </div>
+          <span style={{ fontSize: '0.75rem', backgroundColor: '#fed7aa', color: '#9a3412', fontWeight: 800, padding: '3px 10px', borderRadius: '8px' }}>
+            100% Offline Response Engine
+          </span>
+        </div>
+      )}
 
       {/* Main Translation Dialogue Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.25rem' }}>
@@ -798,11 +832,22 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
             <button
               key={idx}
               onClick={() => {
-                setSourceText(phrase.hindi);
-                setTranslatedText(phrase.santali);
-                setPronunciation(phrase.pronunciation);
-                setLatencyMs(3);
-                setActiveModel('AI4Bharat IndicTrans2 320M (On-Device Local)');
+                sfx.playTap();
+                if (mode === 'student') {
+                  setSourceText(phrase.santali);
+                  setTranslatedText(phrase.hindi);
+                  setPronunciation(phrase.pronunciation || '');
+                  setLatencyMs(1);
+                  setActiveModel('⚡ Palash On-Device Engine (Santali ➔ Hindi)');
+                  speakText(phrase.hindi, { rate: 0.85, lang: 'hi-IN' });
+                } else {
+                  setSourceText(phrase.hindi);
+                  setTranslatedText(phrase.santali);
+                  setPronunciation(phrase.pronunciation || '');
+                  setLatencyMs(1);
+                  setActiveModel('⚡ Palash On-Device Engine (Hindi ➔ Santali)');
+                  speakText(phrase.santali, { rate: 0.85 });
+                }
               }}
               style={{
                 textAlign: 'left',
@@ -822,12 +867,25 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
                 e.currentTarget.style.borderColor = '#e2e8f0';
               }}
             >
-              <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.92rem', marginBottom: '2px' }}>
-                {phrase.hindi}
-              </div>
-              <div style={{ color: '#c05621', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'var(--font-santali)' }}>
-                {phrase.santali}
-              </div>
+              {mode === 'student' ? (
+                <>
+                  <div style={{ color: '#c05621', fontSize: '1rem', fontWeight: 800, fontFamily: 'var(--font-santali)', marginBottom: '2px' }}>
+                    {phrase.santali}
+                  </div>
+                  <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.88rem' }}>
+                    {phrase.hindi} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.92rem', marginBottom: '2px' }}>
+                    {phrase.hindi}
+                  </div>
+                  <div style={{ color: '#c05621', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'var(--font-santali)' }}>
+                    {phrase.santali} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
+                  </div>
+                </>
+              )}
             </button>
           ))}
         </div>
