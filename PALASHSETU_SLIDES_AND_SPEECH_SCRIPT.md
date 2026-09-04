@@ -1,56 +1,61 @@
-# PalashSetu (पलाश सेतु) — SIH 2026 Master Pitch Deck
-## Slide Content & Word-for-Word Presenter Script (6-Slide Limit)
-**Problem Statement SIH 26042 • Govt. of Jharkhand • Team Psyduck**
+# PalashSetu (पलाश सेतु) — SIH 2026 Master Pitch Deck & Script
+## Complete Slide-by-Slide Content & Word-for-Word Presenter Script (6-Slide Limit)
+**Problem Statement SIH 26042 • Department of School Education & Literacy, Govt. of Jharkhand • Team Psyduck**
 
 ---
 
-## ⏱️ Pitch Timing Strategy (5-Minute Total Presentation)
+## ⏱️ Team Pitch Strategy (5-Minute Hard Stop)
 
-| Slide | Section | Target Time | Core Message |
+| Slide # | Slide Title | Speaking Time | Main Concept to Nail |
 |:---:|---|:---:|---|
-| **Slide 1** | Title & Team | **20 sec** | Who we are, what problem we solve, and our mission. |
-| **Slide 2** | Problem, Solution & Uniqueness | **60 sec** | The tribal language divide and our 5-tool offline platform. |
-| **Slide 3** | Technical Approach | **75 sec** | 4-layer architecture, IndicTrans2 distillation, and acoustic TTS. |
-| **Slide 4** | Feasibility & Viability | **50 sec** | Zero cost, runs on ₹5,000 tablets, multi-teacher auth. |
-| **Slide 5** | Impact & Benefits | **60 sec** | Ending comprehension shock, NIPUN FLN & NEP 2020 alignment. |
-| **Slide 6** | Research, References & Demo | **35 sec** | Academic backing, test verification, and live demo invitation. |
+| **Slide 1** | Title & Team Intro | **20 sec** | Who we are, problem statement, and core mission. |
+| **Slide 2** | Problem, Solution & Uniqueness | **60 sec** | Comprehension shock, 5 tools, and modular tribal framework. |
+| **Slide 3** | Technical Approach (2-Tier & Pipeline) | **80 sec** | 2-Tier system, 4-tier NLP engine, and acoustic TTS compiler. |
+| **Slide 4** | Feasibility, Viability & Mitigations | **50 sec** | ₹0 recurring cost, runs on ₹5,000 tablets, multi-teacher auth. |
+| **Slide 5** | Impact, Policy Alignment & Alphabet FLN | **60 sec** | NEP 2020 Clause 4.11, NIPUN Panchaadi & Ol Chiki alphabet. |
+| **Slide 6** | Research, References & Live Demo | **30 sec** | AI4Bharat paper, NCERT MTB-MLE, and QR code to GitHub repo. |
 
 ---
 
 # 📌 SLIDE 1: TITLE & TEAM INTRODUCTION
 
 ### 📄 SLIDE CONTENT (What Goes on the Screen)
-* **Project Name:** **PALASHSETU (पलाश सेतु)**
-* **Tagline:** AI-Powered Offline MTB-MLE Assistant for Tribal Classrooms
-* **Problem Statement ID:** SIH 26042 — Department of School Education & Literacy, Govt. of Jharkhand
-* **Team Name:** Team Psyduck
-* **Team Members & Roles:** [List member names with roles: e.g., ML & NLP Lead, Mobile/Frontend Lead, Curriculum & Research Lead]
-* **Logos:** Smart India Hackathon 2026, Ministry of Education, Govt. of Jharkhand emblem
+* **Project Title:** **PALASHSETU (पलाश सेतु)**
+* **Subheading:** AI-Powered Offline MTB-MLE Assistant for Tribal Classrooms
+* **Problem Statement:** SIH 26042 • Govt. of Jharkhand (School Education & Literacy Dept.)
+* **Team Badge:** Team Psyduck
+* **Team Members & Core Roles:**
+  * Member 1: Team Lead & Mobile System Architect (Capacitor & Android)
+  * Member 2: NLP & Linguistic Engine Lead (IndicTrans2 Distillation)
+  * Member 3: Speech Audio & Acoustic Engineer (`santaliSpeech.ts`)
+  * Member 4: Curriculum & NIPUN Bharat Research Lead (JCERT Data)
+  * Member 5: Frontend UI/UX Developer (React & Touch Controls)
+  * Member 6: Quality Assurance & Test Verification Lead (44-Test Suite)
+* **Logos:** Smart India Hackathon 2026, Ministry of Education, Govt. of Jharkhand
 
 ---
 
-### 🗣️ PRESENTER SCRIPT (What You Actually Say Out Loud)
-> *"Respected judges, greetings of the day. We are Team Psyduck, and today we present **PalashSetu** — an AI-powered, 100% offline classroom companion built for Mother Tongue-Based Multilingual Education in tribal primary schools.*  
+### 🗣️ PRESENTER SCRIPT (Word-for-Word What to Say Out Loud)
+> *"Respected judges, greetings of the day. We are **Team Psyduck**, and today we present **PalashSetu** — an AI-powered, 100% offline classroom companion built for Mother Tongue-Based Multilingual Education in tribal primary schools.*  
 > 
-> *In India, language should be a bridge to learning, not a barrier. Under Problem Statement 26042, we have engineered an on-device digital companion that empowers Hindi-medium teachers to communicate, teach, and assess indigenous tribal children directly in their mother tongue — with zero internet, zero recurring cloud costs, and running entirely on low-cost government tablets."*
+> *In India, language should be a bridge to learning, not a barrier. Under Problem Statement 26042, we have engineered a standalone digital assistant that empowers Hindi-medium primary teachers to communicate, teach, and assess indigenous tribal children directly in their mother tongue — with zero internet, zero recurring cloud costs, and running entirely on low-cost government tablets."*
 
 ---
 
 # 📌 SLIDE 2: PROBLEM STATEMENT, PROPOSED SOLUTION & UNIQUENESS
 
 ### 📄 SLIDE CONTENT (What Goes on the Screen)
-*(Matches your current approved slide layout)*
 
 #### Box 1: PROBLEM STATEMENT
-* **MTB-MLE Language Divide:** Primary teachers instruct in standard Hindi, while tribal children speak indigenous mother tongues at home, causing early comprehension gaps and dropouts.
+* **MTB-MLE Language Divide:** Primary teachers instruct in standard Hindi, while tribal children speak indigenous mother tongues at home, causing early comprehension shock and dropouts.
 * **Tribal Dialects Neglected:** Mainstream AI (Google, OpenAI) fails on tribal languages due to scarce digital corpora, non-standard scripts (Ol Chiki, Warang Chiti, Tolong Siki), and zero native OS voice support.
 * **Total Connectivity Blackout:** Remote tribal schools & Anganwadis run at **0% internet** — cloud translation APIs are not an option.
 * **Low-Cost Hardware Constraints:** Budget government tablets (2GB RAM, Android 9) cannot run heavy neural networks locally.
 * **Flagship Target — Santali:** Selected for Phase 1 (~1.2M children in Jharkhand's Santhal Pargana & Kolhan), representing the highest linguistic isolation barrier.
 
-#### Box 2: OUR PROPOSED SOLUTION (5 Tools in 1 Platform)
-* ❶ **Bidirectional Classroom Voice Bridge:** Real-time walkie-talkie mode (Teacher Hindi ↔ Student Santali) with synchronized Ol Chiki script and spoken audio.
-* ❷ **NIPUN Bharat Lesson Studio:** 36 structured, 5-part Panchaadi lesson plans (Balvatika to Class 3) with bilingual teacher talk-scripts.
+#### Box 2: OUR PROPOSED SOLUTION (5 Core Pedagogical Tools)
+* ❶ **Bidirectional Voice Bridge:** Real-time Teacher Hindi Speech-to-Voice + Interactive Student Ol Chiki Tap-to-Respond Interface.
+* ❷ **NIPUN Bharat Lesson Studio:** 36 structured, 5-part Panchaadi lesson plans (Balvatika to Class 3) including dedicated Ol Chiki alphabet lessons.
 * ❸ **Illustrated Tribal Flashcard Engine:** 30+ interactive decks (96+ cards) with 3D flip-and-reveal, visual aids, and native phonetics.
 * ❹ **Dynamic Bilingual Worksheet Generator:** Infinite randomized drills with 1-tap printable A4 worksheets for offline paper distribution.
 * ❺ **State Textbook Localizer (JCERT):** Dual-column side-by-side textbook reader with paragraph-level native audio triggers.
@@ -69,34 +74,38 @@
 
 ---
 
-### 🗣️ PRESENTER SCRIPT (What You Actually Say Out Loud)
+### 🗣️ PRESENTER SCRIPT (Word-for-Word What to Say Out Loud)
 > *"Judges, imagine a 6-year-old Santhali child on their first day of primary school in Dumka. At home, they speak Santali. But the moment they enter the classroom, the teacher speaks only Hindi, and the books are in Devanagari. This linguistic shock leads to cognitive fear, silence, and eventually, dropping out.*  
 > 
-> *Commercial solutions like Google Translate fail completely here: first, these schools have **zero internet**; second, Android has **no voice support for Santali**; and third, low-cost ₹5,000 government tablets cannot run heavy deep-learning models.*  
+> *Commercial solutions like Google Translate fail completely here: first, these rural schools have **zero internet**; second, Android has **no voice support for Santali**; and third, low-cost ₹5,000 government tablets cannot run heavy deep-learning models.*  
 > 
-> *To solve this, we built **PalashSetu**. It is not just a translator — it is a complete 5-in-1 classroom companion: featuring a real-time bidirectional walkie-talkie, 36 NIPUN Bharat structured lessons, interactive flashcards, infinite printable worksheets, and official JCERT state textbooks localized side-by-side.*  
+> *To solve this, we built **PalashSetu**. It is not just a translator — it is a complete 5-in-1 classroom companion: featuring a real-time bidirectional voice bridge, 36 NIPUN Bharat structured lessons that even teach the Ol Chiki alphabet, interactive flashcards, infinite printable worksheets, and official JCERT state textbooks localized side-by-side.*  
 > 
 > *Most importantly, our architecture is **modular**. While we built and validated our Phase 1 pilot for **Santali (Ol Chiki)**, the framework is language-agnostic. We can scale to **Ho, Mundari, and Kurukh** simply by plugging in their vocabulary maps without modifying the app code."*
 
 ---
 
-# 📌 SLIDE 3: TECHNICAL APPROACH
+# 📌 SLIDE 3: TECHNICAL APPROACH & 2-TIER SYSTEM
 
 ### 📄 SLIDE CONTENT (What Goes on the Screen)
 
-#### Section 1: CATEGORIZED TECH STACK
-* **Client UI & Frontend:** React 18.3, TypeScript 5.x, Vite 5 (SPA), High-Contrast Touch UI (48px+ targets).
-* **Mobile & Native Runtime:** Capacitor 6.1 Native Bridge, Android SDK (API 24–34), Hardware Acceleration.
-* **NLP & Linguistic Core:** AI4Bharat IndicTrans2 Knowledge Distillation, 7,503-Word In-Memory Lexicon, 4-Tier Regex Rule Engine.
-* **Speech Synthesis & Storage:** Custom `santaliSpeech.ts` Acoustic Compiler, Android Native `hi-IN` TTS, Capacitor Offline Preferences.
+#### Part 1: THE 2-TIER SYSTEM ARCHITECTURE
+* **Tier 1: Classroom Edge Node (Daily Tablet App):**
+  * 100% Standalone APK on ₹5,000 Android Tablets (React 18, TypeScript, Capacitor 6.1).
+  * Operates in **100% Airplane Mode** (Zero internet, zero cloud servers, zero DB bloat).
+  * Sub-millisecond in-memory translation via 7,503-word lexicon.
+* **Tier 2: District Administrative Hub (Quarterly BRC Server):**
+  * Central Python / FastAPI + SQLite server at the District Education Office.
+  * Used for AI4Bharat IndicTrans2 model distillation, textbook authoring, and quarterly sync when tablets visit Block Resource Centres.
 
-#### Section 2: 4-LAYER SYSTEM ARCHITECTURE (Block Diagram)
-* **Layer 1 [Presentation]:** Tablet-First Pedagogical UI (Live Voice, Cards, Lessons, Worksheets, Books).
-* **Layer 2 [Intelligence]:** On-Device Linguistic Engine (7,503 Lexicon, Postposition Parser, Fallback Transliteration).
-* **Layer 3 [Audio Synthesis]:** Novel Acoustic-Phonetic TTS Compiler (Ol Chiki Unicode `U+1C50–U+1C7F` $\to$ Indic Phonemes $\to$ Android Native Voice).
-* **Layer 4 [Hardware & OS]:** Android Native OS Runtime via Capacitor (Offline `SpeechRecognizer`, local hardware storage).
+#### Part 2: CATEGORIZED TECH STACK
+* **Client UI:** React 18.3, TypeScript 5.x, Vite 5 (SPA), High-Contrast Touch UI (48px+ targets).
+* **Native Mobile:** Capacitor 6.1 Bridge, Android SDK (API 24–34), Hardware GPU Acceleration.
+* **NLP & Translation Core:** AI4Bharat IndicTrans2 distillation, 7,503-Word In-Memory Lexicon, 4-Tier Rule Engine.
+* **Speech Synthesis & Audio:** Custom `santaliSpeech.ts` Acoustic Compiler, Android Native `hi-IN` TTS, Web Audio SFX (`sfx.ts`).
+* **Local Persistence:** Capacitor Preferences, SHA-256 local PIN encryption (`authService.ts`).
 
-#### Section 3: END-TO-END DATA FLOW (Horizontal Pipeline)
+#### Part 3: END-TO-END DATA FLOW (Horizontal Pipeline)
 ```
 [ Step 1: Input ]    ➔   [ Step 2: NLP Parser ]     ➔   [ Step 3: Audio Gen ]   ➔   [ Step 4: Output ]
 Teacher speaks Hindi      4-Tier On-Device Engine:      Acoustic TTS: Ol Chiki      Instant spoken Santali
@@ -107,18 +116,21 @@ SpeechRecognizer.         Transliteration fallback.     Android hi-IN TTS engine
 
 ---
 
-### 🗣️ PRESENTER SCRIPT (What You Actually Say Out Loud)
-> *"Now, let us walk through our technical architecture. How do we make state-of-the-art multilingual AI run offline on a 2GB RAM budget tablet?*  
+### 🗣️ PRESENTER SCRIPT (Word-for-Word What to Say Out Loud)
+> *"Now, let us examine our technical approach. How do we make state-of-the-art multilingual AI run offline on a 2GB RAM budget tablet?*  
 > 
-> *First, we rejected the traditional client-server model. A remote server is a single point of failure in zero-connectivity tribal zones. Instead, we used **Knowledge Distillation**: we extracted 5,448 Santali vocabulary tokens from AI4Bharat’s 320M-parameter IndicTrans2 model and compiled them into an ultra-fast, in-memory **7,500+ word lookup lexicon**.*  
+> *We designed a **Hybrid 2-Tier Architecture**:  
+> For daily teaching in remote jungle schools, the tablet operates as an **Autonomous Edge Node** — 100% offline, zero internet, zero cloud server. But for administrative curriculum updates, we maintain a **Central FastAPI Hub** at the District Headquarters for quarterly content synchronization.*  
 > 
-> *Our translation pipeline uses a **4-Tier Resilient Engine**: when the teacher speaks, it first checks direct whole-sentence matches; next, it applies regex phrase patterns; then it parses grammatical postpositions like 'khon' (from) and 'habij' (until); and finally, if an unseen student name like 'Rahul' appears, Tier 4 transliterates it character-by-character into Ol Chiki script. It never crashes and never returns a blank screen.*  
+> *To eliminate heavy 2GB neural models from the tablet, we used **Knowledge Distillation**: we extracted 5,448 Santali vocabulary tokens from AI4Bharat’s 320M IndicTrans2 model and compiled them into an ultra-fast, in-memory **7,500+ word lookup lexicon**.*  
 > 
-> *For speech output, we solved a major global limitation: Android has zero native voice support for Santali. Our custom **`santaliSpeech.ts` compiler** maps Ol Chiki syllables into phonetic Indic sound equivalents in real time, articulating authentic Santali voice through Android’s built-in offline engine at an ideal 0.85x classroom speed."*
+> *Our translation pipeline uses a **4-Tier Resilient Engine**: it checks direct matches first, applies regex classroom patterns, parses grammar postpositions like 'khon' (from) and 'habij' (until), and uses Tier 4 character transliteration for unseen student names like 'Rahul'. It never crashes and never returns a blank screen.*  
+> 
+> *For speech output, we solved a major global barrier: Android has zero native voice support for Santali. Our custom **`santaliSpeech.ts` compiler** maps Ol Chiki syllables into phonetic Indic sound equivalents in real time, articulating authentic Santali voice through Android’s built-in offline engine at an ideal 0.85x classroom speed."*
 
 ---
 
-# 📌 SLIDE 4: FEASIBILITY & VIABILITY
+# 📌 SLIDE 4: FEASIBILITY, VIABILITY & RISK MITIGATION
 
 ### 📄 SLIDE CONTENT (What Goes on the Screen)
 
@@ -140,35 +152,37 @@ SpeechRecognizer.         Transliteration fallback.     Android hi-IN TTS engine
 * **Frictionless Offline Distribution:** Lightweight APK distributable via Bluetooth, SD cards, or USB drives in 2G areas without internet usage.
 
 #### Quadrant 4: CHALLENGES & RISK MITIGATION TABLE
-| Challenge | Our Engineering Mitigation |
-|---|---|
-| **No Native Santali Voice in Android** | Built custom **`santaliSpeech.ts` acoustic compiler** utilizing native Indic phoneme mapping. |
-| **Unseen Names & Novel Words** | **Tier 4 Script Transliteration** converts proper nouns into Ol Chiki character-by-character. |
-| **Noisy Classroom Acoustics** | **Push-to-Talk design** with visual speech confirmation bubbles before audio execution. |
-| **Multi-Dialect Tribal Regions** | **Modular Language Adapter** allows adding Ho, Mundari, or Kurukh without touching core code. |
+| Potential Challenge | Impact Level | Our Engineering Mitigation |
+|---|:---:|---|
+| **No Native Santali Voice in Android** | 🔴 Critical | Built custom **`santaliSpeech.ts` acoustic compiler** utilizing native Indic phoneme mapping. |
+| **No Offline Santali ASR for Students** | 🟡 Medium | Engineered **Interactive Tap-to-Respond Cards** (Balvatika/Class 1) with instant Hindi voice playback. (Santali voice ASR is on v2.0 roadmap). |
+| **Unseen Names & Novel Words** | 🟡 Medium | **Tier 4 Script Transliteration** converts proper nouns into Ol Chiki character-by-character. |
+| **Multi-Dialect Tribal Regions** | 🟢 Low | **Modular Language Adapter** allows adding Ho, Mundari, or Kurukh without touching core code. |
 
 ---
 
-### 🗣️ PRESENTER SCRIPT (What You Actually Say Out Loud)
+### 🗣️ PRESENTER SCRIPT (Word-for-Word What to Say Out Loud)
 > *"Turning to feasibility and viability: how do we know this will succeed on the ground?*  
 > 
-> *First, **Technically**: PalashSetu requires no specialized hardware. It is compiled as a lightweight native Android APK that runs on existing 2GB RAM school tablets already distributed under government schemes like e-Vidyavahini.*  
+> *First, **Technically**: PalashSetu requires no expensive new hardware. It is compiled as a lightweight native Android APK that runs on existing 2GB RAM school tablets already distributed under government schemes like e-Vidyavahini.*  
 > 
-> *Second, **Operationally**: In rural schools, two or three teachers often share a single government tablet. We built a local, PIN-authenticated multi-profile service. Teacher Sunita in Class 1 and Teacher Ramesh in Balvatika can switch profiles on the same tablet with their own customized district and class settings. Furthermore, because children cannot stare at a screen all day, our app exports **1-tap printable A4 worksheets** for physical classroom distribution.*  
+> *Second, **Operationally**: In rural schools, two or three teachers often share a single government tablet. We built a local, PIN-authenticated multi-profile service (`authService.ts`). Teacher Sunita in Class 1 and Teacher Ramesh in Balvatika can switch profiles on the same tablet with their own customized district and class settings. Furthermore, because children cannot stare at a screen all day, our app exports **1-tap printable A4 worksheets** for physical classroom distribution.*  
 > 
-> *Third, **Financially**: Commercial cloud AI translation APIs cost money per audio minute and per word translated. Across 1.2 million tribal children, cloud billing runs into crores. PalashSetu operates at **absolute zero recurring cost** to the state government — zero servers, zero API tokens, and zero data charges."*
+> *Third, **On Real-World Challenges**: When evaluating student voice input, we recognized that Android has no offline Santali speech-recognition engine, and 5-year-old tribal children cannot reliably operate microphones. We solved this with an **Interactive Tap-to-Respond Interface**: children tap visual Ol Chiki response cards, and the tablet speaks Hindi to the teacher! Spoken Santali ASR is slated for our v2.0 roadmap.*  
+> 
+> *Finally, **Financially**: Commercial cloud AI translation APIs cost money per audio minute and per word translated. Across 1.2 million tribal children, cloud billing runs into crores. PalashSetu operates at **absolute zero recurring cost** to the state government — zero servers, zero API tokens, and zero data charges."*
 
 ---
 
-# 📌 SLIDE 5: IMPACT & BENEFITS
+# 📌 SLIDE 5: IMPACT, POLICY ALIGNMENT & ALPHABET FLN
 
 ### 📄 SLIDE CONTENT (What Goes on the Screen)
 
 #### Left Zone: MEASURABLE CLASSROOM IMPACT
 * **Eliminates Early-Grade Comprehension Shock:** Bridges the home mother tongue with the school medium, preventing fear and early dropouts.
 * **Accelerates Foundational Literacy & Numeracy (FLN):** 36 structured Panchaadi lessons directly target Grade 3 reading and math fluency benchmarks.
+* **Direct Ol Chiki Alphabet Teaching:** Dedicated curriculum units teaching **Ol Chiki Letters 1–10**, **Letters 11–20**, and **CVC Word Blending** (`ᱫ + ᱟ + ᱜ = ᱫᱟᱜ` Water, `ᱩ + ᱞ = ᱩᱞ` Mango).
 * **Promotes Constitutional Script Pride:** Legitimizes the official **Ol Chiki script (`ᱚᱞ ᱪᱤᱠᱤ`)** in mainstream state classrooms, boosting student engagement and parental trust.
-* **Empowers Newly Posted Teachers:** Enables non-tribal teachers to conduct interactive, bilingual classrooms confidently from Day 1.
 
 #### Right Zone (Top): TARGET OUTCOME METRICS (4 Metric Badges)
 * 🎓 **1.2+ Million Children:** Primary school demographic benefited across Santhal Pargana and Kolhan divisions.
@@ -186,12 +200,14 @@ SpeechRecognizer.         Transliteration fallback.     Android hi-IN TTS engine
 
 ---
 
-### 🗣️ PRESENTER SCRIPT (What You Actually Say Out Loud)
+### 🗣️ PRESENTER SCRIPT (Word-for-Word What to Say Out Loud)
 > *"The true measure of any educational innovation is its ground impact. What changes inside the classroom?*  
 > 
-> *First, it ends the traumatic **comprehension shock** that causes tribal children to drop out in Grades 1 and 2. When a child hears their mother tongue spoken warmly from their teacher’s tablet, their classroom becomes an inviting space of trust.*  
+> *First, it ends the traumatic **comprehension shock** that causes tribal children to drop out in Grades 1 and 2. When a child hears their mother tongue spoken warmly from their teacher’s tablet, the classroom becomes an inviting space of trust.*  
 > 
 > *Second, it directly fulfills the national mandates of **NEP 2020 Clause 4.11** — which states that primary education must be in the child's home language — and the **NIPUN Bharat FLN mission**. Our 36 lessons directly follow the government's 5-step Panchaadi pedagogy: Connect, Explore, Explain, Practice, and Assess.*  
+> 
+> *Crucially, we don't just translate words — our Lesson Studio includes **dedicated Ol Chiki alphabet lessons**: teaching the first 10 letters, letters 11 to 20, and CVC word blending, so children learn to read and write their indigenous script systematically.*  
 > 
 > *Third, our impact extends far beyond Santali. While Santali represents our Phase 1 pilot covering 1.2 million children, our modular adapter architecture is designed to expand across Jharkhand’s tribal belt — moving to **Ho in Kolhan**, **Mundari in Khunti**, and **Kurukh in Ranchi and Gumla**.*  
 > 
@@ -224,11 +240,11 @@ SpeechRecognizer.         Transliteration fallback.     Android hi-IN TTS engine
   * **Live Web Evaluation:** `palash-setu.vercel.app` (simulates on-device tablet execution).
   * **Standalone Android Package:** `PalashSetu-v1.0-debug.apk` (4.44 MB).
   * **Automated Test Suite:** 44/44 passing assertions via `test_offline_engine.js`.
-* **[Add QR Code on slide pointing to GitHub / Live Demo]**
+* **[QR Code on slide pointing to GitHub / Live Demo]**
 
 ---
 
-### 🗣️ PRESENTER SCRIPT (What You Actually Say Out Loud)
+### 🗣️ PRESENTER SCRIPT (Word-for-Word What to Say Out Loud)
 > *"To conclude, our technical methodology and curriculum design are anchored in peer-reviewed research and official government frameworks.*  
 > 
 > *Our linguistic engine builds upon the groundbreaking work of AI4Bharat’s IndicTrans2 consortium from IIT Madras, while our pedagogical design adheres strictly to the NCERT MTB-MLE guidelines and official JCERT state textbooks.*  
@@ -241,7 +257,7 @@ SpeechRecognizer.         Transliteration fallback.     Android hi-IN TTS engine
 
 ---
 
-# 🛡️ TOP 5 JUDGE QUESTIONS & DEFENSE SCRIPTS
+# 🛡️ THE 5 CRUCIAL JUDGE QUESTIONS & DEFENSE SCRIPTS
 
 ### Q1: *"How does this work offline without any internet?"*
 > **Answer:**  
@@ -251,14 +267,14 @@ SpeechRecognizer.         Transliteration fallback.     Android hi-IN TTS engine
 > **Answer:**  
 > *"That was our biggest engineering innovation. Passing raw Ol Chiki Unicode (`U+1C50-U+1C7F`) to Android TTS results in complete silence. We created a custom acoustic compiler (`santaliSpeech.ts`) that maps Ol Chiki syllables into phonetic Indic sound equivalents in real time. We then dispatch this phonetic string to Android's built-in offline `hi-IN` TTS voice at 0.85x speed, producing clear, authentic Santali speech completely offline."*
 
-### Q3: *"What if the teacher speaks a sentence not in your dictionary?"*
+### Q3: *"Does student voice recognition work in Santali?"*
 > **Answer:**  
-> *"Our 4-Tier Fallback Pipeline guarantees it never breaks. First, Tier 1 checks whole sentences. If not found, Tier 2 checks multi-word regex phrase patterns. If still novel, Tier 3 breaks the sentence into words and applies grammar postpositions like 'khon' and 'habij'. Finally, Tier 4 handles proper nouns — like a student's name 'Rahul' — by transliterating them character-by-character into Ol Chiki script. It always produces accurate, legible output."*
+> *"Sir, Android currently has no offline Santali speech-recognition acoustic model. Furthermore, 5-year-old tribal children in noisy classrooms cannot reliably operate speech microphones. For Student-to-Teacher interaction, we engineered an **Interactive Tap-to-Respond Interface**: children tap visual Ol Chiki response tiles, and the tablet translates and speaks Hindi to the teacher. Direct Santali voice ASR via on-device quantized IndicWav2Vec is planned for our v2.0 roadmap."*
 
-### Q4: *"Can this be used in schools where children speak Ho or Mundari?"*
+### Q4: *"Why do you have a backend folder if the tablet is offline?"*
 > **Answer:**  
-> *"Yes, absolutely! Our architecture is built as a Modular Language Adapter that decouples the UI from the linguistic data. Santali in Ol Chiki is our Phase 1 flagship pilot to prove the pipeline. To add Ho (Warang Chiti) or Mundari, we simply plug in their token lexicon and acoustic phoneme map. The user interface, lesson studio, worksheet generator, and audio synthesizer require zero code modifications."*
+> *"PalashSetu is a **Hybrid 2-Tier Architecture**. The tablet is the autonomous classroom edge device for daily teaching with zero server dependency. The FastAPI backend is the central administrative hub at the District Education Office used to distill new model tokens, author state curriculum, and push quarterly content updates when teachers visit the Block Resource Centre."*
 
-### Q5: *"Why did you build an app rather than using existing state government portals?"*
+### Q5: *"Can this be used in schools where children speak Ho or Mundari?"*
 > **Answer:**  
-> *"State portals like e-Vidyavahini and DIKSHA require active internet connectivity and are primarily administrative tracking portals. They do not solve the real-time spoken language barrier during an active classroom lesson. PalashSetu operates as a complementary offline classroom tool that directly assists the teacher during instructional hours in remote zero-network schools."*
+> *"Yes, absolutely! Our architecture is built as a **Modular Language Adapter** that decouples the UI from the linguistic data. Santali in Ol Chiki is our Phase 1 flagship pilot to prove the pipeline. To add Ho (Warang Chiti) or Mundari, we simply plug in their token lexicon and acoustic phoneme map. The user interface, lesson studio, worksheet generator, and audio synthesizer require zero code modifications."*
