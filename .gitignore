@@ -55,3 +55,15 @@ data/test/*
 *.mp3
 *.wav
 *.mp4
+
+# Presentation & Pitch Docs (keep locally, not in repo)
+*.pdf
+PALASHSETU_*.md
+TEAM_ONBOARDING*.md
+*SLIDES*.md
+*SPEECH_SCRIPT*.md
+*PPT*.md
+*GUIDELINES*.md
+slide*.html
+*_GUIDE.md
+SIH_PPT_*.md
