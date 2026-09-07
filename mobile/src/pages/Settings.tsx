@@ -395,7 +395,7 @@ const Settings: React.FC = () => {
 
             <div style={{ padding: '12px', backgroundColor: '#eff6ff', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
               <div style={{ fontSize: '0.72rem', color: '#1e40af', fontWeight: 700 }}>PARSING LATENCY</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1d4ed8', marginTop: '2px' }}>&lt; 0.005 ms</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1d4ed8', marginTop: '2px' }}>&lt; 1 ms</div>
               <div style={{ fontSize: '0.7rem', color: '#1d4ed8' }}>Real-time walkie-talkie</div>
             </div>
 

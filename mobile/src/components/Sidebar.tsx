@@ -11,7 +11,7 @@ interface NavItemConfig {
 
 const NAV_ITEMS: NavItemConfig[] = [
   { to: '/', icon: '🏠', label: 'Dashboard' },
-  { to: '/translate', icon: '🎙️', label: 'Live Voice', badge: 'Sub-3s' },
+  { to: '/translate', icon: '🎙️', label: 'Live Voice', badge: '< 1ms NLP' },
   { to: '/flashcards', icon: '🃏', label: 'Flashcards', badge: '30+ SVG' },
   { to: '/lessons', icon: '📚', label: 'Lesson Studio', badge: 'NIPUN' },
   { to: '/worksheets', icon: '📝', label: 'Worksheets', badge: 'Dynamic' },

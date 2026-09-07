@@ -797,7 +797,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15, 39, 68, 0.05)', border: '1px solid #e2e8f0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '1rem' }}>
           <h3 style={{ margin: 0, color: '#0f2744', fontSize: '1.1rem', fontWeight: 800 }}>
-            ⚡ 1-Tap Quick Classroom Phrasebook (0 ms Offline)
+            ⚡ 1-Tap Quick Classroom Phrasebook (&lt; 1 ms Offline)
           </h3>
 
           <div style={{ display: 'flex', gap: '6px' }}>

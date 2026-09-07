@@ -14,8 +14,8 @@ const DASHBOARD_ACTIONS = [
     icon: '🎙️',
     title: 'Live Voice Translation',
     santali: 'ᱥᱟᱱᱛᱟᱲᱤ ᱨᱚᱲ',
-    desc: 'Real-time Hindi ↔ Santali dialogue with sub-3s latency and native speech.',
-    badge: 'Real-Time ASR',
+    desc: 'Real-time Hindi → Santali with sub-millisecond on-device NLP and native acoustic speech.',
+    badge: 'Offline 4-Tier NLP',
     color: '#ed8936',
   },
   {
@@ -101,7 +101,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
               ᱡᱚᱦᱟᱨ, {teacherName}!
             </h1>
             <p style={{ color: '#cbd5e1', fontSize: '1rem', margin: 0, maxWidth: '600px' }}>
-              Mother-Tongue-Based Teaching Assistant for <strong>{assignedGrade}</strong> in <strong>{district}</strong>. Empowering Santali primary education with on-device AI.
+              Mother-Tongue-Based Teaching Assistant for <strong>{assignedGrade}</strong> in <strong>{district}</strong>. Empowering tribal primary education with on-device AI — Phase 1: Santali (Ol Chiki).
             </p>
           </div>
 
@@ -112,7 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
               <div style={{ fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 500 }}>SVG Decks</div>
             </div>
             <div style={{ backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', padding: '14px 18px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.12)', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#68d391' }}>0 ms</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#68d391' }}>&lt; 1 ms</div>
               <div style={{ fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 500 }}>FLN Latency</div>
             </div>
             <div style={{ backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', padding: '14px 18px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.12)', textAlign: 'center' }}>
