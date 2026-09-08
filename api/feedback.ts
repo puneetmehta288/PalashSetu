@@ -23,7 +23,7 @@ interface ApiResponse {
 // For production: replace with Vercel KV or a database
 const reportsStore: unknown[] = [];
 
-export default function handler(req: ApiRequest, res: ApiResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -68,6 +68,20 @@ export default function handler(req: ApiRequest, res: ApiResponse) {
     reportsStore.push(sanitised);
     if (!((global as any).__palashReports)) (global as any).__palashReports = [];
     (global as any).__palashReports.unshift(sanitised);
+
+    // Persist across serverless containers via pub-sub
+    try {
+      await fetch('https://ntfy.sh/palashsetu_sih26042_complaints', {
+        method: 'POST',
+        headers: {
+          'Title': `${sanitised.teacherName} (${sanitised.district}) - ${sanitised.issueType}`,
+          'Priority': 'default'
+        },
+        body: JSON.stringify(sanitised)
+      });
+    } catch (e) {
+      console.warn('Pubsub persist note:', e);
+    }
 
     console.log('[PalashSetu Feedback Received]', JSON.stringify({ ...sanitised, screenshot: sanitised.screenshot ? '[IMAGE]' : undefined }));
 

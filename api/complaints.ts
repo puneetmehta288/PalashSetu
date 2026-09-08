@@ -64,27 +64,50 @@ const DEMO_REPORTS = [
   },
 ];
 
-export default function handler(req: ApiRequest, res: ApiResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const adminKey = process.env.ADMIN_KEY || 'palashsetu-admin';
-  const provided  = String(req.query.key || '');
-
-  if (provided !== adminKey) {
-    return res.status(401).json({ error: 'Unauthorised. Wrong admin key.' });
+  // Fetch real-time submitted reports from pubsub
+  const liveReports: any[] = [];
+  try {
+    const pubsubRes = await fetch('https://ntfy.sh/palashsetu_sih26042_complaints/json?poll=1');
+    if (pubsubRes.ok) {
+      const text = await pubsubRes.text();
+      const lines = text.trim().split('\n').filter(Boolean);
+      for (const line of lines) {
+        try {
+          const item = JSON.parse(line);
+          if (item.message) {
+            const parsed = JSON.parse(item.message);
+            liveReports.unshift(parsed);
+          }
+        } catch {
+          // ignore non-json line
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Poll note:', e);
   }
 
-  const allReports = [
+  // Combine live reports with in-memory and demo reports, deduplicating by id
+  const seenIds = new Set<string>();
+  const combined = [
+    ...liveReports,
+    ...((global as any).__palashReports || []),
     ...DEMO_REPORTS,
-    ...(global.__palashReports || []),
-  ];
+  ].filter(r => {
+    if (!r.id || seenIds.has(r.id)) return false;
+    seenIds.add(r.id);
+    return true;
+  });
 
   return res.status(200).json({
-    total:   allReports.length,
-    reports: allReports,
+    total:   combined.length,
+    reports: combined,
   });
 }

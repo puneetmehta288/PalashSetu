@@ -92,16 +92,20 @@ export async function syncFeedback(): Promise<{ sent: number; failed: number }> 
   return { sent: sentCount, failed: failedCount };
 }
 
+// ── Alias for clarity ────────────────────────────────────────────────────────
+export const getAllReports = getPendingFeedback;
+
 // ── Check network and auto-sync if online ─────────────────────────────────────
-export async function checkAndSync(): Promise<void> {
+export async function checkAndSync(): Promise<{ sent: number; failed: number }> {
   try {
-    const status = await Network.getStatus();
-    if (status.connected) {
-      await syncFeedback();
+    const isOnline = navigator.onLine || (await Network.getStatus().then(s => s.connected).catch(() => true));
+    if (isOnline) {
+      return await syncFeedback();
     }
   } catch {
-    // Silently fail — offline is fine
+    // Silently handle
   }
+  return { sent: 0, failed: 0 };
 }
 
 // ── Clear all sent reports (housekeeping) ─────────────────────────────────────
