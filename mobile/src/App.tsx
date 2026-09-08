@@ -10,6 +10,7 @@ import Flashcards from './pages/Flashcards';
 import Settings from './pages/Settings';
 import AuthLogin from './pages/AuthLogin';
 import AuthRegister from './pages/AuthRegister';
+import AdminDashboard from './pages/AdminDashboard';
 import { authService, TeacherProfile } from './services/authService';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -36,7 +37,10 @@ const AppRoutes: React.FC = () => {
     <Routes>
       <Route path="/login" element={<AuthLogin onLoginSuccess={handleLoginSuccess} />} />
       <Route path="/register" element={<AuthRegister onRegisterSuccess={handleLoginSuccess} />} />
-      
+
+      {/* Admin dashboard — standalone, no sidebar/nav */}
+      <Route path="/admin" element={<AdminDashboard />} />
+
       <Route
         path="/"
         element={
