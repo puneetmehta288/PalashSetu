@@ -67,3 +67,13 @@ TEAM_ONBOARDING*.md
 slide*.html
 *_GUIDE.md
 SIH_PPT_*.md
+
+# Backend / FastAPI — not part of the deployed stack
+backend/
+
+# Temp / dev junk
+*.webm
+*.wav.tmp
+mobile/vercel.json
+.pytest_cache/
+pytest.ini

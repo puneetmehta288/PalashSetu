@@ -31,7 +31,7 @@ const AdminDashboard: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/complaints?key=' + encodeURIComponent(import.meta.env.VITE_ADMIN_KEY || 'palashsetu-admin'));
+      const res = await fetch('https://palash-setu.vercel.app/api/complaints?key=' + encodeURIComponent(import.meta.env.VITE_ADMIN_KEY || 'palashsetu-admin'));
       if (!res.ok) throw new Error('Unauthorised or server error');
       const data = await res.json();
       setReports(data.reports || []);

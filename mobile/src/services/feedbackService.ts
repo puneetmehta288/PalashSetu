@@ -9,7 +9,9 @@ import { Preferences } from '@capacitor/preferences';
 import { Network } from '@capacitor/network';
 
 const QUEUE_KEY = 'palashsetu_feedback_queue';
-const SYNC_ENDPOINT = '/api/feedback';
+
+// Absolute Vercel URL — works from Android APK on any network
+const SYNC_ENDPOINT = 'https://palash-setu.vercel.app/api/feedback';
 
 export interface FeedbackReport {
   id: string;
