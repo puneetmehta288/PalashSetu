@@ -22,6 +22,7 @@ export interface FeedbackReport {
   issueType: 'wrong_translation' | 'missing_word' | 'audio_issue' | 'other';
   sourceWord: string;
   description: string;
+  screenshot?: string;
   appVersion: string;
   sent: boolean;
 }

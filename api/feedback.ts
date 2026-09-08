@@ -60,13 +60,16 @@ export default function handler(req: ApiRequest, res: ApiResponse) {
       assignedGrade: String(report.assignedGrade || 'Unknown').slice(0, 40),
       issueType:     report.issueType,
       sourceWord:    String(report.sourceWord    || '').slice(0, 200),
-      description:   String(report.description   || '').slice(0, 300),
+      description:   String(report.description   || '').slice(0, 500),
+      screenshot:    report.screenshot ? String(report.screenshot) : undefined,
       appVersion:    String(report.appVersion    || '1.0.0').slice(0, 20),
     };
 
     reportsStore.push(sanitised);
+    if (!((global as any).__palashReports)) (global as any).__palashReports = [];
+    (global as any).__palashReports.unshift(sanitised);
 
-    console.log('[PalashSetu Feedback]', JSON.stringify(sanitised));
+    console.log('[PalashSetu Feedback Received]', JSON.stringify({ ...sanitised, screenshot: sanitised.screenshot ? '[IMAGE]' : undefined }));
 
     return res.status(200).json({ success: true, id: sanitised.id });
   } catch (err) {

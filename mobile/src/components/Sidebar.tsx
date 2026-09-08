@@ -17,6 +17,7 @@ const NAV_ITEMS: NavItemConfig[] = [
   { to: '/worksheets', icon: '📝', label: 'Worksheets', badge: 'Dynamic' },
   { to: '/books', icon: '📖', label: 'JCERT Books', badge: 'Bilingual' },
   { to: '/settings', icon: '⚙️', label: 'Settings' },
+  { to: '/report', icon: '🚩', label: 'Report Issue', badge: 'Offline' },
 ];
 
 interface SidebarProps {

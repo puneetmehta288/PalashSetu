@@ -3,8 +3,6 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOlChiki, convertOlChikiToDigits, numberToSantaliWords, transliterateDevanagariToOlChiki } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
-import FeedbackModal from '../components/FeedbackModal';
-import { checkAndSync } from '../services/feedbackService';
 import { COMPREHENSIVE_HINDI_TO_SANTALI } from '../data/santali_comprehensive_dictionary';
 
 // Comprehensive Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
@@ -122,11 +120,6 @@ const LiveTranslation: React.FC = () => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [phraseCategory, setPhraseCategory] = useState<'greetings' | 'commands' | 'numeracy' | 'responses'>('greetings');
   const [showOfflineModal, setShowOfflineModal] = useState(false);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-
-  // Auto-sync any pending offline feedback reports when page loads
-  useEffect(() => { checkAndSync(); }, []);
-
 
   const { isListening, startListening, stopListening, transcript } = useSpeechRecognition();
 
@@ -771,27 +764,6 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
               >
                 🔊 Play Audio Voice
               </button>
-              {/* Report Issue button — pre-fills current source word */}
-              <button
-                onClick={() => { sfx.playTap(); setShowFeedbackModal(true); }}
-                title="Report a translation issue"
-                style={{
-                  backgroundColor: '#fff7ed',
-                  color: '#9a3412',
-                  border: '1.5px solid #fed7aa',
-                  padding: '12px 14px',
-                  borderRadius: '12px',
-                  fontWeight: 700,
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                🚩 Report
-              </button>
             </div>
           )}
 
@@ -924,13 +896,6 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       <OfflineVoiceModal
         isOpen={showOfflineModal}
         onClose={() => setShowOfflineModal(false)}
-      />
-
-      {/* Teacher Feedback / Issue Report Modal */}
-      <FeedbackModal
-        isOpen={showFeedbackModal}
-        onClose={() => setShowFeedbackModal(false)}
-        sourceWord={sourceText}
       />
     </div>
   );
