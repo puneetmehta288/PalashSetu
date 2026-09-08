@@ -7,13 +7,23 @@
  * Body: FeedbackReport JSON
  */
 
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+// Standalone lightweight interface (no external @vercel/node dependency required)
+interface ApiRequest {
+  method?: string;
+  body?: any;
+}
+interface ApiResponse {
+  setHeader(name: string, value: string): void;
+  status(code: number): ApiResponse;
+  json(data: any): void;
+  end(): void;
+}
 
 // In-memory store (persists per function instance — fine for hackathon demo)
 // For production: replace with Vercel KV or a database
 const reportsStore: unknown[] = [];
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req: ApiRequest, res: ApiResponse) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

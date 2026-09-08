@@ -6,7 +6,17 @@
  * GET /api/complaints?key=palashsetu-admin
  */
 
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+// Standalone lightweight interface (no external @vercel/node dependency required)
+interface ApiRequest {
+  method?: string;
+  query?: Record<string, string | string[]>;
+}
+interface ApiResponse {
+  setHeader(name: string, value: string): void;
+  status(code: number): ApiResponse;
+  json(data: any): void;
+  end(): void;
+}
 
 // Must match the store in feedback.ts
 // In production: use shared Vercel KV — for hackathon demo this is fine
@@ -54,7 +64,7 @@ const DEMO_REPORTS = [
   },
 ];
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req: ApiRequest, res: ApiResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
