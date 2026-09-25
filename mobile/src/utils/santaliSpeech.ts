@@ -281,6 +281,22 @@ export function transliterateOlChikiToPhonetic(text: string): string {
 }
 
 /**
+ * Reads speech rate saved in settings or returns default 0.85
+ */
+export function getSavedSpeechRate(): number {
+  try {
+    const saved = localStorage.getItem('palash_speech_rate');
+    if (saved) {
+      const val = parseFloat(saved);
+      if (!isNaN(val) && val >= 0.5 && val <= 1.5) return val;
+    }
+  } catch (e) {
+    // fallback
+  }
+  return 0.85;
+}
+
+/**
  * Plays speech audio for Hindi or Santali (Ol Chiki or Romanized).
  * Automatically detects Ol Chiki and converts to phonetic speech audio.
  */
@@ -316,7 +332,7 @@ export function speakText(text: string, options?: { lang?: string; rate?: number
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = voiceLang;
-    utterance.rate = options?.rate || 0.85; // Crisp pedagogical clarity
+    utterance.rate = options?.rate !== undefined ? options.rate : getSavedSpeechRate(); // Respects teacher Settings
     utterance.pitch = 1.0;
 
     // Pick best available voice or fallback to Indian/English voice

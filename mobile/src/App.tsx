@@ -8,6 +8,7 @@ import Worksheets from './pages/Worksheets';
 import JCERTTextbooks from './pages/JCERTTextbooks';
 import Flashcards from './pages/Flashcards';
 import Settings from './pages/Settings';
+import Attendance from './pages/Attendance';
 import ReportIssue from './pages/ReportIssue';
 import AuthLogin from './pages/AuthLogin';
 import AuthRegister from './pages/AuthRegister';
@@ -78,6 +79,7 @@ const AppRoutes: React.FC = () => {
         <Route path="lessons" element={<Lessons />} />
         <Route path="worksheets" element={<Worksheets />} />
         <Route path="books" element={<JCERTTextbooks />} />
+        <Route path="attendance" element={<Attendance />} />
         <Route path="settings" element={<Settings />} />
         <Route path="report" element={<ReportIssue activeTeacher={activeTeacher} />} />
       </Route>

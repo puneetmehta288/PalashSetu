@@ -16,6 +16,7 @@ const NAV_ITEMS: NavItemConfig[] = [
   { to: '/lessons', icon: '📚', label: 'Lesson Studio', badge: 'NIPUN' },
   { to: '/worksheets', icon: '📝', label: 'Worksheets', badge: 'Dynamic' },
   { to: '/books', icon: '📖', label: 'JCERT Books', badge: 'Bilingual' },
+  { to: '/attendance', icon: '📋', label: 'Attendance', badge: 'Daily' },
   { to: '/settings', icon: '⚙️', label: 'Settings' },
   { to: '/report', icon: '🚩', label: 'Report Issue', badge: 'Offline' },
 ];

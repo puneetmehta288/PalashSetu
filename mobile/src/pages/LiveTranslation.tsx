@@ -500,7 +500,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       // 🎙️ AUTOMATIC VOICE PLAYBACK: Speak translated voice out loud immediately
       if (clientTranslated) {
         setTimeout(() => {
-          speakText(clientTranslated, { rate: 0.85, lang: mode === 'student' ? 'hi-IN' : undefined });
+          speakText(clientTranslated, { lang: mode === 'student' ? 'hi-IN' : undefined });
         }, 120);
       }
     } finally {
@@ -510,7 +510,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
   const playAudio = (text: string) => {
     sfx.playVoicePing();
-    speakText(text, { rate: 0.85, lang: mode === 'student' ? 'hi-IN' : undefined });
+    speakText(text, { lang: mode === 'student' ? 'hi-IN' : undefined });
   };
 
   // 🎙️ Automatic Voice-in -> Translation -> Voice-out loop
@@ -1020,7 +1020,6 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
                       onClick={() => {
                         sfx.playVoicePing();
                         speakText(turn.phonetic || turn.translatedText, {
-                          rate: 0.85,
                           lang: isTeacher ? undefined : 'hi-IN',
                         });
                       }}
@@ -1130,14 +1129,14 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
                     setPronunciation(phrase.pronunciation || '');
                     setLatencyMs(1);
                     setActiveModel(`⚡ Palash On-Device Engine (${TRIBAL_LANGUAGES[selectedLanguage].name} ➔ Hindi)`);
-                    speakText(hindiText, { rate: 0.85, lang: 'hi-IN' });
+                    speakText(hindiText, { lang: 'hi-IN' });
                   } else {
                     setSourceText(hindiText);
                     setTranslatedText(tribalText);
                     setPronunciation(phrase.pronunciation || '');
                     setLatencyMs(1);
                     setActiveModel(`⚡ Palash On-Device Engine (Hindi ➔ ${TRIBAL_LANGUAGES[selectedLanguage].name})`);
-                    speakText(phrase.pronunciation || tribalText, { rate: 0.85 });
+                    speakText(phrase.pronunciation || tribalText);
                   }
                 }}
                 style={{

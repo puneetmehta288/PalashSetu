@@ -85,7 +85,6 @@ const JCERTTextbooks: React.FC = () => {
     sfx.playVoicePing();
     setActivePlayingId(id);
     speakText(text, {
-      rate: 0.85,
       lang: lang === 'santali' ? 'sat' : 'hi-IN',
       onEnd: () => setActivePlayingId(null)
     });

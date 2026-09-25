@@ -293,8 +293,8 @@ const Settings: React.FC = () => {
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 600, color: '#0f2744', backgroundColor: '#f8fafc', outline: 'none' }}
               >
                 <option value="sat_Olck">🟢 Santali (Ol Chiki • ᱥᱟᱱᱛᱟᱲᱤ • Santhal Pargana)</option>
-                <option value="hoc_Deva">🔵 Ho (Warang Citi & Devanagari • ᱦᱳ / हो • Kolhan)</option>
-                <option value="unr_Deva">🟣 Mundari (Bani & Nagari • ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी • Chotanagpur)</option>
+                <option value="hoc_Deva">🔵 Ho (Devanagari • ᱦᱳ / हो • Kolhan — Pilot)</option>
+                <option value="unr_Deva">🟣 Mundari (Devanagari • मुंडारी • Chotanagpur — Pilot)</option>
               </select>
             </div>
 

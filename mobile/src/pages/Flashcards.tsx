@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ALL_DECKS, DeckMeta, FlashcardItem } from '../data/nipunDecks';
-import { speakText } from '../utils/santaliSpeech';
+import { speakText, getSavedSpeechRate } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
 import { HINDI_TO_HO_VOCAB } from '../data/ho_dictionary';
@@ -290,18 +290,26 @@ function CardReveal({ card, language }: { card: FlashcardItem; language: TribalL
   let displayPhonetic = card.pronunciation;
 
   if (language === 'ho') {
-    displayScript = 'ᱦᱳ / हो • Ho Language (Kolhan)';
-    const entry = HINDI_TO_HO_VOCAB[card.hindi];
+    displayScript = 'हो (Devanagari) • Ho Pilot (Kolhan)';
+    const cleanHindi = card.hindi.replace(/\s*\([^)]*\)/g, '').trim();
+    const entry = HINDI_TO_HO_VOCAB[card.hindi] || HINDI_TO_HO_VOCAB[cleanHindi];
     if (entry) {
       displayText = entry.ho;
       displayPhonetic = entry.phonetic;
+    } else {
+      displayText = card.hindi;
+      displayPhonetic = `${card.hindi} (हो पायलट अनुवाद)`;
     }
   } else if (language === 'mundari') {
-    displayScript = 'ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी • Mundari Language';
-    const entry = HINDI_TO_MUNDARI_VOCAB[card.hindi];
+    displayScript = 'मुंडारी (Devanagari) • Mundari Pilot';
+    const cleanHindi = card.hindi.replace(/\s*\([^)]*\)/g, '').trim();
+    const entry = HINDI_TO_MUNDARI_VOCAB[card.hindi] || HINDI_TO_MUNDARI_VOCAB[cleanHindi];
     if (entry) {
       displayText = entry.mun;
       displayPhonetic = entry.phonetic;
+    } else {
+      displayText = card.hindi;
+      displayPhonetic = `${card.hindi} (मुंडारी पायलट अनुवाद)`;
     }
   }
 
@@ -441,7 +449,7 @@ const Flashcards: React.FC = () => {
   const playAudio = (text: string, lang = 'hi-IN', e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     sfx.playVoicePing();
-    speakText(text, { lang, rate: 0.85 });
+    speakText(text, { lang, rate: getSavedSpeechRate() });
   };
 
   // Animation style
@@ -540,7 +548,7 @@ const Flashcards: React.FC = () => {
               gap: '4px'
             }}
           >
-            <span>🔵 Ho (Warang Citi / हो)</span>
+            <span>🔵 Ho (Devanagari • हो • Pilot)</span>
           </button>
 
           <button
@@ -560,7 +568,7 @@ const Flashcards: React.FC = () => {
               gap: '4px'
             }}
           >
-            <span>🟣 Mundari (Bani / मुंडारी)</span>
+            <span>🟣 Mundari (Devanagari • मुंडारी • Pilot)</span>
           </button>
         </div>
       </div>
@@ -704,11 +712,13 @@ const Flashcards: React.FC = () => {
                     <button onClick={e => {
                       let textToPlay = currentCard.pronunciation;
                       if (selectedLanguage === 'ho') {
-                        const entry = HINDI_TO_HO_VOCAB[currentCard.hindi];
-                        textToPlay = entry?.phonetic || entry?.ho || currentCard.pronunciation;
+                        const cleanHindi = currentCard.hindi.replace(/\s*\([^)]*\)/g, '').trim();
+                        const entry = HINDI_TO_HO_VOCAB[currentCard.hindi] || HINDI_TO_HO_VOCAB[cleanHindi];
+                        textToPlay = entry?.phonetic || entry?.ho || currentCard.hindi;
                       } else if (selectedLanguage === 'mundari') {
-                        const entry = HINDI_TO_MUNDARI_VOCAB[currentCard.hindi];
-                        textToPlay = entry?.phonetic || entry?.mun || currentCard.pronunciation;
+                        const cleanHindi = currentCard.hindi.replace(/\s*\([^)]*\)/g, '').trim();
+                        const entry = HINDI_TO_MUNDARI_VOCAB[currentCard.hindi] || HINDI_TO_MUNDARI_VOCAB[cleanHindi];
+                        textToPlay = entry?.phonetic || entry?.mun || currentCard.hindi;
                       }
                       playAudio(textToPlay, 'hi-IN', e);
                     }}

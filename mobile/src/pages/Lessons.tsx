@@ -90,8 +90,7 @@ const Lessons: React.FC = () => {
   const playVoice = (text: string, lang: TribalLanguage = tribalLang) => {
     sfx.playVoicePing();
     speakText(text, {
-      lang: lang === 'santali' ? 'sat' : 'hi-IN',
-      rate: 0.85
+      lang: lang === 'santali' ? 'sat' : 'hi-IN'
     });
   };
 

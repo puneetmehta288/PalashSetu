@@ -218,22 +218,6 @@
           console.warn('Direct api failed, using fallback:', e);
         }
 
-        // Direct pubsub fallback if API route has delay
-        if (reports.length === 0) {
-          try {
-            const fbRes = await fetch('https://ntfy.sh/palashsetu_sih26042_complaints/json?poll=1');
-            if (fbRes.ok) {
-              const text = await fbRes.text();
-              const lines = text.trim().split('\n').filter(Boolean);
-              for (const line of lines) {
-                try {
-                  const item = JSON.parse(line);
-                  if (item.message) reports.unshift(JSON.parse(item.message));
-                } catch {}
-              }
-            }
-          } catch {}
-        }
 
         countBadge.innerText = `${reports.length} Reports Received`;
 

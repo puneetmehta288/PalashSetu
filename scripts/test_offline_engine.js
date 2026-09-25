@@ -222,5 +222,5 @@ console.log('===============================================================');
 if (failed > 0) {
   process.exit(1);
 } else {
-  console.log('✅ ALL 38 AUTOMATED TEST ASSERTIONS PASSED (100% SUCCESS RATE)!');
+  console.log(`✅ ALL ${passed} AUTOMATED TEST ASSERTIONS PASSED (100% SUCCESS RATE)!`);
 }

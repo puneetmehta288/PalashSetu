@@ -1,6 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
-
-/* Offline-bundled native fonts */
+/* Offline-bundled native fonts (100% offline standalone APK) */
 @font-face {
   font-family: 'Noto Sans Ol Chiki';
   font-style: normal;
@@ -39,9 +37,9 @@
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-full: 9999px;
-  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-hindi: 'Noto Sans Devanagari', var(--font-main);
-  --font-santali: 'Noto Sans Ol Chiki', var(--font-main);
+  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Devanagari', sans-serif;
+  --font-hindi: 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
+  --font-santali: 'Noto Sans Ol Chiki', 'Noto Sans Devanagari', sans-serif;
 }
 
 :root.dark-mode, body.dark-mode {

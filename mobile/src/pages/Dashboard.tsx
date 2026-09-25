@@ -82,6 +82,15 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
       badge: 'JCERT State Books',
       color: '#0d9488',
     },
+    {
+      to: '/attendance',
+      icon: '📋',
+      title: 'Daily Attendance Register',
+      tribal: 'दैनिक उपस्थिति पंजी / ᱦᱟᱡᱤᱨᱟ',
+      desc: 'Mark daily attendance, manage classes & tribal cohort statistics',
+      badge: 'Daily Register',
+      color: '#0284c7',
+    },
   ];
 
   return (
