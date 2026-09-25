@@ -103,10 +103,10 @@ const JCERTTextbooks: React.FC = () => {
         <div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
             <span style={{ backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-              📖 Official JCERT Jharkhand Textbooks
+              📖 JCERT-Aligned Curriculum Content
             </span>
             <span style={{ backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-              {tribalLang === 'ho' ? '🏹 Complete Syllabus in ᱦᱳ (Warang Citi & Devanagari)' : tribalLang === 'mundari' ? '🏹 Complete Syllabus in ᱢᱩᱱᱰᱟᱨᱤ (Mundari Nagari & Bani)' : '🏹 Complete Syllabus in ᱥᱟᱱᱛᱟᱲᱤ ᱚᱞ ᱪᱤᱠᱤ'}
+              {tribalLang === 'ho' ? '🏹 Ho Vocabulary Pack (Devanagari • Pilot)' : tribalLang === 'mundari' ? '🏹 Mundari Vocabulary Pack (Devanagari • Pilot)' : '🏹 Full Syllabus in ᱥᱟᱱᱛᱟᱲᱤ ᱚᱞ ᱪᱤᱠᱤ'}
             </span>
           </div>
           <h1 style={{ color: '#0f2744', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>

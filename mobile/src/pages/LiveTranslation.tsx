@@ -856,7 +856,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
               </span>
               {latencyMs > 0 && (
                 <span style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 700, backgroundColor: '#f0fdf4', padding: '2px 8px', borderRadius: '10px' }}>
-                  ⏱️ {latencyMs} ms (&lt;3s)
+                  ⏱️ {latencyMs} ms lookup
                 </span>
               )}
             </div>
@@ -1080,7 +1080,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15, 39, 68, 0.05)', border: '1px solid #e2e8f0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '1rem' }}>
           <h3 style={{ margin: 0, color: '#0f2744', fontSize: '1.1rem', fontWeight: 800 }}>
-            ⚡ 1-Tap Quick Classroom Phrasebook (&lt; 1 ms Offline)
+            ⚡ 1-Tap Quick Classroom Phrasebook (Offline)
           </h3>
 
           <div style={{ display: 'flex', gap: '6px' }}>

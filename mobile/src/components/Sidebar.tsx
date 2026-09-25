@@ -177,8 +177,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
         >
           <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#48bb78', boxShadow: '0 0 8px #48bb78' }} />
           <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
-            <div style={{ fontWeight: 600, color: '#ffffff' }}>100% Offline Edge Ready</div>
-            <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>AI4Bharat IndicTrans2 320M</div>
+            <div style={{ fontWeight: 600, color: '#ffffff' }}>Offline Phrase Dictionary</div>
+            <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>~2,500 validated Santali entries</div>
           </div>
         </div>
       </aside>

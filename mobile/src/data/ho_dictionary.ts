@@ -348,7 +348,7 @@ export function translateHoToHindi(text: string): { translation: string } {
   }
   for (const [regex, entry] of HO_PHRASE_PATTERNS) {
     if (entry.ho.includes(clean) || clean.includes(entry.ho.trim())) {
-      return { translation: 'सटीक उत्तर (Correct Answer)' };
+      return { translation: '[Ho शब्द उपलब्ध नहीं]' };
     }
   }
   return { translation: clean };

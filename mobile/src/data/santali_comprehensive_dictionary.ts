@@ -1,10 +1,12 @@
 /**
  * PalashSetu Master Hindi to Santali (Ol Chiki) Dictionary
  * ==========================================================
- * Total Entries: 7503
- *   - Hand-curated authentic Hindi->Santali pairs: 7503
- *   - AI4Bharat model phonetic tokens added: 0
- * AI4Bharat raw Ol Chiki tokens in model: 5448
+ * Total entries in file: 7503
+ *   - Validated Hindi→Santali word/phrase pairs: ~2,500
+ *   - AI4Bharat sub-word tokenizer fragments (not real Hindi words): ~5,000
+ *     (these fragments never match real teacher input and are harmless noise)
+ * Source: Hand-curated pairs + AI4Bharat IndicTrans2 vocabulary token list
+ * Note: This is a lookup dictionary, not a live neural MT model.
  */
 export const INDIC_TRANS_MODEL_SANTALI_COUNT = 5448;
 

@@ -348,7 +348,7 @@ export function translateMundariToHindi(text: string): { translation: string } {
   }
   for (const [regex, entry] of MUNDARI_PHRASE_PATTERNS) {
     if (entry.mun.includes(clean) || clean.includes(entry.mun.trim())) {
-      return { translation: 'सटीक उत्तर (Correct Answer)' };
+      return { translation: '[Mundari शब्द उपलब्ध नहीं]' };
     }
   }
   return { translation: clean };

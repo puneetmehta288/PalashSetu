@@ -496,14 +496,14 @@ const Settings: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
             <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
               <div style={{ fontSize: '0.72rem', color: '#166534', fontWeight: 700 }}>OFFLINE DICTIONARY</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#15803d', marginTop: '2px' }}>7,503 Words</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#15803d', marginTop: '2px' }}>~2,500 Words</div>
               <div style={{ fontSize: '0.7rem', color: '#15803d' }}>100% On-Device</div>
             </div>
 
             <div style={{ padding: '12px', backgroundColor: '#eff6ff', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
-              <div style={{ fontSize: '0.72rem', color: '#1e40af', fontWeight: 700 }}>PARSING LATENCY</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1d4ed8', marginTop: '2px' }}>&lt; 1 ms</div>
-              <div style={{ fontSize: '0.7rem', color: '#1d4ed8' }}>Real-time walkie-talkie</div>
+              <div style={{ fontSize: '0.72rem', color: '#1e40af', fontWeight: 700 }}>LOOKUP LATENCY</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1d4ed8', marginTop: '2px' }}>&lt; 5 ms</div>
+              <div style={{ fontSize: '0.7rem', color: '#1d4ed8' }}>Phrase dictionary lookup</div>
             </div>
 
             <div style={{ padding: '12px', backgroundColor: '#faf5ff', borderRadius: '10px', border: '1px solid #e9d5ff' }}>
