@@ -17,14 +17,19 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 
 const AppRoutes: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
+  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(() => {
+    return authService.getActiveProfile();
+  });
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    // Always start at profile/login selection screen on fresh boot
-    authService.logout();
-    setActiveTeacher(null);
-    navigate('/login', { replace: true });
+    // Check if an active teacher session exists
+    const saved = authService.getActiveProfile();
+    if (saved) {
+      setActiveTeacher(saved);
+    } else {
+      navigate('/login', { replace: true });
+    }
 
     // Prevent system status bar from overlapping webview
     const configureStatusBar = async () => {

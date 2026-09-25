@@ -14,7 +14,7 @@ export const MUNDARI_METADATA = {
   region: 'South Chotanagpur (Khunti, Ranchi, Torpa, Murhu, Simdega)',
   districts: ['Ranchi', 'Khunti', 'Simdega', 'Gumla'],
   greeting: 'जोहार (Johar)',
-  code: 'unx_Deva'
+  code: 'unr_Deva'
 };
 
 // 1. Core Vocabulary (Hindi -> Mundari)

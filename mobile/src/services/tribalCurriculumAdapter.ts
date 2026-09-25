@@ -19,8 +19,8 @@ import { transliterateOlChikiToPhonetic } from '../utils/santaliSpeech';
 export function getActiveTribalLanguage(): TribalLanguage {
   if (typeof window === 'undefined') return 'santali';
   const saved = localStorage.getItem('palash_selected_language');
-  if (saved === 'hoc_Deva') return 'ho';
-  if (saved === 'unx_Deva') return 'mundari';
+  if (saved === 'hoc_Deva' || saved === 'ho') return 'ho';
+  if (saved === 'unr_Deva' || saved === 'unx_Deva' || saved === 'mundari') return 'mundari';
   return 'santali';
 }
 

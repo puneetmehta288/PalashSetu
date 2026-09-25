@@ -69,20 +69,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!((global as any).__palashReports)) (global as any).__palashReports = [];
     (global as any).__palashReports.unshift(sanitised);
 
-    // Persist across serverless containers via pub-sub
-    try {
-      await fetch('https://ntfy.sh/palashsetu_sih26042_complaints', {
-        method: 'POST',
-        headers: {
-          'Title': `${sanitised.teacherName} (${sanitised.district}) - ${sanitised.issueType}`,
-          'Priority': 'default'
-        },
-        body: JSON.stringify(sanitised)
-      });
-    } catch (e) {
-      console.warn('Pubsub persist note:', e);
-    }
-
     console.log('[PalashSetu Feedback Received]', JSON.stringify({ ...sanitised, screenshot: sanitised.screenshot ? '[IMAGE]' : undefined }));
 
     return res.status(200).json({ success: true, id: sanitised.id });

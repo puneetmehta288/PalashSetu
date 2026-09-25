@@ -40,7 +40,9 @@ const Settings: React.FC = () => {
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => sfx.isEnabled());
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [tribalLanguage, setTribalLanguage] = useState<string>(() => {
-    return localStorage.getItem('palash_selected_language') || 'sat_Olck';
+    const saved = localStorage.getItem('palash_selected_language');
+    if (saved === 'unx_Deva') return 'unr_Deva';
+    return saved || 'sat_Olck';
   });
 
   // 4. UI Feedback states
@@ -99,7 +101,7 @@ const Settings: React.FC = () => {
     let sample = `ᱡᱚᱦᱟᱨ ${teacherName}! ᱟᱵᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱟᱨ ᱦᱤᱱᱫᱤ ᱛᱮ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ ᱵᱚᱱ ᱪᱮᱫ ᱟᱠᱚᱣᱟ᱾`;
     if (tribalLanguage === 'hoc_Deva') {
       sample = `जोहार ${teacherName}! आबू होनको लेका आड़ो पाड़ाव बू चेदोः-आ।`;
-    } else if (tribalLanguage === 'unx_Deva') {
+    } else if (tribalLanguage === 'unr_Deva' || tribalLanguage === 'unx_Deva') {
       sample = `जोहार ${teacherName}! आबू होनको मिअद एते गेलेया लेका इतूना।`;
     }
     speakText(sample, {
@@ -264,7 +266,7 @@ const Settings: React.FC = () => {
                     if (districtObj.region === 'Kolhan') {
                       setTribalLanguage('hoc_Deva');
                     } else if (districtObj.region === 'South Chotanagpur') {
-                      setTribalLanguage('unx_Deva');
+                      setTribalLanguage('unr_Deva');
                     } else {
                       setTribalLanguage('sat_Olck');
                     }
@@ -292,7 +294,7 @@ const Settings: React.FC = () => {
               >
                 <option value="sat_Olck">🟢 Santali (Ol Chiki • ᱥᱟᱱᱛᱟᱲᱤ • Santhal Pargana)</option>
                 <option value="hoc_Deva">🔵 Ho (Warang Citi & Devanagari • ᱦᱳ / हो • Kolhan)</option>
-                <option value="unx_Deva">🟣 Mundari (Bani & Nagari • ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी • Chotanagpur)</option>
+                <option value="unr_Deva">🟣 Mundari (Bani & Nagari • ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी • Chotanagpur)</option>
               </select>
             </div>
 

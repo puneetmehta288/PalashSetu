@@ -37,7 +37,7 @@ export const TRIBAL_LANGUAGES: Record<TribalLanguage, TribalLanguageInfo> = {
     nativeName: 'ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी (Bani / Nagari)',
     script: 'Mundari Nagari & Bani',
     region: 'South Chotanagpur (Khunti, Ranchi)',
-    code: 'unx_Deva',
+    code: 'unr_Deva',
     flag: '🟣'
   }
 };

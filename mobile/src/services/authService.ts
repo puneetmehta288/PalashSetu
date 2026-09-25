@@ -112,9 +112,6 @@ export const authService = {
     const profile = profiles.find((p) => p.id === teacherId);
     if (!profile) return false;
 
-    // Direct check for master demo PIN "1234" or hash check
-    if (enteredPin === '1234') return true;
-
     const enteredHash = await hashPin(enteredPin);
     return enteredHash === profile.pinHash;
   },

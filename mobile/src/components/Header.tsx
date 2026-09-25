@@ -13,13 +13,16 @@ export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, 
   const { isDarkMode, toggleDarkMode, isSfxEnabled, toggleSfx } = useTheme();
 
   const [selectedLang, setSelectedLang] = React.useState<string>(() => {
-    return localStorage.getItem('palash_selected_language') || 'sat_Olck';
+    const saved = localStorage.getItem('palash_selected_language');
+    if (saved === 'unx_Deva') return 'unr_Deva';
+    return saved || 'sat_Olck';
   });
 
   React.useEffect(() => {
     const onLangChanged = (e: any) => {
-      if (e.detail && e.detail !== selectedLang) {
-        setSelectedLang(e.detail);
+      const detail = e.detail === 'unx_Deva' ? 'unr_Deva' : e.detail;
+      if (detail && detail !== selectedLang) {
+        setSelectedLang(detail);
       }
     };
     window.addEventListener('palash_language_changed', onLangChanged);
@@ -107,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, 
             >
               <option value="sat_Olck">🟢 Santali (Ol Chiki • ᱚᱞ ᱪᱤᱠᱤ)</option>
               <option value="hoc_Deva">🔵 Ho (Warang Citi • ᱦᱳ / हो)</option>
-              <option value="unx_Deva">🟣 Mundari (Bani / Nagari • मुंडारी)</option>
+              <option value="unr_Deva">🟣 Mundari (Bani / Nagari • मुंडारी)</option>
             </select>
           </div>
 

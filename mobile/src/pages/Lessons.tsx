@@ -72,7 +72,7 @@ const Lessons: React.FC = () => {
     const onLangChanged = (e: any) => {
       const detail = e.detail || localStorage.getItem('palash_selected_language');
       if (detail === 'hoc_Deva' || detail === 'ho') setTribalLang('ho');
-      else if (detail === 'unx_Deva' || detail === 'mundari') setTribalLang('mundari');
+      else if (detail === 'unr_Deva' || detail === 'unx_Deva' || detail === 'mundari') setTribalLang('mundari');
       else setTribalLang('santali');
     };
     window.addEventListener('palash_language_changed', onLangChanged);
@@ -82,7 +82,7 @@ const Lessons: React.FC = () => {
   const handleLanguageSelect = (lang: TribalLanguage) => {
     sfx.playTap();
     setTribalLang(lang);
-    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unx_Deva' : 'sat_Olck';
+    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unr_Deva' : 'sat_Olck';
     localStorage.setItem('palash_selected_language', code);
     window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: code }));
   };

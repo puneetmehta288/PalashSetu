@@ -346,14 +346,14 @@ const Flashcards: React.FC = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<TribalLanguage>(() => {
     const saved = localStorage.getItem('palash_selected_language');
     if (saved === 'hoc_Deva') return 'ho';
-    if (saved === 'unx_Deva') return 'mundari';
+    if (saved === 'unr_Deva' || saved === 'unx_Deva') return 'mundari';
     return 'santali';
   });
 
   useEffect(() => {
     const onLangChanged = (e: any) => {
       if (e.detail === 'hoc_Deva') setSelectedLanguage('ho');
-      else if (e.detail === 'unx_Deva') setSelectedLanguage('mundari');
+      else if (e.detail === 'unr_Deva' || e.detail === 'unx_Deva') setSelectedLanguage('mundari');
       else setSelectedLanguage('santali');
     };
     window.addEventListener('palash_language_changed', onLangChanged);
@@ -363,7 +363,7 @@ const Flashcards: React.FC = () => {
   const handleLanguageSelect = (lang: TribalLanguage) => {
     sfx.playTap();
     setSelectedLanguage(lang);
-    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unx_Deva' : 'sat_Olck';
+    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unr_Deva' : 'sat_Olck';
     localStorage.setItem('palash_selected_language', code);
     window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: code }));
   };
@@ -406,7 +406,6 @@ const Flashcards: React.FC = () => {
   };
 
   const handleGradeChange = (grade: Grade) => {
-    if (grade !== 'Class 1') return;
     sfx.playTap();
     setSelectedGrade(grade);
     setCurrentIndex(0);
