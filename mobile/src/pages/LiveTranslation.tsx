@@ -4,6 +4,9 @@ import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOl
 import { sfx } from '../utils/sfx';
 import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
 import { COMPREHENSIVE_HINDI_TO_SANTALI } from '../data/santali_comprehensive_dictionary';
+import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
+import { HO_CATEGORIZED_PHRASES, translateHindiToHo, translateHoToHindi, HO_METADATA } from '../data/ho_dictionary';
+import { MUNDARI_CATEGORIZED_PHRASES, translateHindiToMundari, translateMundariToHindi, MUNDARI_METADATA } from '../data/mundari_dictionary';
 
 // Comprehensive Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
@@ -110,8 +113,23 @@ const CATEGORIZED_PHRASES = {
   ],
 };
 
+interface ConversationTurn {
+  id: string;
+  sender: 'teacher' | 'student';
+  sourceText: string;
+  translatedText: string;
+  phonetic?: string;
+  timestamp: string;
+}
+
 const LiveTranslation: React.FC = () => {
   const [mode, setMode] = useState<'teacher' | 'student'>('teacher');
+  const [selectedLanguage, setSelectedLanguage] = useState<TribalLanguage>(() => {
+    const saved = localStorage.getItem('palash_selected_language');
+    if (saved === 'hoc_Deva') return 'ho';
+    if (saved === 'unx_Deva') return 'mundari';
+    return 'santali';
+  });
   const [sourceText, setSourceText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
   const [pronunciation, setPronunciation] = useState('');
@@ -120,6 +138,29 @@ const LiveTranslation: React.FC = () => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [phraseCategory, setPhraseCategory] = useState<'greetings' | 'commands' | 'numeracy' | 'responses'>('greetings');
   const [showOfflineModal, setShowOfflineModal] = useState(false);
+  const [conversation, setConversation] = useState<ConversationTurn[]>([]);
+
+  // Synchronize with Header language selector
+  useEffect(() => {
+    const onLangChanged = (e: any) => {
+      if (e.detail === 'hoc_Deva') setSelectedLanguage('ho');
+      else if (e.detail === 'unx_Deva') setSelectedLanguage('mundari');
+      else setSelectedLanguage('santali');
+    };
+    window.addEventListener('palash_language_changed', onLangChanged);
+    return () => window.removeEventListener('palash_language_changed', onLangChanged);
+  }, []);
+
+  const handleLanguageSelect = (lang: TribalLanguage) => {
+    sfx.playTap();
+    setSelectedLanguage(lang);
+    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unx_Deva' : 'sat_Olck';
+    localStorage.setItem('palash_selected_language', code);
+    window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: code }));
+    setSourceText('');
+    setTranslatedText('');
+    setPronunciation('');
+  };
 
   const { isListening, startListening, stopListening, transcript } = useSpeechRecognition();
 
@@ -408,12 +449,53 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
     try {
       // 100% On-Device Client Linguistic Engine (Zero network delay, instant offline)
-      const clientTranslated = translateClientSide(rawInput, mode);
+      let clientTranslated = '';
+      let phonetic = '';
+
+      if (selectedLanguage === 'santali') {
+        clientTranslated = translateClientSide(rawInput, mode);
+        phonetic = computePhonetic(rawInput, clientTranslated, mode);
+        setActiveModel('⚡ Palash On-Device Engine (Santali • 7,500+ Ol Chiki Vocab)');
+      } else if (selectedLanguage === 'ho') {
+        if (mode === 'teacher') {
+          const res = translateHindiToHo(rawInput);
+          clientTranslated = res.translation;
+          phonetic = res.phonetic;
+        } else {
+          const res = translateHoToHindi(rawInput);
+          clientTranslated = res.translation;
+          phonetic = res.translation;
+        }
+        setActiveModel('⚡ Palash On-Device Engine (Ho • Kolhan Warang Citi & Devanagari)');
+      } else {
+        if (mode === 'teacher') {
+          const res = translateHindiToMundari(rawInput);
+          clientTranslated = res.translation;
+          phonetic = res.phonetic;
+        } else {
+          const res = translateMundariToHindi(rawInput);
+          clientTranslated = res.translation;
+          phonetic = res.translation;
+        }
+        setActiveModel('⚡ Palash On-Device Engine (Mundari • Chotanagpur Nagari & Bani)');
+      }
+
       const elapsed = Math.max(1, Math.round(performance.now() - startTime));
+
       setLatencyMs(elapsed);
       setTranslatedText(clientTranslated);
-      setPronunciation(computePhonetic(rawInput, clientTranslated, mode));
-      setActiveModel('⚡ Palash On-Device Engine (7,500+ Offline Vocab)');
+      setPronunciation(phonetic);
+
+      // Add to conversation thread
+      const newTurn: ConversationTurn = {
+        id: `turn_${Date.now()}_${Math.random()}`,
+        sender: mode,
+        sourceText: rawInput,
+        translatedText: clientTranslated,
+        phonetic,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setConversation((prev) => [newTurn, ...prev]);
 
       // 🎙️ AUTOMATIC VOICE PLAYBACK: Speak translated voice out loud immediately
       if (clientTranslated) {
@@ -461,52 +543,123 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
   return (
     <div className="fade-in" style={{ maxWidth: '980px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Title Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+      {/* Sleek Production Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.85rem' }}>
         <div>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-              <span>⚡ Sub-10ms On-Tablet Engine</span>
-            </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-              <span>📦 7,500+ Offline Vocab (100% Standalone)</span>
-            </div>
-          </div>
-          <h1 style={{ color: '#0f2744', fontSize: '1.85rem', fontWeight: 800, margin: 0 }}>
-            🎙️ Live Classroom Voice Translator
+          <h1 style={{ color: '#0f2744', fontSize: '1.45rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>Voice & Text Translation</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '12px' }}>
+              ● On-Device Offline
+            </span>
           </h1>
+          <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+            Bidirectional Hindi ⇄ {TRIBAL_LANGUAGES[selectedLanguage].name} ({TRIBAL_LANGUAGES[selectedLanguage].script}) classroom translation engine
+          </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {/* 1-Tap In-App Offline Voice Setup Button */}
+        <button
+          onClick={() => {
+            sfx.playTap();
+            setShowOfflineModal(true);
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            backgroundColor: '#ffffff',
+            border: '1px solid #cbd5e1',
+            padding: '6px 12px',
+            borderRadius: '10px',
+            fontSize: '0.78rem',
+            color: '#334155',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <span>⚙️ Audio Setup</span>
+        </button>
+      </div>
+
+      {/* Tribal Language Selector Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#ffffff', borderRadius: '16px', padding: '0.75rem 1.25rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '1.2rem' }}>🌐</span>
+          <div>
+            <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f2744' }}>Tribal Language Mode</div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{TRIBAL_LANGUAGES[selectedLanguage].region}</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
-            onClick={() => {
-              sfx.playTap();
-              setShowOfflineModal(true);
-            }}
+            type="button"
+            onClick={() => handleLanguageSelect('santali')}
             style={{
+              padding: '6px 14px',
+              borderRadius: '12px',
+              border: selectedLanguage === 'santali' ? '2px solid #16a34a' : '1px solid #cbd5e1',
+              backgroundColor: selectedLanguage === 'santali' ? '#f0fdf4' : '#ffffff',
+              color: selectedLanguage === 'santali' ? '#15803d' : '#475569',
+              fontWeight: 800,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              backgroundColor: '#fffaf0',
-              border: '1px solid #feebc8',
-              padding: '6px 14px',
-              borderRadius: '20px',
-              fontSize: '0.8rem',
-              color: '#c05621',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(237,137,54,0.15)',
+              boxShadow: selectedLanguage === 'santali' ? '0 2px 6px rgba(22,163,74,0.15)' : 'none',
+              transition: 'all 0.15s ease',
             }}
           >
-            <span>⚡ 1-Tap Offline Setup</span>
+            <span>🟢 Santali</span>
+            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(ᱚᱞ ᱪᱤᱠᱤ)</span>
           </button>
 
-          {/* Active Model Indicator Pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', color: '#166534', fontWeight: 700 }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
-            <span>{activeModel}</span>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleLanguageSelect('ho')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '12px',
+              border: selectedLanguage === 'ho' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+              backgroundColor: selectedLanguage === 'ho' ? '#eff6ff' : '#ffffff',
+              color: selectedLanguage === 'ho' ? '#1d4ed8' : '#475569',
+              fontWeight: 800,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: selectedLanguage === 'ho' ? '0 2px 6px rgba(37,99,235,0.15)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <span>🔵 Ho</span>
+            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(ᱦᱳ / हो)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleLanguageSelect('mundari')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '12px',
+              border: selectedLanguage === 'mundari' ? '2px solid #7c3aed' : '1px solid #cbd5e1',
+              backgroundColor: selectedLanguage === 'mundari' ? '#faf5ff' : '#ffffff',
+              color: selectedLanguage === 'mundari' ? '#6d28d9' : '#475569',
+              fontWeight: 800,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: selectedLanguage === 'mundari' ? '0 2px 6px rgba(124,58,237,0.15)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <span>🟣 Mundari</span>
+            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी)</span>
+          </button>
         </div>
       </div>
 
@@ -537,7 +690,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
               transition: 'all 0.15s ease',
             }}
           >
-            👨‍🏫 <strong>Teacher Mode</strong>: Hindi → Santali
+            👨‍🏫 <strong>Teacher Mode</strong>: Hindi → {TRIBAL_LANGUAGES[selectedLanguage].name}
           </button>
           <button
             onClick={() => {
@@ -564,7 +717,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
               transition: 'all 0.15s ease',
             }}
           >
-            <span>👧 <strong>Student Mode</strong>: Santali → Hindi</span>
+            <span>👧 <strong>Student Mode</strong>: {TRIBAL_LANGUAGES[selectedLanguage].name} → Hindi</span>
             <span style={{ fontSize: '0.72rem', backgroundColor: mode === 'student' ? 'rgba(255,255,255,0.25)' : '#fed7aa', color: mode === 'student' ? '#ffffff' : '#9a3412', padding: '2px 8px', borderRadius: '10px', fontWeight: 800 }}>
               👆 Tap-to-Respond
             </span>
@@ -579,10 +732,10 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
             <span style={{ fontSize: '1.4rem' }}>👧👆</span>
             <div>
               <div style={{ fontWeight: 800, color: '#9c4221', fontSize: '0.9rem' }}>
-                Interactive Tap-to-Respond Active (Balvatika & Primary FLN)
+                Interactive Tap-to-Respond Active ({TRIBAL_LANGUAGES[selectedLanguage].name} • Balvatika & Primary FLN)
               </div>
               <div style={{ color: '#7b341e', fontSize: '0.82rem' }}>
-                Tribal children tap visual Ol Chiki response cards below to speak Hindi to the teacher. (Direct Santali voice ASR is part of our v2.0 roadmap).
+                Tribal children tap visual response cards below to speak Hindi to the teacher in {TRIBAL_LANGUAGES[selectedLanguage].name}.
               </div>
             </div>
           </div>
@@ -610,7 +763,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <span style={{ fontWeight: 700, fontSize: '0.95rem', color: mode === 'teacher' ? '#0f2744' : '#c05621' }}>
-                {mode === 'teacher' ? '🇮🇳 Teacher Speaks (Hindi)' : '🔤 Student Speaks (Santali • ᱚᱞ ᱪᱤᱠᱤ)'}
+                {mode === 'teacher' ? '🇮🇳 Teacher Speaks (Hindi)' : `🔤 Student Speaks (${TRIBAL_LANGUAGES[selectedLanguage].name} • ${TRIBAL_LANGUAGES[selectedLanguage].script})`}
               </span>
               {isListening && (
                 <span style={{ color: '#e53e3e', fontSize: '0.8rem', fontWeight: 700, animation: 'pulseGlow 1.5s infinite' }}>
@@ -625,7 +778,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
               placeholder={
                 mode === 'teacher'
                   ? 'Type or speak Hindi instruction (e.g. गाय, हाथी, किताब खोलो, 1 2 3)...'
-                  : 'Type or speak Santali Ol Chiki (e.g. ᱢᱚᱪᱟ, ᱜᱟᱹᱭ, ᱦᱟᱹᱛᱤ, ᱯᱩᱛᱷᱤ)...'
+                  : `Type or speak ${TRIBAL_LANGUAGES[selectedLanguage].name} response...`
               }
               rows={4}
               style={{
@@ -699,7 +852,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <span style={{ fontWeight: 700, fontSize: '0.95rem', color: mode === 'teacher' ? '#c05621' : '#0f2744' }}>
-                {mode === 'teacher' ? '🔤 Santali Translation (ᱚᱞ ᱪᱤᱠᱤ)' : '🇮🇳 Hindi Translation (देवनागरी)'}
+                {mode === 'teacher' ? `🔤 ${TRIBAL_LANGUAGES[selectedLanguage].name} Translation (${TRIBAL_LANGUAGES[selectedLanguage].script})` : '🇮🇳 Hindi Translation (देवनागरी)'}
               </span>
               {latencyMs > 0 && (
                 <span style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 700, backgroundColor: '#f0fdf4', padding: '2px 8px', borderRadius: '10px' }}>
@@ -725,7 +878,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
                   fontSize: '1.6rem',
                   fontWeight: 800,
                   color: mode === 'teacher' ? '#c05621' : '#0f2744',
-                  fontFamily: mode === 'teacher' ? 'var(--font-santali)' : 'inherit',
+                  fontFamily: (mode === 'teacher' && selectedLanguage === 'santali') ? 'var(--font-santali)' : 'inherit',
                   marginBottom: '4px',
                   lineHeight: 1.3,
                 }}
@@ -771,28 +924,158 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       </div>
 
       {/* Large Glowing Microphone Button */}
-      <div style={{ textAlign: 'center', margin: '0.5rem 0' }}>
+      <div style={{ textAlign: 'center', margin: '0.25rem 0' }}>
         <button
           onClick={handleVoiceToggle}
           style={{
-            width: '80px',
-            height: '80px',
+            width: '74px',
+            height: '74px',
             borderRadius: '50%',
             backgroundColor: isListening ? '#e53e3e' : '#ed8936',
             color: '#ffffff',
             border: 'none',
-            fontSize: '2rem',
+            fontSize: '1.9rem',
             cursor: 'pointer',
-            boxShadow: isListening ? '0 0 0 12px rgba(229,62,62,0.25)' : '0 6px 20px rgba(237,137,54,0.4)',
+            boxShadow: isListening ? '0 0 0 12px rgba(229,62,62,0.25)' : '0 6px 18px rgba(237,137,54,0.35)',
             transition: 'all 0.2s ease',
           }}
         >
           {isListening ? '⏹️' : '🎙️'}
         </button>
-        <div style={{ fontSize: '0.9rem', color: '#475569', marginTop: '8px', fontWeight: 600 }}>
+        <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '6px', fontWeight: 600 }}>
           {isListening ? 'Listening live speech... Tap to finish & translate' : 'Tap to start live classroom voice input'}
         </div>
       </div>
+
+      {/* Classroom Conversation Feed (Teacher / Student dialogue stream) */}
+      {conversation.length > 0 && (
+        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.25rem 1.5rem', boxShadow: '0 4px 16px rgba(15, 39, 68, 0.05)', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.1rem' }}>💬</span>
+              <h3 style={{ margin: 0, color: '#0f2744', fontSize: '1.05rem', fontWeight: 800 }}>
+                Classroom Conversation
+              </h3>
+              <span style={{ fontSize: '0.72rem', backgroundColor: '#e2e8f0', color: '#475569', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+                {conversation.length} {conversation.length === 1 ? 'turn' : 'turns'}
+              </span>
+            </div>
+
+            <button
+              onClick={() => {
+                sfx.playTap();
+                setConversation([]);
+              }}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+              title="Clear Conversation"
+            >
+              🗑️ Clear
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {conversation.map((turn) => {
+              const isTeacher = turn.sender === 'teacher';
+              return (
+                <div
+                  key={turn.id}
+                  style={{
+                    backgroundColor: isTeacher ? '#f0fdf4' : '#fffaf0',
+                    border: `1px solid ${isTeacher ? '#bbf7d0' : '#fed7aa'}`,
+                    borderRadius: '14px',
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span
+                      style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        color: isTeacher ? '#166534' : '#9a3412',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.4px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      {isTeacher ? '👨‍🏫 Teacher (Hindi)' : `👧 Student (${TRIBAL_LANGUAGES[selectedLanguage].name})`}
+                      <span style={{ color: '#94a3b8', fontWeight: 500 }}>• {turn.timestamp}</span>
+                    </span>
+
+                    <button
+                      onClick={() => {
+                        sfx.playVoicePing();
+                        speakText(turn.phonetic || turn.translatedText, {
+                          rate: 0.85,
+                          lang: isTeacher ? undefined : 'hi-IN',
+                        });
+                      }}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        border: `1px solid ${isTeacher ? '#86efac' : '#fdba74'}`,
+                        borderRadius: '20px',
+                        padding: '4px 10px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        color: isTeacher ? '#166534' : '#9a3412',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                      }}
+                      title="Replay translated audio"
+                    >
+                      <span>🔊 Play Again</span>
+                    </button>
+                  </div>
+
+                  {/* Original spoken text */}
+                  <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1e293b' }}>
+                    {turn.sourceText}
+                  </div>
+
+                  {/* Arrow indicator */}
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>↓</div>
+
+                  {/* Translated text */}
+                  <div
+                    style={{
+                      fontSize: '1.2rem',
+                      fontWeight: 800,
+                      color: isTeacher ? '#c05621' : '#0f2744',
+                      fontFamily: (isTeacher && selectedLanguage === 'santali') ? 'var(--font-santali)' : 'inherit',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {turn.translatedText}
+                  </div>
+
+                  {turn.phonetic && isTeacher && (
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>
+                      Phonetic: {turn.phonetic}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Categorized 1-Tap Quick Phrases */}
       <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15, 39, 68, 0.05)', border: '1px solid #e2e8f0' }}>
@@ -829,66 +1112,74 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
-          {CATEGORIZED_PHRASES[phraseCategory].map((phrase: any, idx: number) => (
-            <button
-              key={idx}
-              onClick={() => {
-                sfx.playTap();
-                if (mode === 'student') {
-                  setSourceText(phrase.santali);
-                  setTranslatedText(phrase.hindi);
-                  setPronunciation(phrase.pronunciation || '');
-                  setLatencyMs(1);
-                  setActiveModel('⚡ Palash On-Device Engine (Santali ➔ Hindi)');
-                  speakText(phrase.hindi, { rate: 0.85, lang: 'hi-IN' });
-                } else {
-                  setSourceText(phrase.hindi);
-                  setTranslatedText(phrase.santali);
-                  setPronunciation(phrase.pronunciation || '');
-                  setLatencyMs(1);
-                  setActiveModel('⚡ Palash On-Device Engine (Hindi ➔ Santali)');
-                  speakText(phrase.santali, { rate: 0.85 });
-                }
-              }}
-              style={{
-                textAlign: 'left',
-                padding: '12px 14px',
-                borderRadius: '12px',
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#f8fafc',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#fffaf0';
-                e.currentTarget.style.borderColor = '#fed7aa';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8fafc';
-                e.currentTarget.style.borderColor = '#e2e8f0';
-              }}
-            >
-              {mode === 'student' ? (
-                <>
-                  <div style={{ color: '#c05621', fontSize: '1rem', fontWeight: 800, fontFamily: 'var(--font-santali)', marginBottom: '2px' }}>
-                    {phrase.santali}
-                  </div>
-                  <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.88rem' }}>
-                    {phrase.hindi} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.92rem', marginBottom: '2px' }}>
-                    {phrase.hindi}
-                  </div>
-                  <div style={{ color: '#c05621', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'var(--font-santali)' }}>
-                    {phrase.santali} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
-                  </div>
-                </>
-              )}
-            </button>
-          ))}
+          {(((selectedLanguage === 'ho'
+            ? HO_CATEGORIZED_PHRASES
+            : selectedLanguage === 'mundari'
+            ? MUNDARI_CATEGORIZED_PHRASES
+            : CATEGORIZED_PHRASES) as any)[phraseCategory] || []).map((phrase: any, idx: number) => {
+            const tribalText = phrase.santali || phrase.tribal;
+            const hindiText = phrase.hindi;
+            return (
+              <button
+                key={idx}
+                onClick={() => {
+                  sfx.playTap();
+                  if (mode === 'student') {
+                    setSourceText(tribalText);
+                    setTranslatedText(hindiText);
+                    setPronunciation(phrase.pronunciation || '');
+                    setLatencyMs(1);
+                    setActiveModel(`⚡ Palash On-Device Engine (${TRIBAL_LANGUAGES[selectedLanguage].name} ➔ Hindi)`);
+                    speakText(hindiText, { rate: 0.85, lang: 'hi-IN' });
+                  } else {
+                    setSourceText(hindiText);
+                    setTranslatedText(tribalText);
+                    setPronunciation(phrase.pronunciation || '');
+                    setLatencyMs(1);
+                    setActiveModel(`⚡ Palash On-Device Engine (Hindi ➔ ${TRIBAL_LANGUAGES[selectedLanguage].name})`);
+                    speakText(phrase.pronunciation || tribalText, { rate: 0.85 });
+                  }
+                }}
+                style={{
+                  textAlign: 'left',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  backgroundColor: '#f8fafc',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#fffaf0';
+                  e.currentTarget.style.borderColor = '#fed7aa';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                }}
+              >
+                {mode === 'student' ? (
+                  <>
+                    <div style={{ color: '#c05621', fontSize: '1rem', fontWeight: 800, fontFamily: selectedLanguage === 'santali' ? 'var(--font-santali)' : 'inherit', marginBottom: '2px' }}>
+                      {tribalText}
+                    </div>
+                    <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.88rem' }}>
+                      {hindiText} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.92rem', marginBottom: '2px' }}>
+                      {hindiText}
+                    </div>
+                    <div style={{ color: '#c05621', fontSize: '0.88rem', fontWeight: 700, fontFamily: selectedLanguage === 'santali' ? 'var(--font-santali)' : 'inherit' }}>
+                      {tribalText} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
+                    </div>
+                  </>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

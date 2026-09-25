@@ -12,12 +12,36 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, onToggleSidebar }) => {
   const { isDarkMode, toggleDarkMode, isSfxEnabled, toggleSfx } = useTheme();
 
+  const [selectedLang, setSelectedLang] = React.useState<string>(() => {
+    return localStorage.getItem('palash_selected_language') || 'sat_Olck';
+  });
+
+  React.useEffect(() => {
+    const onLangChanged = (e: any) => {
+      if (e.detail && e.detail !== selectedLang) {
+        setSelectedLang(e.detail);
+      }
+    };
+    window.addEventListener('palash_language_changed', onLangChanged);
+    return () => window.removeEventListener('palash_language_changed', onLangChanged);
+  }, [selectedLang]);
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value;
+    setSelectedLang(newLang);
+    localStorage.setItem('palash_selected_language', newLang);
+    window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: newLang }));
+  };
+
   return (
     <header
       style={{
         backgroundColor: isDarkMode ? '#0f172a' : '#ffffff',
         borderBottom: `1px solid ${isDarkMode ? '#1e293b' : '#e2e8f0'}`,
-        padding: '0.65rem 1.25rem',
+        paddingTop: 'max(0.65rem, calc(0.65rem + env(safe-area-inset-top, 0px)))',
+        paddingBottom: '0.65rem',
+        paddingLeft: '1.25rem',
+        paddingRight: '1.25rem',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         position: 'sticky',
         top: 0,
@@ -66,12 +90,14 @@ export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, 
           {/* Language Selector */}
           <div className="header-meta-group" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <select
-              defaultValue="sat_Olck"
+              value={selectedLang}
+              onChange={handleLanguageChange}
+              title="Select Tribal Mother Tongue"
               style={{
-                padding: '5px 8px',
+                padding: '6px 10px',
                 borderRadius: '8px',
                 border: `1px solid ${isDarkMode ? '#334155' : '#cbd5e0'}`,
-                fontSize: '0.8rem',
+                fontSize: '0.82rem',
                 fontWeight: 700,
                 color: isDarkMode ? '#f8fafc' : '#0f2744',
                 backgroundColor: isDarkMode ? '#1e293b' : '#f8fafc',
@@ -80,8 +106,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, 
               }}
             >
               <option value="sat_Olck">🟢 Santali (Ol Chiki • ᱚᱞ ᱪᱤᱠᱤ)</option>
-              <option value="ho_Wara" disabled>🔒 Ho (Warang Citi) - Soon</option>
-              <option value="unx_Deva" disabled>🔒 Mundari - Soon</option>
+              <option value="hoc_Deva">🔵 Ho (Warang Citi • ᱦᱳ / हो)</option>
+              <option value="unx_Deva">🟣 Mundari (Bani / Nagari • मुंडारी)</option>
             </select>
           </div>
 

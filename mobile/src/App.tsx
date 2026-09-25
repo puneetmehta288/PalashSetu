@@ -12,15 +12,31 @@ import ReportIssue from './pages/ReportIssue';
 import AuthLogin from './pages/AuthLogin';
 import AuthRegister from './pages/AuthRegister';
 import { authService, TeacherProfile } from './services/authService';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 const AppRoutes: React.FC = () => {
   const navigate = useNavigate();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    const profile = authService.getActiveProfile();
-    setActiveTeacher(profile);
+    // Always start at profile/login selection screen on fresh boot
+    authService.logout();
+    setActiveTeacher(null);
+    navigate('/login', { replace: true });
+
+    // Prevent system status bar from overlapping webview
+    const configureStatusBar = async () => {
+      try {
+        await StatusBar.setOverlaysWebView({ overlay: false });
+        await StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light });
+        await StatusBar.setBackgroundColor({ color: isDarkMode ? '#0f172a' : '#ffffff' });
+      } catch (err) {
+        // Ignored on web/browser preview
+      }
+    };
+    configureStatusBar();
   }, []);
 
   const handleLoginSuccess = (profile: TeacherProfile) => {
@@ -41,10 +57,14 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/"
         element={
-          <Layout
-            activeTeacher={activeTeacher}
-            onSwitchTeacher={handleSwitchTeacher}
-          />
+          activeTeacher ? (
+            <Layout
+              activeTeacher={activeTeacher}
+              onSwitchTeacher={handleSwitchTeacher}
+            />
+          ) : (
+            <AuthLogin onLoginSuccess={handleLoginSuccess} />
+          )
         }
       >
         <Route index element={<Dashboard activeTeacher={activeTeacher} />} />

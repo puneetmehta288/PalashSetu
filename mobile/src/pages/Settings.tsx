@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { speakText } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import { authService, TeacherProfile } from '../services/authService';
+import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
 
 export const JHARKHAND_TRIBAL_DISTRICTS = [
   { name: 'Dumka', sat: 'ᱫᱩᱢᱠᱟᱹ', region: 'Santhal Pargana' },
@@ -37,6 +38,10 @@ const Settings: React.FC = () => {
     return saved ? parseFloat(saved) : 0.85;
   });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => sfx.isEnabled());
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
+  const [tribalLanguage, setTribalLanguage] = useState<string>(() => {
+    return localStorage.getItem('palash_selected_language') || 'sat_Olck';
+  });
 
   // 4. UI Feedback states
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -76,6 +81,8 @@ const Settings: React.FC = () => {
     // 2. Save general preferences
     localStorage.setItem('palash_school_name', schoolName);
     localStorage.setItem('palash_speech_rate', speechRate.toString());
+    localStorage.setItem('palash_selected_language', tribalLanguage);
+    window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: tribalLanguage }));
 
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
@@ -89,7 +96,13 @@ const Settings: React.FC = () => {
   const handleTestAudio = () => {
     sfx.playVoicePing();
     setIsPlayingTest(true);
-    speakText(`ᱡᱚᱦᱟᱨ ${teacherName}! ᱟᱵᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱟᱨ ᱦᱤᱱᱫᱤ ᱛᱮ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ ᱵᱚᱱ ᱪᱮᱫ ᱟᱠᱚᱣᱟ᱾`, {
+    let sample = `ᱡᱚᱦᱟᱨ ${teacherName}! ᱟᱵᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱟᱨ ᱦᱤᱱᱫᱤ ᱛᱮ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ ᱵᱚᱱ ᱪᱮᱫ ᱟᱠᱚᱣᱟ᱾`;
+    if (tribalLanguage === 'hoc_Deva') {
+      sample = `जोहार ${teacherName}! आबू होनको लेका आड़ो पाड़ाव बू चेदोः-आ।`;
+    } else if (tribalLanguage === 'unx_Deva') {
+      sample = `जोहार ${teacherName}! आबू होनको मिअद एते गेलेया लेका इतूना।`;
+    }
+    speakText(sample, {
       rate: speechRate,
       onEnd: () => setIsPlayingTest(false)
     });
@@ -243,7 +256,20 @@ const Settings: React.FC = () => {
               </label>
               <select
                 value={selectedDistrict}
-                onChange={e => setSelectedDistrict(e.target.value)}
+                onChange={e => {
+                  const dName = e.target.value;
+                  setSelectedDistrict(dName);
+                  const districtObj = JHARKHAND_TRIBAL_DISTRICTS.find(d => d.name === dName);
+                  if (districtObj) {
+                    if (districtObj.region === 'Kolhan') {
+                      setTribalLanguage('hoc_Deva');
+                    } else if (districtObj.region === 'South Chotanagpur') {
+                      setTribalLanguage('unx_Deva');
+                    } else {
+                      setTribalLanguage('sat_Olck');
+                    }
+                  }
+                }}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 600, color: '#0f2744', backgroundColor: '#f8fafc', outline: 'none' }}
               >
                 {JHARKHAND_TRIBAL_DISTRICTS.map(d => (
@@ -254,6 +280,22 @@ const Settings: React.FC = () => {
               </select>
             </div>
 
+            {/* Tribal Mother Tongue Medium */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                Tribal Mother Tongue Medium (मातृभाषा):
+              </label>
+              <select
+                value={tribalLanguage}
+                onChange={e => setTribalLanguage(e.target.value)}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 600, color: '#0f2744', backgroundColor: '#f8fafc', outline: 'none' }}
+              >
+                <option value="sat_Olck">🟢 Santali (Ol Chiki • ᱥᱟᱱᱛᱟᱲᱤ • Santhal Pargana)</option>
+                <option value="hoc_Deva">🔵 Ho (Warang Citi & Devanagari • ᱦᱳ / हो • Kolhan)</option>
+                <option value="unx_Deva">🟣 Mundari (Bani & Nagari • ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी • Chotanagpur)</option>
+              </select>
+            </div>
+
             {/* Primary Class */}
             <div>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
@@ -261,30 +303,93 @@ const Settings: React.FC = () => {
               </label>
               <select
                 value={primaryClass}
-                onChange={e => setPrimaryClass(e.target.value)}
+                onChange={e => {
+                  setPrimaryClass(e.target.value);
+                }}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 600, color: '#0f2744', backgroundColor: '#f8fafc', outline: 'none' }}
               >
-                <option value="Balvatika">🎒 Balvatika (Pre-Primary / ᱵᱟᱞᱣᱟᱴᱤᱠᱟ)</option>
-                <option value="Class 1">🏫 Class 1 (FLN Grade 1 / ᱑ ᱪᱟᱱᱟᱪ)</option>
-                <option value="Class 2">🏫 Class 2 (FLN Grade 2 / ᱒ ᱪᱟᱱᱟᱪ)</option>
-                <option value="Class 3">🏫 Class 3 (FLN Grade 3 / ᱓ ᱪᱟᱱᱟᱪ)</option>
+                <option value="Balvatika">🧸 Balvatika</option>
+                <option value="Class 1">🏫 Class 1</option>
+                <option value="Class 2">📖 Class 2</option>
+                <option value="Class 3">🧮 Class 3</option>
               </select>
             </div>
           </div>
         </div>
 
         {/* ─── SECTION 2: AUDIO & SPEECH SYNTHESIS CONTROLS ─── */}
-        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
-            <span style={{ fontSize: '1.3rem' }}>🔊</span>
-            <div>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f2744', margin: 0 }}>
-                Audio Pronunciation & Speech Engine
-              </h2>
-              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                Tune acoustic playback speed for young children learning Santali phonetics.
+        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.3rem' }}>🔊</span>
+              <div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f2744', margin: 0 }}>
+                  Audio Pronunciation & Speech Engine
+                </h2>
+                <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                  Tune acoustic playback speed and manage on-device offline voice packs.
+                </div>
               </div>
             </div>
+          </div>
+
+          {/* 1-Tap Offline Classroom Voice Setup Banner */}
+          <div
+            style={{
+              backgroundColor: '#fffaf0',
+              border: '1px solid #feebc8',
+              borderRadius: '14px',
+              padding: '1.1rem 1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+              boxShadow: '0 2px 6px rgba(237,137,54,0.06)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: '#fbd38d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.35rem', flexShrink: 0 }}>
+                ⚡
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, color: '#9c4221', fontSize: '0.96rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span>1-Tap Offline Voice & ASR Setup</span>
+                  <span style={{ fontSize: '0.68rem', backgroundColor: '#ed8936', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                    OFFLINE SYSTEM PACK
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#c05621', marginTop: '2px' }}>
+                  झारखंड के ग्रामीण स्कूलों के लिए बिना इंटरनेट माइक और आवाज़ सेटअप करें (One-time tablet configuration).
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                sfx.playTap();
+                setShowOfflineModal(true);
+              }}
+              style={{
+                backgroundColor: '#ed8936',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '9px 16px',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(237,137,54,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <span>⚙️ Configure Pack</span>
+              <span>➔</span>
+            </button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
@@ -435,6 +540,12 @@ const Settings: React.FC = () => {
         </div>
 
       </form>
+
+      {/* In-App 1-Tap Offline Voice Setup Modal */}
+      <OfflineVoiceModal
+        isOpen={showOfflineModal}
+        onClose={() => setShowOfflineModal(false)}
+      />
 
     </div>
   );

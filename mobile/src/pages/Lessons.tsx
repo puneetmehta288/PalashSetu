@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { speakText } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import {
@@ -11,8 +11,13 @@ import {
   LessonSection,
   AssessmentPrompt
 } from '../data/nipun_lessons_data';
+import { adaptLessonStep, adaptAssessment, getActiveTribalLanguage } from '../services/tribalCurriculumAdapter';
+import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
+import { translateHindiToHo } from '../data/ho_dictionary';
+import { translateHindiToMundari } from '../data/mundari_dictionary';
 
 const Lessons: React.FC = () => {
+  const [tribalLang, setTribalLang] = useState<TribalLanguage>(getActiveTribalLanguage);
   const [grade, setGrade] = useState('Class 1');
   const [subject, setSubject] = useState('ᱚᱞ ᱪᱤᱠᱤ ᱮᱞᱠᱷᱟᱹ (Foundational Literacy)');
   const [topicIndex, setTopicIndex] = useState(0);
@@ -63,9 +68,31 @@ const Lessons: React.FC = () => {
     setIsGenerating(false);
   };
 
-  const playVoice = (text: string) => {
+  useEffect(() => {
+    const onLangChanged = (e: any) => {
+      const detail = e.detail || localStorage.getItem('palash_selected_language');
+      if (detail === 'hoc_Deva' || detail === 'ho') setTribalLang('ho');
+      else if (detail === 'unx_Deva' || detail === 'mundari') setTribalLang('mundari');
+      else setTribalLang('santali');
+    };
+    window.addEventListener('palash_language_changed', onLangChanged);
+    return () => window.removeEventListener('palash_language_changed', onLangChanged);
+  }, []);
+
+  const handleLanguageSelect = (lang: TribalLanguage) => {
+    sfx.playTap();
+    setTribalLang(lang);
+    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unx_Deva' : 'sat_Olck';
+    localStorage.setItem('palash_selected_language', code);
+    window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: code }));
+  };
+
+  const playVoice = (text: string, lang: TribalLanguage = tribalLang) => {
     sfx.playVoicePing();
-    speakText(text, { rate: 0.85 });
+    speakText(text, {
+      lang: lang === 'santali' ? 'sat' : 'hi-IN',
+      rate: 0.85
+    });
   };
 
   const toggleSection = (idx: number) => {
@@ -108,16 +135,46 @@ const Lessons: React.FC = () => {
               ✨ Panchaadi 5-Step Pedagogy
             </span>
             <span style={{ backgroundColor: '#fdf4ff', color: '#7e22ce', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
-              🏹 Santali MTB-MLE
+              {tribalLang === 'ho' ? '🏹 Ho MTB-MLE (Kolhan)' : tribalLang === 'mundari' ? '🏹 Mundari MTB-MLE (Chotanagpur)' : '🏹 Santali MTB-MLE'}
             </span>
           </div>
           <h1 style={{ color: '#0f2744', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
-            📚 NIPUN Bharat Lesson Studio
+            📚 NIPUN Bharat Lesson Studio ({tribalLang === 'ho' ? 'पाड़ाव पोथी' : tribalLang === 'mundari' ? 'पड़ाव पुती' : 'ᱯᱟᱲᱦᱟᱣ ᱯᱚᱛᱷᱤ'})
           </h1>
           <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
-            Generate structured 5-part Panchaadi lesson plans with dual Hindi & Santali Ol Chiki scripts, teacher talk scripts, and assessments.
+            Generate structured 5-part Panchaadi lesson plans with dual Hindi & {tribalLang === 'ho' ? 'Ho (Warang Citi & Devanagari)' : tribalLang === 'mundari' ? 'Mundari (Bani & Nagari)' : 'Santali Ol Chiki'} scripts, teacher talk scripts, and assessments.
           </p>
         </div>
+      </div>
+
+      {/* ─── TRIBAL LANGUAGE SWITCHER PILLS (Hidden in Print) ─── */}
+      <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+          🗣️ Lesson Language:
+        </span>
+        {(['santali', 'ho', 'mundari'] as TribalLanguage[]).map(lang => {
+          const isSel = tribalLang === lang;
+          const label = lang === 'santali' ? '🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ)' : lang === 'ho' ? '🔵 Ho (ᱦᱳ / Kolhan)' : '🟣 Mundari (मुंडारी / Bani)';
+          return (
+            <button
+              key={lang}
+              onClick={() => handleLanguageSelect(lang)}
+              style={{
+                backgroundColor: isSel ? '#0f2744' : '#ffffff',
+                color: isSel ? '#ffffff' : '#334155',
+                border: isSel ? '2px solid #0f2744' : '1px solid #cbd5e1',
+                borderRadius: '20px',
+                padding: '4px 12px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Selection Control Panel */}
@@ -131,9 +188,10 @@ const Lessons: React.FC = () => {
             </label>
             <select value={grade} onChange={e => handleGradeChange(e.target.value)}
               style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.88rem', fontWeight: 700, color: '#0f2744', backgroundColor: '#f8fafc', outline: 'none' }}>
-              {Object.keys(CURRICULUM).map(g => (
-                <option key={g} value={g}>{g}</option>
-              ))}
+              <option value="Balvatika">🧸 Balvatika</option>
+              <option value="Class 1">🎒 Class 1</option>
+              <option value="Class 2">📖 Class 2</option>
+              <option value="Class 3">🧮 Class 3</option>
             </select>
           </div>
 
@@ -196,13 +254,17 @@ const Lessons: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                  {lesson.grade} • {lesson.subject} • NIPUN Bharat MTB-MLE
+                  {lesson.grade} • {lesson.subject} • NIPUN Bharat MTB-MLE ({tribalLang.toUpperCase()})
                 </div>
                 <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: '#ffffff' }}>
                   📄 {lesson.title_hin}
                 </h2>
-                <div style={{ fontSize: '1rem', color: '#fed7aa', fontWeight: 700, marginTop: '4px', fontFamily: 'serif' }}>
-                  {lesson.title_sat}
+                <div style={{ fontSize: '1rem', color: '#fed7aa', fontWeight: 700, marginTop: '4px', fontFamily: tribalLang === 'santali' ? 'serif' : 'inherit' }}>
+                  {tribalLang === 'santali'
+                    ? lesson.title_sat
+                    : tribalLang === 'ho'
+                    ? (translateHindiToHo(lesson.title_hin).translation || lesson.title_hin)
+                    : (translateHindiToMundari(lesson.title_hin).translation || lesson.title_hin)}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -234,6 +296,7 @@ const Lessons: React.FC = () => {
           {lesson.sections.map((section) => {
             const colors = STEP_COLORS[section.step];
             const isOpen = isPrinting || openSection === section.step;
+            const adapted = adaptLessonStep(section, tribalLang);
             return (
               <div key={section.step} style={{ borderRadius: '14px', border: `1px solid ${colors.border}`, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 {/* Accordion Header */}
@@ -247,7 +310,7 @@ const Lessons: React.FC = () => {
                         Step {section.step} • ⏱️ {section.duration}
                       </div>
                       <div style={{ fontSize: '1rem', fontWeight: 800, color: colors.header }}>
-                        {section.step_name} ({section.step_sat})
+                        {adapted.step_title}
                       </div>
                     </div>
                   </div>
@@ -269,22 +332,27 @@ const Lessons: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Santali Content */}
+                    {/* Tribal Content */}
                     <div style={{ padding: '12px 14px', backgroundColor: '#fffaf0', borderRadius: '10px', borderLeft: '4px solid #ed8936' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                         <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#c05621', textTransform: 'uppercase' }}>
-                          🏹 Santali Translation / Ol Chiki (ᱥᱟᱱᱛᱟᱲᱤ ᱚᱞ ᱪᱤᱠᱤ):
+                          🏹 {tribalLang === 'ho' ? 'Ho Teacher Talk (ᱦᱳ / Kolhan):' : tribalLang === 'mundari' ? 'Mundari Teacher Talk (मुंडारी / Bani):' : 'Santali Translation / Ol Chiki (ᱥᱟᱱᱛᱟᱲᱤ ᱚᱞ ᱪᱤᱠᱤ):'}
                         </div>
                         <button
-                          onClick={() => playVoice(section.sat)}
+                          onClick={() => playVoice(adapted.teacher_script, tribalLang)}
                           className="no-print"
                           style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#fed7aa', border: 'none', borderRadius: '6px', padding: '3px 8px', fontSize: '0.75rem', fontWeight: 700, color: '#9a3412', cursor: 'pointer' }}>
                           🔊 Speak
                         </button>
                       </div>
-                      <div style={{ fontSize: '0.95rem', color: '#9a3412', lineHeight: '1.6', fontFamily: 'serif', whiteSpace: 'pre-line', fontWeight: 600 }}>
-                        {section.sat}
+                      <div style={{ fontSize: '0.95rem', color: '#9a3412', lineHeight: '1.6', fontFamily: tribalLang === 'santali' ? 'serif' : 'inherit', whiteSpace: 'pre-line', fontWeight: 600 }}>
+                        {adapted.teacher_script}
                       </div>
+                      {adapted.phonetic && adapted.phonetic !== adapted.teacher_script && (
+                        <div style={{ fontSize: '0.78rem', color: '#78350f', fontStyle: 'italic', marginTop: '6px' }}>
+                          🗣️ {adapted.phonetic}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -299,7 +367,7 @@ const Lessons: React.FC = () => {
                 <span style={{ fontSize: '1.3rem' }}>📝</span>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f2744' }}>
-                    Formative Assessment / Quiz Prompts (ᱢᱩᱪᱟᱹᱫ ᱠᱩᱠᱞᱤ)
+                    Formative Assessment / Quiz Prompts ({tribalLang === 'ho' ? 'बिडाव कुक्ली' : tribalLang === 'mundari' ? 'बिडाव कुली' : 'ᱢᱩᱪᱟᱹᱫ ᱠᱩᱠᱞᱤ'})
                   </h3>
                   <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
                     Ask these quick bilingual check-for-understanding questions to assess student mastery:
@@ -308,41 +376,51 @@ const Lessons: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {lesson.assessment_prompts.map((q: AssessmentPrompt, i: number) => (
-                  <div key={i} style={{ backgroundColor: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>
-                          Q{i + 1}: {q.question_hin}
+                {lesson.assessment_prompts.map((q: AssessmentPrompt, i: number) => {
+                  const adaptedQ = adaptAssessment(q, tribalLang);
+                  return (
+                    <div key={i} style={{ backgroundColor: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>
+                            Q{i + 1}: {q.question_hin}
+                          </div>
+                          <div style={{ fontSize: '0.82rem', color: '#ea580c', fontFamily: tribalLang === 'santali' ? 'serif' : 'inherit', marginTop: '2px', fontWeight: 600 }}>
+                            {adaptedQ.question}
+                          </div>
+                          {adaptedQ.phonetic && adaptedQ.phonetic !== adaptedQ.question && (
+                            <div style={{ fontSize: '0.74rem', color: '#64748b', fontStyle: 'italic', marginTop: '1px' }}>
+                              🗣️ {adaptedQ.phonetic}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ fontSize: '0.82rem', color: '#ea580c', fontFamily: 'serif', marginTop: '2px', fontWeight: 600 }}>
-                          {q.question_sat}
+                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                          <button
+                            onClick={() => playVoice(adaptedQ.question, tribalLang)}
+                            className="no-print"
+                            style={{ backgroundColor: '#ffedd5', border: 'none', borderRadius: '6px', padding: '4px 8px', fontSize: '0.75rem', fontWeight: 700, color: '#c2410c', cursor: 'pointer' }}>
+                            🔊
+                          </button>
+                          <button
+                            onClick={() => toggleAnswer(i)}
+                            className="no-print"
+                            style={{ backgroundColor: showAnswers[i] ? '#dcfce7' : '#e2e8f0', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 700, color: showAnswers[i] ? '#15803d' : '#475569', cursor: 'pointer' }}>
+                            {showAnswers[i] ? 'Hide' : 'Answer'}
+                          </button>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                        <button
-                          onClick={() => playVoice(q.question_sat)}
-                          className="no-print"
-                          style={{ backgroundColor: '#ffedd5', border: 'none', borderRadius: '6px', padding: '4px 8px', fontSize: '0.75rem', fontWeight: 700, color: '#c2410c', cursor: 'pointer' }}>
-                          🔊
-                        </button>
-                        <button
-                          onClick={() => toggleAnswer(i)}
-                          className="no-print"
-                          style={{ backgroundColor: showAnswers[i] ? '#dcfce7' : '#e2e8f0', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 700, color: showAnswers[i] ? '#15803d' : '#475569', cursor: 'pointer' }}>
-                          {showAnswers[i] ? 'Hide' : 'Answer'}
-                        </button>
-                      </div>
-                    </div>
 
-                    {(showAnswers[i] || isPrinting) && (
-                      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #cbd5e1', fontSize: '0.82rem', color: '#15803d' }}>
-                        <div><strong>उत्तर (Hindi):</strong> {q.answer_hin}</div>
-                        <div style={{ fontFamily: 'serif', marginTop: '2px' }}><strong>Santali:</strong> {q.answer_sat}</div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      {(showAnswers[i] || isPrinting) && (
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #cbd5e1', fontSize: '0.82rem', color: '#15803d' }}>
+                          <div><strong>उत्तर (Hindi):</strong> {q.answer_hin}</div>
+                          <div style={{ fontFamily: tribalLang === 'santali' ? 'serif' : 'inherit', marginTop: '2px' }}>
+                            <strong>{tribalLang === 'ho' ? 'Ho' : tribalLang === 'mundari' ? 'Mundari' : 'Santali'}:</strong> {adaptedQ.answer}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

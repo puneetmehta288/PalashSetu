@@ -122,16 +122,10 @@ export const authService = {
   getActiveProfile(): TeacherProfile | null {
     const activeId = localStorage.getItem(STORAGE_KEY_ACTIVE_SESSION);
     if (!activeId) {
-      // Default to first profile if exists
-      const profiles = this.getProfiles();
-      if (profiles.length > 0) {
-        localStorage.setItem(STORAGE_KEY_ACTIVE_SESSION, profiles[0].id);
-        return profiles[0];
-      }
       return null;
     }
     const profiles = this.getProfiles();
-    return profiles.find((p) => p.id === activeId) || (profiles[0] ?? null);
+    return profiles.find((p) => p.id === activeId) || null;
   },
 
   setActiveSession(teacherId: string) {

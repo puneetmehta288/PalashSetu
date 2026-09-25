@@ -58,22 +58,20 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
     <div
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #1a365d 0%, #2a4365 100%)',
+        background: 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: '1.5rem',
+        padding: '1rem',
         color: '#fff',
       }}
     >
-      {/* Brand Header */}
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f6ad55', marginBottom: '4px' }}>
-          🌿 PalashSetu (पलाश सेतु)
-        </div>
-        <div style={{ fontSize: '1rem', color: '#e2e8f0' }}>
-          Govt. of Jharkhand • PALASH MTB-MLE Shared Tablet Portal
+      {/* Sleek Minimal Branding */}
+      <div style={{ textAlign: 'center', marginBottom: '0.85rem' }}>
+        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f6ad55', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <span>🌿 PalashSetu</span>
+          <span style={{ fontSize: '1.05rem', color: '#fed7aa' }}>(पलाश सेतु)</span>
         </div>
       </div>
 
@@ -81,16 +79,16 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
       <div
         style={{
           width: '100%',
-          maxWidth: '520px',
+          maxWidth: '460px',
           backgroundColor: '#ffffff',
           color: '#2d3748',
           borderRadius: '16px',
-          padding: '2rem',
+          padding: '1.25rem 1.25rem',
           boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
         }}
       >
-        <h2 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: '#1a365d', textAlign: 'center' }}>
-          🏫 Select Teacher Profile to Unlock
+        <h2 style={{ margin: '0 0 0.85rem', fontSize: '1.05rem', color: '#1a365d', textAlign: 'center', fontWeight: 800 }}>
+          Select Teacher Profile
         </h2>
 
         {/* Profile Avatars Grid */}
@@ -165,24 +163,24 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
 
         {/* Selected Teacher Greeting */}
         {selectedProfile && (
-          <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#1a365d' }}>
+          <div style={{ textAlign: 'center', marginBottom: '0.85rem' }}>
+            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1a365d' }}>
               Enter 4-Digit PIN for {selectedProfile.name}
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#718096' }}>
+            <div style={{ fontSize: '0.75rem', color: '#718096' }}>
               {selectedProfile.district} • {selectedProfile.teacherId}
             </div>
           </div>
         )}
 
         {/* 4-Digit PIN Indicator Dots */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '1rem' }}>
           {[0, 1, 2, 3].map((index) => (
             <div
               key={index}
               style={{
-                width: '18px',
-                height: '18px',
+                width: '15px',
+                height: '15px',
                 borderRadius: '50%',
                 backgroundColor: pin.length > index ? '#ed8936' : '#e2e8f0',
                 border: '2px solid #cbd5e0',
@@ -193,7 +191,7 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
         </div>
 
         {errorMessage && (
-          <div style={{ textAlign: 'center', color: '#e53e3e', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 600 }}>
+          <div style={{ textAlign: 'center', color: '#e53e3e', fontSize: '0.82rem', marginBottom: '0.75rem', fontWeight: 600 }}>
             ⚠️ {errorMessage}
           </div>
         )}
@@ -203,8 +201,8 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '10px',
-            maxWidth: '300px',
+            gap: '8px',
+            maxWidth: '280px',
             margin: '0 auto',
           }}
         >
@@ -214,8 +212,8 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
               onClick={() => handleDigitPress(digit)}
               disabled={isVerifying}
               style={{
-                height: '56px',
-                fontSize: '1.4rem',
+                height: '48px',
+                fontSize: '1.3rem',
                 fontWeight: 'bold',
                 color: '#1a365d',
                 backgroundColor: '#edf2f7',
@@ -230,9 +228,9 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
           <button
             onClick={handleClear}
             style={{
-              height: '56px',
-              fontSize: '0.9rem',
-              fontWeight: 600,
+              height: '48px',
+              fontSize: '0.85rem',
+              fontWeight: 700,
               color: '#e53e3e',
               backgroundColor: '#fed7d7',
               border: 'none',
@@ -246,8 +244,8 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
             onClick={() => handleDigitPress('0')}
             disabled={isVerifying}
             style={{
-              height: '56px',
-              fontSize: '1.4rem',
+              height: '48px',
+              fontSize: '1.3rem',
               fontWeight: 'bold',
               color: '#1a365d',
               backgroundColor: '#edf2f7',
@@ -261,7 +259,7 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
           <button
             onClick={handleBackspace}
             style={{
-              height: '56px',
+              height: '48px',
               fontSize: '1.2rem',
               fontWeight: 600,
               color: '#4a5568',
@@ -275,8 +273,8 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
           </button>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.8rem', color: '#718096' }}>
-          💡 100% Offline Authentication • Demo Default PIN: <strong>1234</strong>
+        <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.75rem', color: '#718096' }}>
+          💡 Offline Authentication • Default PIN: <strong>1234</strong>
         </div>
       </div>
     </div>

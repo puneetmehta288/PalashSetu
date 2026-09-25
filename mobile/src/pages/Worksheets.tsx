@@ -1,5 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { sfx } from '../utils/sfx';
+import { getActiveTribalLanguage } from '../services/tribalCurriculumAdapter';
+import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
+import { translateHindiToHo } from '../data/ho_dictionary';
+import { translateHindiToMundari } from '../data/mundari_dictionary';
 
 // ════════════════════════════════════════════════════════════════════════════
 // NIPUN Bharat Grade-Adaptive Worksheet Generator
@@ -536,6 +540,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
 // COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 const Worksheets: React.FC = () => {
+  const [tribalLang, setTribalLang] = useState<TribalLanguage>(getActiveTribalLanguage);
   const [grade, setGrade] = useState<string>('Class 1');
   const [domain, setDomain] = useState<string>('Foundational Numeracy');
   const [questionType, setQuestionType] = useState<string>('c1_addition');
@@ -543,6 +548,45 @@ const Worksheets: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showAnswers, setShowAnswers] = useState<boolean>(false);
   const [showHints, setShowHints] = useState<boolean>(false);
+
+  useEffect(() => {
+    const onLangChanged = (e: any) => {
+      const detail = e.detail || localStorage.getItem('palash_selected_language');
+      if (detail === 'hoc_Deva' || detail === 'ho') setTribalLang('ho');
+      else if (detail === 'unx_Deva' || detail === 'mundari') setTribalLang('mundari');
+      else setTribalLang('santali');
+    };
+    window.addEventListener('palash_language_changed', onLangChanged);
+    return () => window.removeEventListener('palash_language_changed', onLangChanged);
+  }, []);
+
+  const handleLanguageSelect = (lang: TribalLanguage) => {
+    sfx.playTap();
+    setTribalLang(lang);
+    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unx_Deva' : 'sat_Olck';
+    localStorage.setItem('palash_selected_language', code);
+    window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: code }));
+  };
+
+  const getQuestionTribalText = (q: Question) => {
+    if (tribalLang === 'santali') return q.question_sat;
+    if (tribalLang === 'ho') {
+      const res = translateHindiToHo(q.question_hin);
+      return res.translation || q.question_sat;
+    }
+    const res = translateHindiToMundari(q.question_hin);
+    return res.translation || q.question_sat;
+  };
+
+  const getQuestionAnswerText = (q: Question) => {
+    if (tribalLang === 'santali') return q.correct_answer;
+    if (tribalLang === 'ho') {
+      const res = translateHindiToHo(q.correct_answer);
+      return res.translation || q.correct_answer;
+    }
+    const res = translateHindiToMundari(q.correct_answer);
+    return res.translation || q.correct_answer;
+  };
 
   const availableDomains = useMemo(() => Object.keys(GRADE_DRILL_TYPES[grade] || {}), [grade]);
   const availableDrills = useMemo(() => (GRADE_DRILL_TYPES[grade]?.[domain] || []), [grade, domain]);
@@ -600,13 +644,13 @@ const Worksheets: React.FC = () => {
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '3px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
-            📝 NIPUN Bharat Grade-Adaptive Worksheet Engine
+            📝 NIPUN Bharat Worksheet Engine ({tribalLang === 'ho' ? 'Ho • Kolhan' : tribalLang === 'mundari' ? 'Mundari • Chotanagpur' : 'Santali Ol Chiki'})
           </div>
           <h1 style={{ color: '#0f2744', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
-            Bilingual Worksheet Generator
+            Bilingual Worksheet Generator ({tribalLang === 'ho' ? 'कामी साकाम' : tribalLang === 'mundari' ? 'कामी साकाम' : 'ᱠᱟᱹᱢᱤ ᱥᱟᱠᱟᱢ'})
           </h1>
           <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
-            Select Grade → Domain (Literacy/Numeracy) → Drill Type → Generate. Each worksheet uses real NIPUN Bharat competency targets.
+            Select Grade → Domain (Literacy/Numeracy) → Drill Type → Generate in {tribalLang === 'ho' ? 'Ho language' : tribalLang === 'mundari' ? 'Mundari language' : 'Santali Ol Chiki'}.
           </p>
         </div>
         {questions.length > 0 && (
@@ -627,6 +671,36 @@ const Worksheets: React.FC = () => {
         )}
       </div>
 
+      {/* ─── TRIBAL LANGUAGE SWITCHER PILLS (Hidden in Print) ─── */}
+      <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+          🗣️ Worksheet Language:
+        </span>
+        {(['santali', 'ho', 'mundari'] as TribalLanguage[]).map(lang => {
+          const isSel = tribalLang === lang;
+          const label = lang === 'santali' ? '🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ)' : lang === 'ho' ? '🔵 Ho (ᱦᱳ / Kolhan)' : '🟣 Mundari (मुंडारी / Bani)';
+          return (
+            <button
+              key={lang}
+              onClick={() => handleLanguageSelect(lang)}
+              style={{
+                backgroundColor: isSel ? '#0f2744' : '#ffffff',
+                color: isSel ? '#ffffff' : '#334155',
+                border: isSel ? '2px solid #0f2744' : '1px solid #cbd5e1',
+                borderRadius: '20px',
+                padding: '4px 12px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Configuration Panel */}
       <div className="no-print generator-panel" style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15,39,68,0.05)', border: '1px solid #e2e8f0' }}>
         <h3 style={{ margin: '0 0 1rem', color: '#0f2744', fontSize: '1rem', fontWeight: 800 }}>
@@ -641,9 +715,10 @@ const Worksheets: React.FC = () => {
             </label>
             <select value={grade} onChange={e => handleGradeChange(e.target.value)}
               style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', fontWeight: 700, color: '#0f2744', outline: 'none', fontSize: '0.88rem' }}>
-              {Object.keys(GRADE_DRILL_TYPES).map(g => (
-                <option key={g} value={g}>{GRADE_ICONS[g]} {g}</option>
-              ))}
+              <option value="Balvatika">🧸 Balvatika</option>
+              <option value="Class 1">🎒 Class 1</option>
+              <option value="Class 2">📖 Class 2</option>
+              <option value="Class 3">🧮 Class 3</option>
             </select>
           </div>
 
@@ -710,19 +785,19 @@ const Worksheets: React.FC = () => {
               Govt. of Jharkhand • PALASH MTB-MLE Programme (SIH 26042)
             </div>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f2744', margin: '4px 0' }}>
-              PalashSetu NIPUN Practice Worksheet (ᱠᱟᱹᱢᱤ ᱥᱟᱠᱟᱢ)
+              PalashSetu NIPUN Practice Worksheet ({tribalLang === 'ho' ? 'कामी साकाम' : tribalLang === 'mundari' ? 'कामी साकाम' : 'ᱠᱟᱹᱢᱤ ᱥᱟᱠᱟᱢ'})
             </h2>
             <div style={{ fontSize: '0.88rem', color: '#c05621', fontWeight: 700, marginBottom: '4px' }}>
-              {grade} • {domain} • {selectedDrill?.label}
+              {grade} • {domain} • {selectedDrill?.label} ({tribalLang.toUpperCase()})
             </div>
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
               🎯 {selectedDrill?.nipunRef}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginTop: '1rem', textAlign: 'left', fontSize: '0.82rem', color: '#334155' }}>
-              <div><strong>Student Name (ᱧᱩᱛᱩᱢ):</strong> _________________</div>
+              <div><strong>Student Name ({tribalLang === 'santali' ? 'ᱧᱩᱛᱩᱢ' : 'नुतुम'}):</strong> _________________</div>
               <div><strong>Roll No.:</strong> _______</div>
-              <div><strong>Date (ᱛᱟᱨᱤᱠ):</strong> ___________</div>
-              <div><strong>Score (ᱮᱞ):</strong> ______ / {questions.length}</div>
+              <div><strong>Date ({tribalLang === 'santali' ? 'ᱛᱟᱨᱤᱠ' : 'तारीख'}):</strong> ___________</div>
+              <div><strong>Score ({tribalLang === 'santali' ? 'ᱮᱞ' : 'नंबर'}):</strong> ______ / {questions.length}</div>
             </div>
           </div>
 
@@ -737,7 +812,7 @@ const Worksheets: React.FC = () => {
                   </span>
                   {showAnswers && (
                     <span style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '3px 10px', borderRadius: '8px', fontWeight: 700, fontSize: '0.82rem' }}>
-                      ✅ {q.correct_answer}
+                      ✅ {getQuestionAnswerText(q)}
                     </span>
                   )}
                 </div>
@@ -745,18 +820,25 @@ const Worksheets: React.FC = () => {
                 <div style={{ fontSize: '0.98rem', fontWeight: 700, color: '#0f2744', marginBottom: '4px', whiteSpace: 'pre-wrap' }}>
                   {q.question_hin}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: '#c05621', fontWeight: 600, fontFamily: 'serif', marginBottom: q.options ? '10px' : '0', whiteSpace: 'pre-wrap' }}>
-                  {q.question_sat}
+                <div style={{ fontSize: '0.9rem', color: '#c05621', fontWeight: 600, fontFamily: tribalLang === 'santali' ? 'serif' : 'inherit', marginBottom: q.options ? '10px' : '0', whiteSpace: 'pre-wrap' }}>
+                  {getQuestionTribalText(q)}
                 </div>
 
                 {q.options && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '6px' }}>
-                    {q.options.map((opt, oi) => (
-                      <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
-                        <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '1.5px solid #94a3b8', display: 'inline-block', flexShrink: 0 }} />
-                        <span>{opt}</span>
-                      </div>
-                    ))}
+                    {q.options.map((opt, oi) => {
+                      const displayOpt = tribalLang === 'santali'
+                        ? opt
+                        : tribalLang === 'ho'
+                        ? (translateHindiToHo(opt).translation || opt)
+                        : (translateHindiToMundari(opt).translation || opt);
+                      return (
+                        <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                          <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '1.5px solid #94a3b8', display: 'inline-block', flexShrink: 0 }} />
+                          <span>{displayOpt}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -787,6 +869,7 @@ const Worksheets: React.FC = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

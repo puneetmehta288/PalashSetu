@@ -168,10 +168,10 @@ const AuthRegister: React.FC<AuthRegisterProps> = ({ onRegisterSuccess }) => {
                   backgroundColor: '#fff',
                 }}
               >
-                <option value="Balvatika">Balvatika (Age 5-6)</option>
-                <option value="Class 1">Class 1 (Grade 1)</option>
-                <option value="Class 2">Class 2 (Grade 2)</option>
-                <option value="Class 3">Class 3 (Grade 3)</option>
+                <option value="Balvatika">🧸 Balvatika</option>
+                <option value="Class 1">🏫 Class 1</option>
+                <option value="Class 2">📖 Class 2</option>
+                <option value="Class 3">🧮 Class 3</option>
               </select>
             </div>
           </div>

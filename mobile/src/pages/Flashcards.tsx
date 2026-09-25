@@ -1,7 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ALL_DECKS, DeckMeta, FlashcardItem } from '../data/nipunDecks';
 import { speakText } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
+import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
+import { HINDI_TO_HO_VOCAB } from '../data/ho_dictionary';
+import { HINDI_TO_MUNDARI_VOCAB } from '../data/mundari_dictionary';
 
 // ─── Grade config ────────────────────────────────────────────────────────────
 const GRADES = ['Balvatika', 'Class 1', 'Class 2', 'Class 3'] as const;
@@ -281,19 +284,39 @@ function CardVisual({ card }: { card: FlashcardItem }) {
 }
 
 // ─── Reveal panel shown after tap ───────────────────────────────────────────
-function CardReveal({ card }: { card: FlashcardItem }) {
+function CardReveal({ card, language }: { card: FlashcardItem; language: TribalLanguage }) {
+  let displayScript = 'ᱚᱞ ᱪᱤᱠᱤ • Santali';
+  let displayText = card.santali;
+  let displayPhonetic = card.pronunciation;
+
+  if (language === 'ho') {
+    displayScript = 'ᱦᱳ / हो • Ho Language (Kolhan)';
+    const entry = HINDI_TO_HO_VOCAB[card.hindi];
+    if (entry) {
+      displayText = entry.ho;
+      displayPhonetic = entry.phonetic;
+    }
+  } else if (language === 'mundari') {
+    displayScript = 'ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी • Mundari Language';
+    const entry = HINDI_TO_MUNDARI_VOCAB[card.hindi];
+    if (entry) {
+      displayText = entry.mun;
+      displayPhonetic = entry.phonetic;
+    }
+  }
+
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
-      {/* Main Santali answer */}
+      {/* Main Tribal answer */}
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
-          ᱚᱞ ᱪᱤᱠᱤ • Santali
+        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+          {displayScript}
         </div>
-        <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#fbbf24', fontFamily: 'serif', letterSpacing: '2px', lineHeight: 1.2, textShadow: '0 2px 8px rgba(251,191,36,0.3)' }}>
-          {card.santali}
+        <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#fbbf24', fontFamily: language === 'santali' ? 'serif' : 'inherit', letterSpacing: '2px', lineHeight: 1.2, textShadow: '0 2px 8px rgba(251,191,36,0.3)' }}>
+          {displayText}
         </div>
         <div style={{ fontSize: '1.1rem', color: '#94a3b8', marginTop: '4px', fontWeight: 600 }}>
-          "{card.pronunciation}"
+          "{displayPhonetic}"
         </div>
       </div>
 
@@ -320,6 +343,31 @@ function CardReveal({ card }: { card: FlashcardItem }) {
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 const Flashcards: React.FC = () => {
+  const [selectedLanguage, setSelectedLanguage] = useState<TribalLanguage>(() => {
+    const saved = localStorage.getItem('palash_selected_language');
+    if (saved === 'hoc_Deva') return 'ho';
+    if (saved === 'unx_Deva') return 'mundari';
+    return 'santali';
+  });
+
+  useEffect(() => {
+    const onLangChanged = (e: any) => {
+      if (e.detail === 'hoc_Deva') setSelectedLanguage('ho');
+      else if (e.detail === 'unx_Deva') setSelectedLanguage('mundari');
+      else setSelectedLanguage('santali');
+    };
+    window.addEventListener('palash_language_changed', onLangChanged);
+    return () => window.removeEventListener('palash_language_changed', onLangChanged);
+  }, []);
+
+  const handleLanguageSelect = (lang: TribalLanguage) => {
+    sfx.playTap();
+    setSelectedLanguage(lang);
+    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unx_Deva' : 'sat_Olck';
+    localStorage.setItem('palash_selected_language', code);
+    window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: code }));
+  };
+
   const [selectedGrade, setSelectedGrade] = useState<Grade>('Class 1');
   const [selectedDeckId, setSelectedDeckId] = useState<string>('c1_numbers');
   const [domainFilter, setDomainFilter] = useState<'All' | 'Literacy' | 'Numeracy'>('All');
@@ -358,6 +406,7 @@ const Flashcards: React.FC = () => {
   };
 
   const handleGradeChange = (grade: Grade) => {
+    if (grade !== 'Class 1') return;
     sfx.playTap();
     setSelectedGrade(grade);
     setCurrentIndex(0);
@@ -421,13 +470,99 @@ const Flashcards: React.FC = () => {
 
       {/* Grade tabs */}
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{ display: 'inline-flex', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '16px', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {GRADES.map(g => (
-            <button key={g} onClick={() => handleGradeChange(g)}
-              style={{ padding: '8px 14px', borderRadius: '12px', border: 'none', backgroundColor: selectedGrade === g ? '#0f2744' : 'transparent', color: selectedGrade === g ? '#fff' : '#475569', fontWeight: 700, fontSize: '0.86rem', cursor: 'pointer', transition: 'all 0.15s' }}>
-              {GRADE_LABELS[g]}
-            </button>
-          ))}
+        <div style={{ display: 'inline-flex', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '16px', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {GRADES.map(g => {
+            const isSelected = selectedGrade === g;
+            return (
+              <button
+                key={g}
+                onClick={() => handleGradeChange(g)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  border: isSelected ? '2px solid #ed8936' : 'none',
+                  backgroundColor: isSelected ? '#0f2744' : 'transparent',
+                  color: isSelected ? '#fff' : '#334155',
+                  fontWeight: 700,
+                  fontSize: '0.86rem',
+                  cursor: 'pointer',
+                  opacity: 1,
+                  transition: 'all 0.15s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: isSelected ? '0 2px 8px rgba(15,39,68,0.2)' : 'none',
+                }}
+              >
+                <span>{GRADE_LABELS[g]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Tribal Language Selector Bar */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'inline-flex', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '4px', borderRadius: '16px', gap: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button
+            type="button"
+            onClick={() => handleLanguageSelect('santali')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '12px',
+              border: selectedLanguage === 'santali' ? '2px solid #16a34a' : '1px solid transparent',
+              backgroundColor: selectedLanguage === 'santali' ? '#f0fdf4' : 'transparent',
+              color: selectedLanguage === 'santali' ? '#15803d' : '#475569',
+              fontWeight: 800,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span>🟢 Santali (Ol Chiki)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleLanguageSelect('ho')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '12px',
+              border: selectedLanguage === 'ho' ? '2px solid #2563eb' : '1px solid transparent',
+              backgroundColor: selectedLanguage === 'ho' ? '#eff6ff' : 'transparent',
+              color: selectedLanguage === 'ho' ? '#1d4ed8' : '#475569',
+              fontWeight: 800,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span>🔵 Ho (Warang Citi / हो)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleLanguageSelect('mundari')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '12px',
+              border: selectedLanguage === 'mundari' ? '2px solid #7c3aed' : '1px solid transparent',
+              backgroundColor: selectedLanguage === 'mundari' ? '#faf5ff' : 'transparent',
+              color: selectedLanguage === 'mundari' ? '#6d28d9' : '#475569',
+              fontWeight: 800,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span>🟣 Mundari (Bani / मुंडारी)</span>
+          </button>
         </div>
       </div>
 
@@ -542,12 +677,12 @@ const Flashcards: React.FC = () => {
                       </div>
                     </div>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#fff7ed', color: '#c05621', padding: '6px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 700, border: '1px solid #fed7aa' }}>
-                      👆 Tap to reveal Santali Ol Chiki
+                      👆 Tap to reveal {TRIBAL_LANGUAGES[selectedLanguage].name}
                     </div>
                   </>
                 ) : (
-                  /* ── REVEALED: Santali answer ── */
-                  <CardReveal card={currentCard} />
+                  /* ── REVEALED: Tribal answer ── */
+                  <CardReveal card={currentCard} language={selectedLanguage} />
                 )}
               </div>
 
@@ -567,9 +702,19 @@ const Flashcards: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <button onClick={e => playAudio(currentCard.pronunciation, 'hi-IN', e)}
+                    <button onClick={e => {
+                      let textToPlay = currentCard.pronunciation;
+                      if (selectedLanguage === 'ho') {
+                        const entry = HINDI_TO_HO_VOCAB[currentCard.hindi];
+                        textToPlay = entry?.phonetic || entry?.ho || currentCard.pronunciation;
+                      } else if (selectedLanguage === 'mundari') {
+                        const entry = HINDI_TO_MUNDARI_VOCAB[currentCard.hindi];
+                        textToPlay = entry?.phonetic || entry?.mun || currentCard.pronunciation;
+                      }
+                      playAudio(textToPlay, 'hi-IN', e);
+                    }}
                       style={{ flex: 1, backgroundColor: '#ed8936', color: '#fff', border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-                      🔊 Pronounce Santali
+                      🔊 Pronounce {TRIBAL_LANGUAGES[selectedLanguage].name}
                     </button>
                     <button onClick={toggleMastered}
                       style={{ padding: '10px 14px', borderRadius: '10px', border: isMastered ? '1px solid #22c55e' : '1px solid #4b5563', backgroundColor: isMastered ? '#166534' : '#1e293b', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', color: isMastered ? '#dcfce7' : '#94a3b8', whiteSpace: 'nowrap' }}>
@@ -615,6 +760,7 @@ const Flashcards: React.FC = () => {
           <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f2744' }}>Select a deck above to start!</div>
         </div>
       )}
+
     </div>
   );
 };

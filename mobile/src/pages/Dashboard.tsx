@@ -1,66 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { TeacherProfile } from '../services/authService';
 import { sfx } from '../utils/sfx';
-import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
+import { getActiveTribalLanguage, adaptDashboardMetadata } from '../services/tribalCurriculumAdapter';
+import { TribalLanguage } from '../types';
 
 interface DashboardProps {
   activeTeacher?: TeacherProfile | null;
 }
 
-const DASHBOARD_ACTIONS = [
-  {
-    to: '/translate',
-    icon: '🎙️',
-    title: 'Live Voice Translation',
-    santali: 'ᱥᱟᱱᱛᱟᱲᱤ ᱨᱚᱲ',
-    desc: 'Real-time Hindi → Santali with sub-millisecond on-device NLP and native acoustic speech.',
-    badge: 'Offline 4-Tier NLP',
-    color: '#ed8936',
-  },
-  {
-    to: '/flashcards',
-    icon: '🃏',
-    title: 'Visual Flashcards',
-    santali: 'ᱪᱤᱛᱟᱹᱨ ᱠᱟᱨᱰ',
-    desc: 'Interactive 3D flip cards: 30 Animals, Fruits, Body Parts, and Shapes.',
-    badge: '30+ SVG Decks',
-    color: '#38a169',
-  },
-  {
-    to: '/lessons',
-    icon: '📚',
-    title: 'Lesson Studio',
-    santali: 'ᱯᱟᱲᱦᱟᱣ ᱯᱚᱛᱷᱤ',
-    desc: 'Auto-generate structured 5-part NIPUN Bharat lessons with Ol Chiki scripts.',
-    badge: 'NIPUN Aligned',
-    color: '#3182ce',
-  },
-  {
-    to: '/worksheets',
-    icon: '📝',
-    title: 'Worksheet Generator',
-    santali: 'ᱠᱟᱹᱢᱤ ᱥᱟᱠᱟᱢ',
-    desc: 'Infinite randomized arithmetic and 10 pattern drills with printable export.',
-    badge: 'Print PDF',
-    color: '#805ad5',
-  },
-  {
-    to: '/books',
-    icon: '📖',
-    title: 'JCERT Bilingual Books',
-    santali: 'ᱡᱮᱥᱤᱤᱟᱨᱴᱤ ᱯᱩᱛᱷᱤ',
-    desc: 'State primary Math & Language textbooks translated into Ol Chiki with native audio.',
-    badge: 'JCERT State Books',
-    color: '#0d9488',
-  },
-];
-
 const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
+  const [tribalLang, setTribalLang] = useState<TribalLanguage>(getActiveTribalLanguage);
+
+  useEffect(() => {
+    const onLangChanged = (e: any) => {
+      const detail = e.detail || localStorage.getItem('palash_selected_language');
+      if (detail === 'hoc_Deva' || detail === 'ho') setTribalLang('ho');
+      else if (detail === 'unx_Deva' || detail === 'mundari') setTribalLang('mundari');
+      else setTribalLang('santali');
+    };
+    window.addEventListener('palash_language_changed', onLangChanged);
+    return () => window.removeEventListener('palash_language_changed', onLangChanged);
+  }, []);
+
+  const handleLanguageSelect = (lang: TribalLanguage) => {
+    sfx.playTap();
+    setTribalLang(lang);
+    const code = lang === 'ho' ? 'hoc_Deva' : lang === 'mundari' ? 'unx_Deva' : 'sat_Olck';
+    localStorage.setItem('palash_selected_language', code);
+    window.dispatchEvent(new CustomEvent('palash_language_changed', { detail: code }));
+  };
+
+  const meta = adaptDashboardMetadata(tribalLang);
   const teacherName = activeTeacher?.name || 'Sunita Kumari';
   const assignedGrade = activeTeacher?.assignedGrade || 'Class 1';
-  const district = activeTeacher?.district || 'Dumka';
-  const [showOfflineModal, setShowOfflineModal] = useState(false);
+  const district = activeTeacher?.district || (tribalLang === 'ho' ? 'West Singhbhum' : tribalLang === 'mundari' ? 'Khunti' : 'Dumka');
+
+  const dashboardActions = [
+    {
+      to: '/translate',
+      icon: '🎙️',
+      title: 'Live Voice Translation',
+      tribal: meta.voiceTitle,
+      desc: meta.voiceDesc,
+      badge: tribalLang === 'ho' ? 'Ho Kolhan NLP' : tribalLang === 'mundari' ? 'Mundari NLP' : 'Offline 4-Tier NLP',
+      color: '#ed8936',
+    },
+    {
+      to: '/flashcards',
+      icon: '🃏',
+      title: 'Visual Flashcards',
+      tribal: meta.cardsTitle,
+      desc: meta.cardsDesc,
+      badge: tribalLang === 'ho' ? 'Ho SVG Decks' : tribalLang === 'mundari' ? 'Mundari Decks' : '30+ SVG Decks',
+      color: '#38a169',
+    },
+    {
+      to: '/lessons',
+      icon: '📚',
+      title: 'Lesson Studio',
+      tribal: meta.lessonsTitle,
+      desc: meta.lessonsDesc,
+      badge: tribalLang === 'ho' ? 'Ho NIPUN Aligned' : tribalLang === 'mundari' ? 'Mundari Aligned' : 'NIPUN Aligned',
+      color: '#3182ce',
+    },
+    {
+      to: '/worksheets',
+      icon: '📝',
+      title: 'Worksheet Generator',
+      tribal: meta.worksheetsTitle,
+      desc: meta.worksheetsDesc,
+      badge: 'Print PDF',
+      color: '#805ad5',
+    },
+    {
+      to: '/books',
+      icon: '📖',
+      title: 'JCERT Bilingual Books',
+      tribal: meta.booksTitle,
+      desc: meta.booksDesc,
+      badge: 'JCERT State Books',
+      color: '#0d9488',
+    },
+  ];
 
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -90,86 +112,48 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
           }}
         />
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', position: 'relative', zIndex: 1 }}>
           <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.12)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, color: '#fbd38d', marginBottom: '0.75rem' }}>
-              <span>🌿 PALASH MTB-MLE</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.12)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, color: '#fbd38d', marginBottom: '0.6rem' }}>
+              <span>🌿 PalashSetu</span>
               <span>•</span>
-              <span>Govt. of Jharkhand (SIH 26042)</span>
+              <span>{assignedGrade} ({district})</span>
             </div>
-            <h1 style={{ fontSize: '2.2rem', fontWeight: 800, margin: '0 0 0.5rem', letterSpacing: '-0.5px' }}>
-              ᱡᱚᱦᱟᱨ, {teacherName}!
+            <h1 style={{ fontSize: '2.1rem', fontWeight: 800, margin: '0 0 0.25rem', letterSpacing: '-0.5px' }}>
+              {meta.greeting}, {teacherName}!
             </h1>
-            <p style={{ color: '#cbd5e1', fontSize: '1rem', margin: 0, maxWidth: '600px' }}>
-              Mother-Tongue-Based Teaching Assistant for <strong>{assignedGrade}</strong> in <strong>{district}</strong>. Empowering tribal primary education with on-device AI — Phase 1: Santali (Ol Chiki).
+            <p style={{ color: '#cbd5e1', fontSize: '0.95rem', margin: 0 }}>
+              {meta.subGreeting}
             </p>
           </div>
 
-          {/* Quick Metrics */}
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', padding: '14px 18px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.12)', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f6ad55' }}>30+</div>
-              <div style={{ fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 500 }}>SVG Decks</div>
-            </div>
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', padding: '14px 18px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.12)', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#68d391' }}>&lt; 1 ms</div>
-              <div style={{ fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 500 }}>FLN Latency</div>
-            </div>
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', padding: '14px 18px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.12)', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#63b3ed' }}>100%</div>
-              <div style={{ fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 500 }}>Offline Edge</div>
-            </div>
+          {/* Quick Language Toggle Pills on Hero Banner */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', backgroundColor: 'rgba(0,0,0,0.25)', padding: '6px 10px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.15)' }}>
+            {(['santali', 'ho', 'mundari'] as TribalLanguage[]).map(lang => {
+              const isSel = tribalLang === lang;
+              const label = lang === 'santali' ? '🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ)' : lang === 'ho' ? '🔵 Ho (ᱦᱳ / Kolhan)' : '🟣 Mundari (मुंडारी)';
+              return (
+                <button
+                  key={lang}
+                  onClick={() => handleLanguageSelect(lang)}
+                  style={{
+                    backgroundColor: isSel ? '#ed8936' : 'transparent',
+                    color: '#ffffff',
+                    border: isSel ? '1px solid #fbd38d' : 'none',
+                    borderRadius: '8px',
+                    padding: '4px 10px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
-      </div>
-
-      {/* 1-Tap Offline Classroom Setup Banner */}
-      <div
-        onClick={() => {
-          sfx.playTap();
-          setShowOfflineModal(true);
-        }}
-        style={{
-          backgroundColor: '#fffaf0',
-          border: '1px solid #feebc8',
-          borderRadius: '16px',
-          padding: '1rem 1.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          cursor: 'pointer',
-          boxShadow: '0 4px 12px rgba(237,137,54,0.12)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#fbd38d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
-            ⚡
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, color: '#9c4221', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>1-Tap Offline Voice & Audio Setup</span>
-              <span style={{ fontSize: '0.7rem', backgroundColor: '#ed8936', color: '#fff', padding: '2px 8px', borderRadius: '10px' }}>OFFLINE PACK</span>
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#c05621', marginTop: '2px' }}>
-              झारखंड के ग्रामीण स्कूलों के लिए बिना इंटरनेट माइक और आवाज़ डाउनलोड करें
-            </div>
-          </div>
-        </div>
-        <button
-          style={{
-            backgroundColor: '#ed8936',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '10px',
-            padding: '8px 14px',
-            fontWeight: 700,
-            fontSize: '0.82rem',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
-        >
-          Setup Now ➔
-        </button>
       </div>
 
       {/* Main Feature Cards Grid */}
@@ -180,13 +164,13 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
               🚀 Classroom Pedagogy & Translation Suite
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
-              Select a module to conduct interactive classroom sessions or prepare bilingual curriculum.
+              Select a module to conduct interactive classroom sessions or prepare bilingual curriculum in {tribalLang === 'ho' ? 'Ho (Kolhan Division)' : tribalLang === 'mundari' ? 'Mundari (Chotanagpur)' : 'Santali (Santhal Pargana)'}.
             </p>
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-          {DASHBOARD_ACTIONS.map((action) => (
+          {dashboardActions.map((action) => (
             <Link
               key={action.to}
               to={action.to}
@@ -252,8 +236,8 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
                     {action.title}
                   </h3>
                 </div>
-                <div style={{ fontSize: '0.9rem', color: action.color, fontWeight: 700, marginBottom: '6px' }}>
-                  {action.santali}
+                <div style={{ fontSize: '0.92rem', color: action.color, fontWeight: 700, marginBottom: '6px', fontFamily: tribalLang === 'santali' ? 'Noto Sans Ol Chiki, sans-serif' : 'inherit' }}>
+                  {action.tribal}
                 </div>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
                   {action.desc}
@@ -268,12 +252,6 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
           ))}
         </div>
       </div>
-
-      {/* In-App 1-Tap Offline Voice Setup Modal */}
-      <OfflineVoiceModal
-        isOpen={showOfflineModal}
-        onClose={() => setShowOfflineModal(false)}
-      />
     </div>
   );
 };
