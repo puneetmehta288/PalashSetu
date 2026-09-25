@@ -68,7 +68,7 @@ const GRADE_DRILL_TYPES: Record<string, Record<string, DrillTypeOption[]>> = {
     ],
     'Foundational Literacy': [
       { id: 'c2_opposites', label: '↔️ Opposites Vocabulary (ᱩᱞᱴᱟ ᱥᱮᱨᱮᱧ)', desc: 'Day/Night, Hot/Cold, Big/Small pairs', nipunRef: 'Grade 2 Literacy: Vocabulary pairs, 30–45 WPM target' },
-      { id: 'c2_reading_comp', label: '📖 Short Story Comprehension Questions', desc: '3-question bilingual comprehension drill', nipunRef: 'Grade 2 Literacy: Re-tell 8–10 sentence story; 30–45 WPM' },
+      { id: 'c2_reading_comp', label: '📖 Short Story Comprehension Questions', desc: 'Bilingual reading comprehension drill', nipunRef: 'Grade 2 Literacy: Re-tell 8–10 sentence story; 30–45 WPM' },
     ],
   },
   'Class 3': {
@@ -107,7 +107,7 @@ const ANIMAL_VOCAB = [
 const BODY_VOCAB = [
   { emoji: '👁️', hin: 'आंख', sat: 'ᱢᱮᱫ', pron: 'Med' },
   { emoji: '👃', hin: 'नाक', sat: 'ᱢᱩᱸ', pron: 'Mu' },
-  { emoji: '✋', hin: 'हाथ', sat: 'ᱦᱟᱹᱛᱤ', pron: 'Haati' },
+  { emoji: '✋', hin: 'हाथ', sat: 'ᱛᱤ', pron: 'Ti' },
   { emoji: '👄', hin: 'मुंह', sat: 'ᱢᱚᱪᱟ', pron: 'Mocha' },
   { emoji: '👂', hin: 'कान', sat: 'ᱞᱩᱛᱩᱨ', pron: 'Lutur' },
   { emoji: '🦶', hin: 'पैर', sat: 'ᱡᱟᱝᱜᱟ', pron: 'Janga' },
@@ -130,7 +130,7 @@ const WORD_PAIRS_HIN_SAT = [
   { hin: 'दिन', sat: 'ᱢᱟᱦᱟ', opp_hin: 'रात', opp_sat: 'ᱧᱤᱸᱫᱟᱹ' },
   { hin: 'बड़ा', sat: 'ᱢᱟᱨᱟᱝ', opp_hin: 'छोटा', opp_sat: 'ᱦᱩᱰᱤᱧ' },
   { hin: 'गर्म', sat: 'ᱞᱚᱞᱚ', opp_hin: 'ठंडा', opp_sat: 'ᱨᱮᱭᱟᱲ' },
-  { hin: 'आना', sat: 'ᱟᱠᱟᱱᱟ', opp_hin: 'जाना', opp_sat: 'ᱜᱮᱭᱟ' },
+  { hin: 'आना', sat: 'ᱦᱤᱡᱩᱜ', opp_hin: 'जाना', opp_sat: 'ᱥᱮᱱᱚᱜ' },
   { hin: 'ऊपर', sat: 'ᱩᱯᱩᱨ', opp_hin: 'नीचे', opp_sat: 'ᱛᱟᱞᱮ' },
 ];
 
@@ -146,6 +146,18 @@ const CLASS3_STORIES = [
     story_sat: 'ᱦᱟᱴ ᱨᱮ ᱨᱚᱦᱚᱱ ᱴᱷᱮᱱ ᱕᱐ ᱴᱟᱠᱟ ᱠᱟᱱᱟᱭ᱾ ᱒᱓ ᱴᱟᱠᱟᱟᱜ ᱫᱟᱹᱞᱤ ᱠᱤᱱᱮᱭᱟ᱾ ᱛᱤᱱᱟᱹ ᱴᱟᱠᱟ ᱥᱟᱨᱮᱲᱚᱜᱼᱟ?',
     q_hin: 'रोहन के पास कितने रुपये बचे?', q_sat: 'ᱨᱚᱦᱚᱱ ᱛᱤᱱᱟᱹ ᱴᱟᱠᱟ ᱥᱟᱨᱮᱲ ᱮᱱᱟ?',
     answer: '₹27 = ᱒᱗ ᱴᱟᱠᱟ', type: 'subtraction',
+  },
+  {
+    story_hin: 'पेड़ पर 7 चिड़ियाँ बैठी थीं। 3 चिड़ियाँ उड़ गईं। अब पेड़ पर कितनी चिड़ियाँ हैं?',
+    story_sat: 'ᱫᱟᱨᱮ ᱨᱮ ᱮᱭᱟᱭ (᱗) ᱪᱮᱬᱮ ᱫᱩᱲᱩᱵ ᱛᱟᱦᱮᱸᱠᱟᱱᱟᱠᱚ᱾ ᱯᱮ (᱓) ᱪᱮᱬᱮ ᱩᱰᱟᱹᱣ ᱮᱱᱟᱠᱚ᱾ ᱱᱤᱛᱚᱜ ᱫᱟᱨᱮ ᱨᱮ ᱛᱤᱱᱟᱹᱜ ᱪᱮᱬᱮ ᱢᱮᱱᱟᱜ ᱠᱚᱣᱟ?',
+    q_hin: 'पेड़ पर अब कितनी चिड़ियाँ बची हैं?', q_sat: 'ᱫᱟᱨᱮ ᱨᱮ ᱱᱤᱛᱚᱜ ᱛᱤᱱᱟᱹᱜ ᱪᱮᱬᱮ ᱥᱟᱨᱮᱲ ᱮᱱᱟᱠᱚ?',
+    answer: '4 चिड़ियाँ = ᱯᱩᱱ ᱪᱮᱬᱮ', type: 'subtraction',
+  },
+  {
+    story_hin: 'मीना के पास 4 पेंसिल थीं। शिक्षक ने उसे 4 और पेंसिल दीं। अब उसके पास कितनी पेंसिल हैं?',
+    story_sat: 'ᱢᱤᱱᱟ ᱴᱷᱮᱱ ᱯᱩᱱ (᱔) ᱯᱮᱱᱥᱤᱞ ᱛᱟᱦᱮᱸᱠᱟᱱᱟ᱾ ᱢᱟᱪᱮᱛ ᱟᱨᱦᱚᱸ ᱯᱩᱱ (᱔) ᱯᱮᱱᱥᱤᱞ ᱮᱢᱟᱫᱮᱭᱟ᱾ ᱱᱤᱛᱚᱜ ᱛᱤᱱᱟᱹᱜ ᱯᱮᱱᱥᱤᱞ ᱦᱩᱭᱮᱱᱟ?',
+    q_hin: 'मीना के पास कुल कितनी पेंसिल हैं?', q_sat: 'ᱢᱤᱱᱟ ᱴᱷᱮᱱ ᱡᱚᱛᱚ ᱛᱮ ᱛᱤᱱᱟᱹᱜ ᱯᱮᱱᱥᱤᱞ ᱢᱮᱱᱟᱜᱼᱟ?',
+    answer: '8 पेंसिल = ᱤᱨᱞ ᱯᱮᱱᱥᱤᱞ', type: 'addition',
   },
 ];
 
@@ -447,7 +459,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
     }
 
     else if (questionType === 'c3_tables') {
-      const tableNum = (i % 8) + 2;
+      const tableNum = (i % 9) + 2;
       const mul = Math.floor(Math.random() * 9) + 1;
       generated.push({
         id: i, type: questionType,
@@ -487,7 +499,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
       const b = Math.floor(Math.random() * 15) + 5;
       generated.push({
         id: i, type: questionType,
-        question_hin: `ᱥᱩᱱᱤᱛᱟ के पास ${a} आम थे। उसने अपनी दोस्त को ${b} आम दिए। कितने बचे?`,
+        question_hin: `सुनीता के पास ${a} आम थे। उसने अपनी दोस्त को ${b} आम दिए। कितने बचे?`,
         question_sat: `ᱥᱩᱱᱤᱛᱟ ᱴᱷᱮᱱ ${a} ᱟᱢ ᱛᱟᱦᱮᱸᱠᱟᱱᱟᱭ᱾ ᱟᱡ ᱫᱚᱥᱛᱩᱭ ᱫᱚ ${b} ᱟᱢ ᱮᱢᱟᱫᱮᱭᱟ᱾ ᱛᱤᱱᱟᱹᱜ ᱥᱟᱨᱮᱲᱚᱜᱼᱟ?`,
         correct_answer: `${a - b} आम (ᱟᱢ)`,
         hint: `Subtraction: ${a} - ${b} = ?`,

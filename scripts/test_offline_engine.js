@@ -201,7 +201,7 @@ function getPhoneticAudio(olText) {
 
 assert('TTS Acoustic: ᱡᱚᱦᱟᱨ', getPhoneticAudio('ᱡᱚᱦᱟᱨ'), 'जोहार');
 assert('TTS Acoustic: ᱟᱢᱟᱜ ᱠᱚᱯᱟᱲ', getPhoneticAudio('ᱟᱢᱟᱜ ᱠᱚᱯᱟᱲ'), 'आमाग कोपाड़');
-assert('TTS Acoustic: ᱢᱟᱪᱮᱛ', getPhoneticAudio('ᱢᱟᱪᱮᱛ'), 'माचेᱛ');
+assert('TTS Acoustic: ᱢᱟᱪᱮᱛ', getPhoneticAudio('ᱢᱟᱪᱮᱛ'), 'माचेत');
 assert('TTS Acoustic: ᱯᱩᱛᱷᱤ', getPhoneticAudio('ᱯᱩᱛᱷᱤ'), 'पुथी');
 
 // Category 7: Latency & Execution Speed Benchmark

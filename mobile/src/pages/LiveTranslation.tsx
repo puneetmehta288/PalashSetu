@@ -7,6 +7,7 @@ import { COMPREHENSIVE_HINDI_TO_SANTALI } from '../data/santali_comprehensive_di
 import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
 import { HO_CATEGORIZED_PHRASES, translateHindiToHo, translateHoToHindi, HO_METADATA } from '../data/ho_dictionary';
 import { MUNDARI_CATEGORIZED_PHRASES, translateHindiToMundari, translateMundariToHindi, MUNDARI_METADATA } from '../data/mundari_dictionary';
+import { lookupSentence, SENTENCE_BANK } from '../data/sentence_bank';
 
 // Comprehensive Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
@@ -162,7 +163,7 @@ const LiveTranslation: React.FC = () => {
     setPronunciation('');
   };
 
-  const { isListening, startListening, stopListening, transcript } = useSpeechRecognition();
+  const { isListening, startListening, stopListening, transcript, error: speechError, isSupported: isSpeechSupported } = useSpeechRecognition();
 
 // Common multi-word phrase patterns (Longest Match First)
 const PHRASE_PATTERNS: Array<[RegExp, string]> = [
@@ -363,6 +364,12 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
   const activeDict = currentMode === 'teacher' ? CLIENT_HINDI_TO_SANTALI : CLIENT_SANTALI_TO_HINDI;
 
+  // 0. Sentence bank lookup (teacher+santali mode only) — 300+ validated full sentences
+  if (currentMode === 'teacher') {
+    const bankResult = lookupSentence(cleanInput);
+    if (bankResult) return bankResult;
+  }
+
   // 1. Direct dictionary match
   if (activeDict[cleanInput]) {
     return activeDict[cleanInput];
@@ -523,6 +530,10 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
   const handleVoiceToggle = () => {
     sfx.playTap();
+    if (!isSpeechSupported) {
+      alert('ℹ️ Speech Recognition requires WebSpeech API support. In offline tablet WebView environments, please use the keyboard to type your phrase or select from the 1-Tap Quick Phrasebook below.');
+      return;
+    }
     if (mode === 'student') {
       alert(
         '👧 Student Mode: Interactive Tap-to-Respond Active!\n\n' +
@@ -945,6 +956,16 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '6px', fontWeight: 600 }}>
           {isListening ? 'Listening live speech... Tap to finish & translate' : 'Tap to start live classroom voice input'}
         </div>
+        {speechError && (
+          <div style={{ marginTop: '8px', padding: '6px 14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '0.8rem', display: 'inline-block' }}>
+            ⚠️ Mic status: {speechError}. (Type in the box above or use 1-Tap phrases)
+          </div>
+        )}
+        {!isSpeechSupported && (
+          <div style={{ marginTop: '8px', padding: '6px 14px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', color: '#b45309', fontSize: '0.8rem', display: 'inline-block' }}>
+            ℹ️ Offline WebView Mode: Voice input requires WebSpeech; keyboard typing &amp; 1-Tap Quick Phrases are 100% active.
+          </div>
+        )}
       </div>
 
       {/* Classroom Conversation Feed (Teacher / Student dialogue stream) */}

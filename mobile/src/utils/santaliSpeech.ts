@@ -20,7 +20,7 @@ const SANTALI_VOCAB_PHONETICS: Record<string, string> = {
   'ᱡᱚᱦᱟᱨ ᱢᱟᱪᱮᱛ': 'जोहार माचेत',
   'ᱡᱚᱦᱟᱨ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ': 'जोहार गिदराको',
   'ᱟᱢᱟᱜ ᱠᱚᱯᱟᱲ': 'आमाग कोपाड़',
-  'ᱢᱟᱪᱮᱛ': 'माचेᱛ',
+  'ᱢᱟᱪᱮᱛ': 'माचेत',
   'ᱢᱟᱪᱮᱛᱟᱹᱱᱤ': 'माचेतानी',
   'ᱯᱩᱛᱷᱤ': 'पुथी',
   'ᱫᱟᱜ': 'दाग',
@@ -259,19 +259,35 @@ export function transliterateOlChikiToPhonetic(text: string): string {
       return SANTALI_VOCAB_PHONETICS[clean];
     }
 
-    // 3. Fallback character-by-character transliteration for unmapped Ol Chiki words
+    // 3. Fallback syllabic transliteration for unmapped Ol Chiki words
     if (isOlChiki(clean)) {
       let converted = '';
+      const vowels: Record<string, { ind: string; matra: string }> = {
+        'ᱚ': { ind: 'अ', matra: 'ो' },
+        'ᱟ': { ind: 'आ', matra: 'ा' },
+        'ᱤ': { ind: 'इ', matra: 'ि' },
+        'ᱩ': { ind: 'उ', matra: 'ु' },
+        'ᱮ': { ind: 'ए', matra: 'े' },
+        'ᱳ': { ind: 'ओ', matra: 'ो' },
+      };
+
       for (let i = 0; i < clean.length; i++) {
         const char = clean[i];
-        if (OL_CHIKI_TO_DEVANAGARI[char] !== undefined) {
+        if (vowels[char]) {
+          if (converted.endsWith('्')) {
+            converted = converted.slice(0, -1) + vowels[char].matra;
+          } else {
+            converted += vowels[char].ind;
+          }
+        } else if (OL_CHIKI_TO_DEVANAGARI[char] !== undefined) {
           converted += OL_CHIKI_TO_DEVANAGARI[char];
         } else {
           converted += char;
         }
       }
-      // Clean up standalone viramas at word endings
-      return converted.replace(/्(?=\s|$|[।,.!?])/g, '');
+      // Drop trailing virama so word doesn't sound abruptly cut off
+      converted = converted.replace(/्(?=\s|$|[।,.!?])/g, '').replace(/़/g, '');
+      return converted;
     }
 
     return w;
