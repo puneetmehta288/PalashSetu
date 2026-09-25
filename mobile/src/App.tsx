@@ -18,17 +18,13 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 
 const AppRoutes: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(() => {
-    return authService.getActiveProfile();
-  });
+  // Shared school tablet requirement: Always start on Teacher Profile Selection
+  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    // Check if an active teacher session exists
-    const saved = authService.getActiveProfile();
-    if (saved) {
-      setActiveTeacher(saved);
-    } else {
+    // Ensure the app opens directly to Teacher Profile Selection screen
+    if (!activeTeacher) {
       navigate('/login', { replace: true });
     }
 

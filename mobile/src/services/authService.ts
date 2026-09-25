@@ -117,7 +117,7 @@ export const authService = {
   },
 
   getActiveProfile(): TeacherProfile | null {
-    const activeId = localStorage.getItem(STORAGE_KEY_ACTIVE_SESSION);
+    const activeId = sessionStorage.getItem(STORAGE_KEY_ACTIVE_SESSION);
     if (!activeId) {
       return null;
     }
@@ -126,7 +126,8 @@ export const authService = {
   },
 
   setActiveSession(teacherId: string) {
-    localStorage.setItem(STORAGE_KEY_ACTIVE_SESSION, teacherId);
+    sessionStorage.setItem(STORAGE_KEY_ACTIVE_SESSION, teacherId);
+    try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); } catch {}
   },
 
   updateProfile(id: string, updates: Partial<TeacherProfile>): TeacherProfile | null {
@@ -139,6 +140,7 @@ export const authService = {
   },
 
   logout() {
-    localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION);
+    sessionStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION);
+    try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); } catch {}
   },
 };
