@@ -650,7 +650,7 @@ const Worksheets: React.FC = () => {
   };
 
   return (
-    <div className="fade-in" style={{ maxWidth: '980px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="fade-in worksheet-page-container" style={{ maxWidth: '980px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
       {/* Header */}
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
@@ -688,29 +688,53 @@ const Worksheets: React.FC = () => {
         <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
           🗣️ Worksheet Language:
         </span>
-        {(['santali', 'ho', 'mundari'] as TribalLanguage[]).map(lang => {
-          const isSel = tribalLang === lang;
-          const label = lang === 'santali' ? '🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ)' : lang === 'ho' ? '🔵 Ho (ᱦᱳ / Kolhan)' : '🟣 Mundari (मुंडारी / Bani)';
-          return (
-            <button
-              key={lang}
-              onClick={() => handleLanguageSelect(lang)}
-              style={{
-                backgroundColor: isSel ? '#0f2744' : '#ffffff',
-                color: isSel ? '#ffffff' : '#334155',
-                border: isSel ? '2px solid #0f2744' : '1px solid #cbd5e1',
-                borderRadius: '20px',
-                padding: '4px 12px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
+        <button
+          onClick={() => handleLanguageSelect('santali')}
+          style={{
+            backgroundColor: tribalLang === 'santali' ? '#0f2744' : '#ffffff',
+            color: tribalLang === 'santali' ? '#ffffff' : '#334155',
+            border: tribalLang === 'santali' ? '2px solid #0f2744' : '1px solid #cbd5e1',
+            borderRadius: '20px',
+            padding: '4px 12px',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ) — Active
+        </button>
+        <button
+          onClick={() => alert('ℹ️ Ho language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production curriculum.')}
+          style={{
+            backgroundColor: '#f1f5f9',
+            color: '#94a3b8',
+            border: '1px dashed #cbd5e1',
+            borderRadius: '20px',
+            padding: '4px 12px',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+          title="In Field Pilot with JCERT"
+        >
+          🔒 Ho (Pilot v2.0)
+        </button>
+        <button
+          onClick={() => alert('ℹ️ Mundari language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production curriculum.')}
+          style={{
+            backgroundColor: '#f1f5f9',
+            color: '#94a3b8',
+            border: '1px dashed #cbd5e1',
+            borderRadius: '20px',
+            padding: '4px 12px',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+          title="In Field Pilot with JCERT"
+        >
+          🔒 Mundari (Pilot v2.0)
+        </button>
       </div>
 
       {/* Configuration Panel */}

@@ -628,48 +628,46 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
           <button
             type="button"
-            onClick={() => handleLanguageSelect('ho')}
+            onClick={() => alert('ℹ️ Ho language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production translation engine.')}
             style={{
               padding: '6px 14px',
               borderRadius: '12px',
-              border: selectedLanguage === 'ho' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-              backgroundColor: selectedLanguage === 'ho' ? '#eff6ff' : '#ffffff',
-              color: selectedLanguage === 'ho' ? '#1d4ed8' : '#475569',
-              fontWeight: 800,
+              border: '1px dashed #cbd5e1',
+              backgroundColor: '#f8fafc',
+              color: '#94a3b8',
+              fontWeight: 700,
               fontSize: '0.82rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: selectedLanguage === 'ho' ? '0 2px 6px rgba(37,99,235,0.15)' : 'none',
-              transition: 'all 0.15s ease',
             }}
+            title="In Field Pilot with JCERT"
           >
-            <span>🔵 Ho</span>
-            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(ᱦᱳ / हो)</span>
+            <span>🔒 Ho</span>
+            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(Pilot v2.0)</span>
           </button>
 
           <button
             type="button"
-            onClick={() => handleLanguageSelect('mundari')}
+            onClick={() => alert('ℹ️ Mundari language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production translation engine.')}
             style={{
               padding: '6px 14px',
               borderRadius: '12px',
-              border: selectedLanguage === 'mundari' ? '2px solid #7c3aed' : '1px solid #cbd5e1',
-              backgroundColor: selectedLanguage === 'mundari' ? '#faf5ff' : '#ffffff',
-              color: selectedLanguage === 'mundari' ? '#6d28d9' : '#475569',
-              fontWeight: 800,
+              border: '1px dashed #cbd5e1',
+              backgroundColor: '#f8fafc',
+              color: '#94a3b8',
+              fontWeight: 700,
               fontSize: '0.82rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: selectedLanguage === 'mundari' ? '0 2px 6px rgba(124,58,237,0.15)' : 'none',
-              transition: 'all 0.15s ease',
             }}
+            title="In Field Pilot with JCERT"
           >
-            <span>🟣 Mundari</span>
-            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी)</span>
+            <span>🔒 Mundari</span>
+            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(Pilot v2.0)</span>
           </button>
         </div>
       </div>

@@ -1,11 +1,14 @@
 package com.bhashasetu.app;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.webkit.JsResult;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.WebView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
@@ -75,6 +78,31 @@ public class MainActivity extends BridgeActivity {
                 @Override
                 public void onPermissionRequest(final PermissionRequest request) {
                     runOnUiThread(() -> request.grant(request.getResources()));
+                }
+
+                @Override
+                public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                    new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("PalashSetu")
+                        .setMessage(message)
+                        .setPositiveButton(android.R.string.ok, (dialog, which) -> result.confirm())
+                        .setCancelable(false)
+                        .create()
+                        .show();
+                    return true;
+                }
+
+                @Override
+                public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
+                    new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("PalashSetu")
+                        .setMessage(message)
+                        .setPositiveButton(android.R.string.ok, (dialog, which) -> result.confirm())
+                        .setNegativeButton(android.R.string.cancel, (dialog, which) -> result.cancel())
+                        .setCancelable(false)
+                        .create()
+                        .show();
+                    return true;
                 }
             });
 

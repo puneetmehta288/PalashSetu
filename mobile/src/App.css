@@ -175,14 +175,24 @@
    🖨️ Professional Multi-Page Print & PDF Optimization Rules
    ========================================================================== */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
   /* Hide all app chrome, navigation bars, headers, buttons, and generator panels */
   header,
+  aside,
+  .app-sidebar,
   .sidebar,
+  nav,
   .mobile-bottom-nav,
+  .mobile-backdrop,
   .no-print,
   .panchaadi-overview,
   .generator-panel,
-  button {
+  button,
+  .header-meta-group {
     display: none !important;
   }
 
@@ -253,7 +263,8 @@
     position: static !important;
   }
 
-  .printable-sheet {
+  .printable-sheet,
+  .printable-document {
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;

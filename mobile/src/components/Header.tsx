@@ -108,9 +108,9 @@ export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, 
                 outline: 'none',
               }}
             >
-              <option value="sat_Olck">🟢 Santali (Ol Chiki • ᱚᱞ ᱪᱤᱠᱤ)</option>
-              <option value="hoc_Deva">🔵 Ho (Devanagari • ᱦᱳ / हो • Pilot)</option>
-              <option value="unr_Deva">🟣 Mundari (Devanagari • मुंडारी • Pilot)</option>
+              <option value="sat_Olck">🟢 Santali (Ol Chiki • ᱚᱞ ᱪᱤᱠᱤ) — Active</option>
+              <option value="hoc_Deva" disabled>🔒 Ho (Devanagari • Pilot v2.0)</option>
+              <option value="unr_Deva" disabled>🔒 Mundari (Devanagari • Pilot v2.0)</option>
             </select>
           </div>
 

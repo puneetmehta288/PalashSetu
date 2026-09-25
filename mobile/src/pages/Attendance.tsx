@@ -29,6 +29,7 @@ export const Attendance: React.FC = () => {
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<{ id: string; name: string } | null>(null);
 
   // 4. Form States
   const [newStudentName, setNewStudentName] = useState('');
@@ -118,19 +119,24 @@ export const Attendance: React.FC = () => {
     setShowAddStudentModal(false);
   };
 
-  // Remove Student
+  // Remove Student (triggers in-app modal instead of browser window.confirm)
   const handleRemoveStudent = (studentId: string, name: string) => {
-    if (window.confirm(`क्या आप ${name} को इस कक्षा से हटाना चाहते हैं?`)) {
-      sfx.playTap();
-      attendanceService.removeStudent(selectedClassId, studentId);
-      const updated = attendanceService.getStudents(selectedClassId);
-      setStudents(updated);
-      setStatuses(prev => {
-        const copy = { ...prev };
-        delete copy[studentId];
-        return copy;
-      });
-    }
+    sfx.playTap();
+    setStudentToDelete({ id: studentId, name });
+  };
+
+  const confirmRemoveStudent = () => {
+    if (!studentToDelete) return;
+    sfx.playTap();
+    attendanceService.removeStudent(selectedClassId, studentToDelete.id);
+    const updated = attendanceService.getStudents(selectedClassId);
+    setStudents(updated);
+    setStatuses(prev => {
+      const copy = { ...prev };
+      delete copy[studentToDelete.id];
+      return copy;
+    });
+    setStudentToDelete(null);
   };
 
   // Add New Class
@@ -1098,6 +1104,37 @@ export const Attendance: React.FC = () => {
             >
               बंद करें (Close)
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Delete Student Confirmation Modal (replaces browser confirm) */}
+      {studentToDelete && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '16px' }}>
+          <div style={{ backgroundColor: isDarkMode ? '#1e293b' : '#ffffff', borderRadius: '16px', padding: '1.5rem', maxWidth: '380px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)', border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+              <h3 style={{ margin: 0, color: isDarkMode ? '#f8fafc' : '#0f2744', fontSize: '1.1rem', fontWeight: 800 }}>
+                विद्यार्थी हटाएं (Remove Student)
+              </h3>
+            </div>
+            <p style={{ margin: '0 0 1.25rem', color: isDarkMode ? '#cbd5e1' : '#64748b', fontSize: '0.9rem', lineHeight: 1.5 }}>
+              क्या आप <strong>{studentToDelete.name}</strong> को इस कक्षा से हटाना चाहते हैं?
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setStudentToDelete(null)}
+                style={{ padding: '8px 16px', borderRadius: '10px', border: `1px solid ${isDarkMode ? '#475569' : '#cbd5e1'}`, backgroundColor: isDarkMode ? '#334155' : '#f8fafc', color: isDarkMode ? '#f8fafc' : '#475569', fontWeight: 600, cursor: 'pointer' }}
+              >
+                रद्द करें (Cancel)
+              </button>
+              <button
+                onClick={confirmRemoveStudent}
+                style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#ef4444', color: '#ffffff', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}
+              >
+                हटाएं (Remove)
+              </button>
+            </div>
           </div>
         </div>
       )}
