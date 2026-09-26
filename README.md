@@ -12,6 +12,7 @@
 [![Latency](https://img.shields.io/badge/Edge%20Latency-%3C%205ms%20%28On--Device%29-brightgreen.svg)](#linguistic-benchmarks)
 [![Central Hub](https://img.shields.io/badge/Central%20Hub-Live%20on%20Vercel-000000.svg)](https://palashsetu-xi.vercel.app)
 [![Download APK](https://img.shields.io/badge/Download%20APK-4.5%20MB%20(Direct%20Install)-2ea44f?logo=android&logoColor=white)](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
+[![Runtime Architecture](https://img.shields.io/badge/Architecture-Interactive%20Diagram-blueviolet?logo=html5&logoColor=white)](https://puneetmehta288.github.io/PalashSetu/bhashasetu-architecture.html)
 
 > ### 📱 [👉 Click Here to Download Palash Vani Android App (.APK) — 4.5 MB](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
 > **Direct Sideload Build** • **100% Offline • Zero Internet Required**  
@@ -57,6 +58,11 @@ By identifying this constraint from the problem statement, our team engineered s
 
 <a id="system-architecture"></a>
 ## 2. System Architecture
+
+[![BhashaSetu Standalone Edge Runtime Architecture](./docs/architecture-preview.png)](https://puneetmehta288.github.io/PalashSetu/bhashasetu-architecture.html)
+
+> 🌐 **[👉 Click Here to Open Interactive Runtime Architecture Diagram (Live)](https://puneetmehta288.github.io/PalashSetu/bhashasetu-architecture.html)**  
+> *Fully interactive standalone diagram: click any component to inspect runtime specifications, latency/memory budgets, I/O contracts, and trust boundaries. Includes dark/light mode, guided classroom stories, and route probe.*
 
 ```
 +-------------------------------------------------------------------------------------------------+
