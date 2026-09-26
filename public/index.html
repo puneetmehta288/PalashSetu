@@ -150,6 +150,34 @@
       cursor: pointer;
     }
     .btn-outline:hover { background: rgba(255,255,255,0.1); }
+    .btn-apk-download {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 7px 15px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .btn-apk-download:hover {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.45);
+      color: #ffffff !important;
+    }
+    .apk-size-pill {
+      background: rgba(0, 0, 0, 0.25);
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
 
     /* ─── TAB NAVIGATION BAR ─── */
     .nav-tabs {
@@ -590,6 +618,11 @@
         👤 <span id="user-display-name">Admin</span>
       </div>
 
+      <a href="/PalashVani.apk" download="PalashVani-v1.0-debug.apk" class="btn-apk-download" title="Download Official Palash Vani Android APK for Field Tablets">
+        <span>📱 Download APK</span>
+        <span class="apk-size-pill">5.4 MB</span>
+      </a>
+
       <button class="btn-action" onclick="refreshAllData()">
         <span>🔄 Refresh</span>
       </button>
@@ -659,6 +692,42 @@
             <span id="metric-complaints-count">0</span>
           </div>
           <div class="metric-sub">Classroom vocabulary &amp; audio alerts</div>
+        </div>
+      </div>
+
+      <!-- APK Download & Tablet Distribution Card -->
+      <div class="card" style="background: linear-gradient(135deg, #0a1f38 0%, #133257 100%); color: #ffffff; margin-bottom: 1.5rem; border: 1px solid rgba(237, 137, 54, 0.4); position: relative; overflow: hidden; padding: 20px 24px;">
+        <div style="position: absolute; right: -25px; bottom: -25px; opacity: 0.12; pointer-events: none;">
+          <img src="/palash_logo.png" alt="Palash Logo" style="width: 220px; height: 220px;" />
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; position: relative; z-index: 1;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <img src="/palash_logo.png" alt="Palash Vani" style="width: 62px; height: 62px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.35); border: 2px solid rgba(255,255,255,0.25);" />
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff;">Palash Vani Android Application (v1.0)</h3>
+                <span style="background: #059669; color: #ffffff; font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 12px; letter-spacing: 0.5px;">PROD APK</span>
+                <span style="background: rgba(237,137,54,0.25); border: 1px solid rgba(237,137,54,0.5); color: #fbd38d; font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 12px;">SIH 2026 GRAND FINALE</span>
+              </div>
+              <p style="margin: 6px 0 0; font-size: 0.85rem; color: #cbd5e1; max-width: 680px; line-height: 1.45;">
+                Standalone, production-ready Android package for rural classroom tablets. Features 100% on-device deterministic NLP, 7,503+ tribal dictionary entries, NIPUN FLN lesson studio, and acoustic phonetic speech synthesis.
+              </p>
+              <div style="display: flex; gap: 12px; margin-top: 10px; font-size: 0.76rem; color: #94a3b8; flex-wrap: wrap;">
+                <span>📦 Size: <strong>5.4 MB</strong> (Sub-6MB)</span>
+                <span>•</span>
+                <span>📱 Target: <strong>Android 7.0 to 14+</strong></span>
+                <span>•</span>
+                <span>⚡ RAM: <strong>170MB PSS (&lt; 500MB)</strong></span>
+                <span>•</span>
+                <span>🔒 Auth: <strong>Offline PIN + Scoped Storage</strong></span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <a href="/PalashVani.apk" download="PalashVani-v1.0-debug.apk" class="btn-apk-download" style="padding: 12px 24px; font-size: 0.95rem; border-radius: 10px; box-shadow: 0 4px 14px rgba(5,150,105,0.45);">
+              <span>⬇️ Download APK (5.4 MB)</span>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -903,6 +972,27 @@
 
         <div id="ota-release-log" style="display: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; font-family: monospace; font-size: 0.8rem; line-height: 1.6; color: #334155;">
           <!-- Release terminal output -->
+        </div>
+
+        <!-- Base Android Binary Distribution Section -->
+        <div style="margin-top: 1.5rem; padding: 18px; background: #ffffff; border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="/palash_logo.png" alt="Palash Vani APK" style="width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);" />
+            <div>
+              <div style="font-weight: 800; font-size: 0.98rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                <span>Palash Vani Full Base Application (APK)</span>
+                <span class="chip" style="font-size: 0.68rem; background: #e0f2fe; color: #0284c7;">v1.0.0</span>
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">
+                Direct sideload binary for offline government tablets. Fully pre-bundled with 7,503+ lexicon entries and NIPUN lessons.
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="/PalashVani.apk" download="PalashVani-v1.0-debug.apk" class="btn-apk-download" style="padding: 9px 18px;">
+              <span>⬇️ Download Base APK (5.4 MB)</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
