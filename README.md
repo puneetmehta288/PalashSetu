@@ -5,11 +5,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20Tablet%20%7C%20Web-green.svg)](https://github.com/puneetmehta288/PalashSetu)
-[![Offline](https://img.shields.io/badge/Engine-100%25%20Offline%20Edge-success.svg)](https://github.com/puneetmehta288/PalashSetu)
-[![Vocabulary](https://img.shields.io/badge/Dictionary%20Entries-7%2C503%20%28~2%2C500%20Roots%29-orange.svg)](mobile/src/data/santali_comprehensive_dictionary.ts)
-[![RAM](https://img.shields.io/badge/RAM%20Footprint-%3C%20500%20MB%20%28Tested%29-blue.svg)](scripts/test_offline_engine.js)
-[![FLN Flashcards](https://img.shields.io/badge/FLN%20Cards-16%20Decks%20%2896%20Cards%29-purple.svg)](mobile/src/data/nipunDecks.ts)
-[![Latency](https://img.shields.io/badge/Edge%20Latency-%3C%205ms%20%28On--Device%29-brightgreen.svg)](scripts/test_offline_engine.js)
+[![Offline](https://img.shields.io/badge/Engine-100%25%20Offline%20Edge-success.svg)](#system-architecture)
+[![Vocabulary](https://img.shields.io/badge/Dictionary%20Entries-7%2C503%20%28~2%2C500%20Roots%29-orange.svg)](#dictionary-architecture)
+[![RAM](https://img.shields.io/badge/RAM%20Footprint-%3C%20500%20MB%20%28Tested%29-blue.svg)](#ram-benchmarks)
+[![FLN Flashcards](https://img.shields.io/badge/FLN%20Cards-16%20Decks%20%2896%20Cards%29-purple.svg)](#fln-flashcards)
+[![Latency](https://img.shields.io/badge/Edge%20Latency-%3C%205ms%20%28On--Device%29-brightgreen.svg)](#linguistic-benchmarks)
 [![Central Hub](https://img.shields.io/badge/Central%20Hub-Live%20on%20Vercel-000000.svg)](https://palashsetu-xi.vercel.app)
 [![Download APK](https://img.shields.io/badge/Download%20APK-4.5%20MB%20(Direct%20Install)-2ea44f?logo=android&logoColor=white)](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashSetu-v1.0-debug.apk)
 
@@ -55,6 +55,7 @@ By identifying this constraint from the problem statement, our team engineered s
 
 ---
 
+<a id="system-architecture"></a>
 ## 2. System Architecture
 
 ```
@@ -114,6 +115,7 @@ Our linguistic engine maintains strict academic honesty and clear tier different
 
 > **Note on Ol Chiki Script Fonts**: Budget government tablets do not ship with Ol Chiki Unicode glyphs pre-installed. PalashSetu bundles `NotoSansOlChiki-Medium.ttf` and `NotoSansOlChiki-Bold.ttf` directly inside the APK assets (`assets/fonts/`), guaranteeing flawless zero-network rendering without external Google Fonts CDN calls.
 
+<a id="dictionary-architecture"></a>
 ### 3.1 Dictionary Architecture: 7,503 Lookup Entries vs. ~2,500 Core Root Concepts
 
 To provide complete technical clarity on our lexicographical structure:
@@ -156,6 +158,7 @@ A single root concept like `"समझना / बुझना"` (To Understand)
   4. *स्वतंत्र अभ्यास / ᱟᱯᱱᱟᱨ ᱟᱵᱷᱭᱟᱥ* (Independent Practice)
   5. *मूल्यांकन / जांच* (Formative Assessment Drills)
 
+<a id="fln-flashcards"></a>
 ### 🃏 3. FLN Visual Flashcards (All Grades Unlocked)
 - **16 decks / 96 cards** spanning Balvatika, Class 1, Class 2, and Class 3.
 - Custom vector graphics and SVGs for geometric shapes, dot counting (1–5), place value tens bundles, and multiplication tables.
@@ -200,6 +203,8 @@ PalashCentralHub serves as the command center for block education officers (BEOs
 
 ---
 
+<a id="ram-benchmarks"></a>
+<a id="ram-benchmark"></a>
 ## 6. Benchmarks & Honest Performance Metrics
 
 ### Real-World Physical Memory Budget (2,048 MB Device):
@@ -233,6 +238,7 @@ PalashCentralHub serves as the command center for block education officers (BEOs
 
 ## 7. Verification & Benchmarking Test Suites
 
+<a id="linguistic-benchmarks"></a>
 ### 7.1 Automated Linguistic & Speech Engine Benchmark
 To verify the on-device linguistic engine and TTS compilation on any machine:
 
