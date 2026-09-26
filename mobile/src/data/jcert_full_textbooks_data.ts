@@ -624,7 +624,7 @@ export const ALL_JCERT_TEXTBOOKS: FullOfficialBook[] = [
     title_hin: 'JCERT हमारा पर्यावरण (Class 3 EVS)',
     title_sat: 'ᱡᱮᱥᱤᱤᱟᱨᱴᱤ ᱟᱵᱚᱣᱟᱜ ᱪᱟᱹᱨᱤᱭᱟᱹᱲ (᱓ ᱪᱟᱱᱟᱪ)',
     cover_color: '#059669',
-    icon: '🌿',
+    icon: '🌱',
     chapters: [
       {
         id: 'g3_e_c1',

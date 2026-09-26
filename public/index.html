@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PalashCentralHub — Jharkhand State Tribal FLN Command &amp; Telemetry Center</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <!-- Google Fonts for Ol Chiki & Devanagari -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,14 +59,18 @@
     .brand-emblem {
       width: 44px;
       height: 44px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+    .brand-emblem img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .brand-title-wrap h1 {
       font-size: 1.28rem;
@@ -483,8 +488,16 @@
       text-align: center;
     }
     .login-logo {
-      font-size: 2.75rem;
-      margin-bottom: 8px;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .login-logo img {
+      width: 68px;
+      height: 68px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      object-fit: cover;
     }
     .login-title {
       font-size: 1.35rem;
@@ -555,7 +568,7 @@
   <!-- ─── TOP APP HEADER ─── -->
   <header class="top-navbar">
     <div class="brand-group">
-      <div class="brand-emblem">🌿</div>
+      <div class="brand-emblem"><img src="/palash_logo.png" alt="Palash Logo" /></div>
       <div class="brand-title-wrap">
         <h1>
           PalashCentralHub
@@ -900,7 +913,7 @@
   <div id="login-modal" class="login-overlay">
     <div class="login-card">
       <div class="login-header">
-        <div class="login-logo">🌿</div>
+        <div class="login-logo"><img src="/palash_logo.png" alt="Palash Logo" /></div>
         <h2 class="login-title">PalashCentralHub</h2>
         <div class="login-subtitle">Jharkhand State Tribal Education Command Center (SIH 26042)</div>
       </div>
@@ -1269,7 +1282,7 @@
               <div class="hindi-text">${escapeHtml(r.sourceText)}</div>
             </div>
             <div>
-              <div class="sentence-label">🌿 Translated Tribal Output (${r.language === 'santali' ? 'Ol Chiki' : 'Devanagari'})</div>
+              <div class="sentence-label"><img src="/favicon.png" alt="Tribal" style="width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 4px;" />Translated Tribal Output (${r.language === 'santali' ? 'Ol Chiki' : 'Devanagari'})</div>
               <div class="tribal-text">${escapeHtml(r.translatedText || '—')}</div>
             </div>
           </div>

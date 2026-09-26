@@ -95,8 +95,9 @@ const AuthRegister: React.FC<AuthRegisterProps> = ({ onRegisterSuccess }) => {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1a365d' }}>
-            🌿 Register Teacher Profile
+          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1a365d', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <img src="/favicon.png" alt="Palash Vani" style={{ width: '28px', height: '28px', borderRadius: '7px' }} />
+            <span>Register Teacher Profile</span>
           </div>
           <p style={{ margin: '4px 0 0', color: '#718096', fontSize: '0.9rem' }}>
             PALASH MTB-MLE • Shared Tablet Onboarding
