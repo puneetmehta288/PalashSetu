@@ -4,10 +4,10 @@
  * 
  * Receives batches of spoken Hindi/Tribal sentences queued offline on rural tablets.
  * Provides analytical aggregations: word frequency, missing vocabulary discovery,
- * district FLN activity, and confidence distribution.
+ * school-wise and teacher-wise hierarchical breakdown, and district FLN activity.
  * 
  * POST /api/telemetry  -> Upload batch of records
- * GET  /api/telemetry  -> Return records + aggregated linguistic intelligence
+ * GET  /api/telemetry  -> Return records + aggregated linguistic & school intelligence
  * DELETE /api/telemetry -> Clear or reset store
  */
 
@@ -30,6 +30,7 @@ export interface TelemetryItem {
   receivedAt?: string;
   teacherId: string;
   teacherName: string;
+  schoolName: string;
   district: string;
   block: string;
   grade: string;
@@ -44,14 +45,15 @@ export interface TelemetryItem {
 declare const global: { __palashTelemetry?: TelemetryItem[] };
 
 // Seed realistic field baseline telemetry if store is empty
-// This ensures that when state evaluators visit PalashCentralHub,
-// real classroom speech intelligence is immediately visible!
+// Features multiple schools and multiple teachers per school for drill-down testing!
 const DEFAULT_BASELINE_TELEMETRY: TelemetryItem[] = [
+  // School 1: राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड (दुमका) - Teacher: Sunita Kumari
   {
     id: 'tel_init_01',
-    timestamp: new Date(Date.now() - 3600000 * 2.5).toISOString(),
+    timestamp: new Date(Date.now() - 3600000 * 3.5).toISOString(),
     teacherId: 'EVV-JH-849201',
     teacherName: 'Sunita Kumari',
+    schoolName: 'राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड (दुमका)',
     district: 'Dumka',
     block: 'Kathikund',
     grade: 'Class 1',
@@ -64,9 +66,10 @@ const DEFAULT_BASELINE_TELEMETRY: TelemetryItem[] = [
   },
   {
     id: 'tel_init_02',
-    timestamp: new Date(Date.now() - 3600000 * 2.2).toISOString(),
+    timestamp: new Date(Date.now() - 3600000 * 3.2).toISOString(),
     teacherId: 'EVV-JH-849201',
     teacherName: 'Sunita Kumari',
+    schoolName: 'राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड (दुमका)',
     district: 'Dumka',
     block: 'Kathikund',
     grade: 'Class 1',
@@ -79,9 +82,10 @@ const DEFAULT_BASELINE_TELEMETRY: TelemetryItem[] = [
   },
   {
     id: 'tel_init_03',
-    timestamp: new Date(Date.now() - 3600000 * 1.8).toISOString(),
+    timestamp: new Date(Date.now() - 3600000 * 2.8).toISOString(),
     teacherId: 'EVV-JH-849201',
     teacherName: 'Sunita Kumari',
+    schoolName: 'राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड (दुमका)',
     district: 'Dumka',
     block: 'Kathikund',
     grade: 'Class 1',
@@ -94,9 +98,78 @@ const DEFAULT_BASELINE_TELEMETRY: TelemetryItem[] = [
   },
   {
     id: 'tel_init_04',
-    timestamp: new Date(Date.now() - 3600000 * 1.5).toISOString(),
+    timestamp: new Date(Date.now() - 3600000 * 2.5).toISOString(),
+    teacherId: 'EVV-JH-849201',
+    teacherName: 'Sunita Kumari',
+    schoolName: 'राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड (दुमका)',
+    district: 'Dumka',
+    block: 'Kathikund',
+    grade: 'Class 1',
+    language: 'santali',
+    mode: 'teacher',
+    sourceText: 'बहुत अच्छा! शाबाश!',
+    translatedText: 'ᱟᱹᱰᱤ ᱵᱮᱥ! ᱥᱟᱵᱟᱥ!',
+    confidence: 'verified',
+    source: 'phrasebook'
+  },
+  {
+    id: 'tel_init_05',
+    timestamp: new Date(Date.now() - 3600000 * 2.1).toISOString(),
+    teacherId: 'EVV-JH-849201',
+    teacherName: 'Sunita Kumari',
+    schoolName: 'राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड (दुमका)',
+    district: 'Dumka',
+    block: 'Kathikund',
+    grade: 'Class 1',
+    language: 'santali',
+    mode: 'teacher',
+    sourceText: 'ब्लैकबोर्ड की तरफ देखो।',
+    translatedText: 'ᱵᱞᱮᱠᱵᱳᱨᱰ ᱥᱮᱫ ᱧᱮᱞ ᱢᱮ᱾',
+    confidence: 'verified',
+    source: 'voice'
+  },
+
+  // School 1 - Teacher 2: Anil Hembram
+  {
+    id: 'tel_init_06',
+    timestamp: new Date(Date.now() - 3600000 * 1.9).toISOString(),
+    teacherId: 'EVV-JH-849205',
+    teacherName: 'Anil Hembram',
+    schoolName: 'राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड (दुमका)',
+    district: 'Dumka',
+    block: 'Kathikund',
+    grade: 'Class 2',
+    language: 'santali',
+    mode: 'teacher',
+    sourceText: 'इन वस्तुओं को गिनो और संख्या बताओ।',
+    translatedText: 'ᱱᱚᱣᱟ ᱡᱤᱱᱤᱥ ᱠᱚ ᱞᱮᱠᱷᱟᱭ ᱢᱮ ᱟᱨ ᱮᱞᱠᱷᱟ ᱞᱟᱹᱭ ᱢᱮ᱾',
+    confidence: 'lexicon',
+    source: 'voice'
+  },
+  {
+    id: 'tel_init_07',
+    timestamp: new Date(Date.now() - 3600000 * 1.6).toISOString(),
+    teacherId: 'EVV-JH-849205',
+    teacherName: 'Anil Hembram',
+    schoolName: 'राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड (दुमका)',
+    district: 'Dumka',
+    block: 'Kathikund',
+    grade: 'Class 2',
+    language: 'santali',
+    mode: 'teacher',
+    sourceText: 'पाँच के बाद कौन सी संख्या आती है?',
+    translatedText: 'ᱢᱚᱬᱮ ᱛᱟᱭᱚᱢ ᱫᱚ ᱚᱠᱟ ᱮᱞᱠᱷᱟ ᱦᱤᱡᱩᱜᱼᱟ?',
+    confidence: 'verified',
+    source: 'voice'
+  },
+
+  // School 2: उत्क्रमित उच्च विद्यालय, घाटशिला (पूर्वी सिंहभूम) - Teacher: Ramesh Murmu
+  {
+    id: 'tel_init_08',
+    timestamp: new Date(Date.now() - 3600000 * 1.4).toISOString(),
     teacherId: 'EVV-JH-912044',
     teacherName: 'Ramesh Murmu',
+    schoolName: 'उत्क्रमित उच्च विद्यालय, घाटशिला (पूर्वी सिंहभूम)',
     district: 'East Singhbhum',
     block: 'Ghatshila',
     grade: 'Balvatika',
@@ -108,10 +181,27 @@ const DEFAULT_BASELINE_TELEMETRY: TelemetryItem[] = [
     source: 'phrasebook'
   },
   {
-    id: 'tel_init_05',
-    timestamp: new Date(Date.now() - 3600000 * 1.1).toISOString(),
+    id: 'tel_init_09',
+    timestamp: new Date(Date.now() - 3600000 * 1.2).toISOString(),
     teacherId: 'EVV-JH-912044',
     teacherName: 'Ramesh Murmu',
+    schoolName: 'उत्क्रमित उच्च विद्यालय, घाटशिला (पूर्वी सिंहभूम)',
+    district: 'East Singhbhum',
+    block: 'Ghatshila',
+    grade: 'Balvatika',
+    language: 'santali',
+    mode: 'teacher',
+    sourceText: 'गाय, बकरी और हाथी को देखो।',
+    translatedText: 'ᱜᱟᱹᱭ, ᱢᱮᱨᱚᱢ ᱟᱨ ᱦᱟᱹᱛᱤ ᱠᱚ ᱧᱮᱞ ᱢᱮ᱾',
+    confidence: 'verified',
+    source: 'voice'
+  },
+  {
+    id: 'tel_init_10',
+    timestamp: new Date(Date.now() - 3600000 * 0.9).toISOString(),
+    teacherId: 'EVV-JH-912044',
+    teacherName: 'Ramesh Murmu',
+    schoolName: 'उत्क्रमित उच्च विद्यालय, घाटशिला (पूर्वी सिंहभूम)',
     district: 'East Singhbhum',
     block: 'Ghatshila',
     grade: 'Balvatika',
@@ -122,11 +212,32 @@ const DEFAULT_BASELINE_TELEMETRY: TelemetryItem[] = [
     confidence: 'partial',
     source: 'voice'
   },
+
+  // School 2 - Teacher 2: Pooja Mahato
   {
-    id: 'tel_init_06',
-    timestamp: new Date(Date.now() - 3600000 * 0.8).toISOString(),
+    id: 'tel_init_11',
+    timestamp: new Date(Date.now() - 3600000 * 0.7).toISOString(),
+    teacherId: 'EVV-JH-912050',
+    teacherName: 'Pooja Mahato',
+    schoolName: 'उत्क्रमित उच्च विद्यालय, घाटशिला (पूर्वी सिंहभूम)',
+    district: 'East Singhbhum',
+    block: 'Ghatshila',
+    grade: 'Class 1',
+    language: 'ho',
+    mode: 'teacher',
+    sourceText: 'बच्चों, अपनी कलम और कॉपी निकालो।',
+    translatedText: 'होनको, आपन कलम आड़ो कापी उडुकुयेपे।',
+    confidence: 'lexicon',
+    source: 'voice'
+  },
+
+  // School 3: राजकीय बुनियादी विद्यालय, हिरणपुर (पाकुड़) - Teacher: Anjali Soren
+  {
+    id: 'tel_init_12',
+    timestamp: new Date(Date.now() - 3600000 * 0.5).toISOString(),
     teacherId: 'EVV-JH-721098',
     teacherName: 'Anjali Soren',
+    schoolName: 'राजकीय बुनियादी विद्यालय, हिरणपुर (पाकुड़)',
     district: 'Pakur',
     block: 'Hiranpur',
     grade: 'Class 2',
@@ -138,10 +249,29 @@ const DEFAULT_BASELINE_TELEMETRY: TelemetryItem[] = [
     source: 'voice'
   },
   {
-    id: 'tel_init_07',
+    id: 'tel_init_13',
     timestamp: new Date(Date.now() - 3600000 * 0.4).toISOString(),
+    teacherId: 'EVV-JH-721098',
+    teacherName: 'Anjali Soren',
+    schoolName: 'राजकीय बुनियादी विद्यालय, हिरणपुर (पाकुड़)',
+    district: 'Pakur',
+    block: 'Hiranpur',
+    grade: 'Class 2',
+    language: 'santali',
+    mode: 'teacher',
+    sourceText: 'ध्यान से सुनो और लिखो।',
+    translatedText: 'ᱟᱧᱡᱚᱢ ᱢᱮ ᱟᱨ ᱚᱞ ᱢᱮ᱾',
+    confidence: 'verified',
+    source: 'phrasebook'
+  },
+
+  // School 4: कस्तूरबा गांधी बालिका विद्यालय, तोरपा (खूंटी) - Teacher: Birsa Munda
+  {
+    id: 'tel_init_14',
+    timestamp: new Date(Date.now() - 3600000 * 0.3).toISOString(),
     teacherId: 'EVV-JH-654312',
     teacherName: 'Birsa Munda',
+    schoolName: 'कस्तूरबा गांधी बालिका विद्यालय, तोरपा (खूंटी)',
     district: 'Khunti',
     block: 'Torpa',
     grade: 'Class 3',
@@ -151,6 +281,24 @@ const DEFAULT_BASELINE_TELEMETRY: TelemetryItem[] = [
     translatedText: 'तिसिंग आबू मेसा आड़ो ओड़ो रियाः अभ्यास बू बईया।',
     confidence: 'partial',
     source: 'manual'
+  },
+
+  // School 5: राजकीय प्राथमिक विद्यालय, तमाड़ (राँची) - Teacher: Deepali Toppo
+  {
+    id: 'tel_init_15',
+    timestamp: new Date(Date.now() - 3600000 * 0.1).toISOString(),
+    teacherId: 'EVV-JH-554109',
+    teacherName: 'Deepali Toppo',
+    schoolName: 'राजकीय प्राथमिक विद्यालय, तमाड़ (राँची)',
+    district: 'Ranchi',
+    block: 'Tamar',
+    grade: 'Class 1',
+    language: 'mundari',
+    mode: 'teacher',
+    sourceText: 'कक्षा में शांति बनाए रखो।',
+    translatedText: 'क्लास रे शांति बई के ताएन पे।',
+    confidence: 'lexicon',
+    source: 'voice'
   }
 ];
 
@@ -199,6 +347,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           receivedAt,
           teacherId: String(item.teacherId || 'EVV-UNKNOWN').slice(0, 40),
           teacherName: String(item.teacherName || 'Teacher').slice(0, 80),
+          schoolName: String(item.schoolName || 'राजकीय उत्क्रमित मध्य विद्यालय').slice(0, 140),
           district: String(item.district || 'Dumka').slice(0, 60),
           block: String(item.block || 'Sadar').slice(0, 60),
           grade: String(item.grade || 'Class 1').slice(0, 40),
@@ -215,7 +364,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         addedCount++;
       }
 
-      // Cap store at 5,000 items
       if (store.length > 5000) {
         store.length = 5000;
       }
@@ -235,11 +383,19 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   // ─── GET: Return harvested speech logs + analytical summary ───
   if (req.method === 'GET') {
-    const districtFilter = req.query?.district ? String(req.query.district) : undefined;
-    const langFilter = req.query?.language ? String(req.query.language) : undefined;
-    const limit = req.query?.limit ? parseInt(String(req.query.limit), 10) : 100;
+    const schoolFilter = req.query?.school ? String(req.query.school).trim() : undefined;
+    const teacherFilter = req.query?.teacher ? String(req.query.teacher).trim() : undefined;
+    const districtFilter = req.query?.district ? String(req.query.district).trim() : undefined;
+    const langFilter = req.query?.language ? String(req.query.language).trim() : undefined;
+    const limit = req.query?.limit ? parseInt(String(req.query.limit), 10) : 300;
 
     let filtered = [...store];
+    if (schoolFilter && schoolFilter !== 'all') {
+      filtered = filtered.filter(f => f.schoolName.toLowerCase() === schoolFilter.toLowerCase());
+    }
+    if (teacherFilter && teacherFilter !== 'all') {
+      filtered = filtered.filter(f => f.teacherId.toLowerCase() === teacherFilter.toLowerCase() || f.teacherName.toLowerCase() === teacherFilter.toLowerCase());
+    }
     if (districtFilter && districtFilter !== 'all') {
       filtered = filtered.filter(f => f.district.toLowerCase() === districtFilter.toLowerCase());
     }
@@ -255,6 +411,14 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const wordFreq: Record<string, number> = {};
     const missingVocabCandidates: Array<{ word: string; count: number; sampleSentence: string }> = [];
 
+    // Hierarchical School -> Teachers map
+    const schoolMap: Record<string, {
+      schoolName: string;
+      district: string;
+      totalSentences: number;
+      teachers: Record<string, { teacherId: string; teacherName: string; grade: string; count: number }>;
+    }> = {};
+
     const stopWords = new Set(['है', 'हैं', 'का', 'के', 'की', 'को', 'में', 'पर', 'से', 'और', 'यह', 'वह', 'आज', 'हम', 'तुम', 'करो', 'लो', 'दो', 'एक']);
 
     for (const item of store) {
@@ -264,6 +428,29 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (item.confidence === 'verified' || item.confidence === 'lexicon') {
         verifiedCount++;
       }
+
+      // School & Teacher hierarchical aggregation
+      const sName = item.schoolName || 'राजकीय उत्क्रमित मध्य विद्यालय';
+      if (!schoolMap[sName]) {
+        schoolMap[sName] = {
+          schoolName: sName,
+          district: item.district,
+          totalSentences: 0,
+          teachers: {}
+        };
+      }
+      schoolMap[sName].totalSentences++;
+
+      const tKey = item.teacherId;
+      if (!schoolMap[sName].teachers[tKey]) {
+        schoolMap[sName].teachers[tKey] = {
+          teacherId: item.teacherId,
+          teacherName: item.teacherName,
+          grade: item.grade,
+          count: 0
+        };
+      }
+      schoolMap[sName].teachers[tKey].count++;
 
       // Word frequency from Hindi text
       if (item.mode === 'teacher') {
@@ -300,6 +487,14 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       .slice(0, 12)
       .map(([word, count]) => ({ word, count }));
 
+    // Transform school map to array
+    const schoolsDirectory = Object.values(schoolMap).map(s => ({
+      schoolName: s.schoolName,
+      district: s.district,
+      totalSentences: s.totalSentences,
+      teachers: Object.values(s.teachers)
+    })).sort((a, b) => b.totalSentences - a.totalSentences);
+
     return res.status(200).json({
       total: store.length,
       filteredCount: filtered.length,
@@ -307,11 +502,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       analytics: {
         totalHarvested: store.length,
         uniqueTeachers: teacherSet.size,
+        uniqueSchools: schoolsDirectory.length,
         coverageRate: store.length > 0 ? Math.round((verifiedCount / store.length) * 100) : 100,
         districtCounts,
         langCounts,
         topWords,
-        missingVocabCandidates: missingVocabCandidates.sort((a, b) => b.count - a.count)
+        missingVocabCandidates: missingVocabCandidates.sort((a, b) => b.count - a.count),
+        schoolsDirectory
       }
     });
   }

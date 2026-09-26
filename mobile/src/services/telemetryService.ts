@@ -15,6 +15,7 @@ export interface TelemetryRecord {
   timestamp: string; // ISO string
   teacherId: string;
   teacherName: string;
+  schoolName: string;
   district: string;
   block: string;
   grade: string;
@@ -50,11 +51,13 @@ export const telemetryService = {
     if (!cleanSource || cleanSource.length < 2) return null;
 
     const teacher = authService.getActiveProfile();
+    const storedSchool = localStorage.getItem('palash_school_name') || 'राजकीय उत्क्रमित मध्य विद्यालय, काठीकुंड';
     const record: TelemetryRecord = {
       id: `tel_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       timestamp: new Date().toISOString(),
       teacherId: teacher?.teacherId || 'EVV-DEMO-01',
       teacherName: teacher?.name || 'Classroom Teacher',
+      schoolName: storedSchool,
       district: teacher?.district || 'Dumka',
       block: teacher?.block || 'Kathikund',
       grade: teacher?.assignedGrade || 'Class 1',

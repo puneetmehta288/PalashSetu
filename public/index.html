@@ -679,19 +679,71 @@
         </div>
 
       </div>
+
+      <!-- Interactive Schools & Teachers Telemetry Directory -->
+      <div class="card">
+        <div class="card-header-bar">
+          <div>
+            <div class="card-title">🏫 Reporting Schools &amp; Teachers Directory</div>
+            <div class="card-subtitle">Click on any school or teacher to drill down into their spoken classroom sentences timeline</div>
+          </div>
+          <span class="chip" id="schools-count-badge">0 Schools</span>
+        </div>
+        <div id="schools-directory-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
+          <div class="empty-placeholder">Loading schools directory...</div>
+        </div>
+      </div>
     </div>
 
     <!-- ══════════ TAB 2: CLASSROOM TELEMETRY & SPEECH FEED ══════════ -->
     <div id="tab-telemetry" class="tab-panel" style="display: none;">
-      <!-- Toolbar Filter & Search -->
-      <div class="toolbar-card">
+      <!-- Hierarchical Selector Toolbar: School -> Teacher -->
+      <div class="card" style="padding: 1.15rem 1.4rem; margin-bottom: 1rem; border-left: 4px solid var(--accent); background: #ffffff;">
+        <div style="font-size: 0.76rem; font-weight: 800; color: #c05621; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+          🏫 HIERARCHICAL DRILL-DOWN: SELECT SCHOOL ➔ SELECT TEACHER
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; align-items: flex-end;">
+          <!-- Step 1: School Selector -->
+          <div>
+            <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
+              1️⃣ Select School (from received tablet data)
+            </label>
+            <select id="telemetry-school-filter" class="filter-select" style="width: 100%; font-size: 0.88rem; padding: 9px 12px;" onchange="onSchoolChanged()">
+              <option value="all">🏫 All Schools (Statewide)</option>
+            </select>
+          </div>
+
+          <!-- Step 2: Teacher Selector -->
+          <div>
+            <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
+              2️⃣ Select Teacher (in selected school)
+            </label>
+            <select id="telemetry-teacher-filter" class="filter-select" style="width: 100%; font-size: 0.88rem; padding: 9px 12px;" onchange="onTeacherChanged()">
+              <option value="all">👩‍🏫 All Teachers</option>
+            </select>
+          </div>
+
+          <!-- Quick Actions -->
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-outline" style="color: #0f2744; border-color: #cbd5e1; padding: 8px 14px; font-weight: 700; flex: 1;" onclick="resetSchoolTeacherFilters()">
+              🔄 Reset Filters
+            </button>
+            <button class="btn-action" style="padding: 8px 16px;" onclick="exportTelemetryCSV()">
+              <span>📥 Export CSV</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Search & Filter Bar -->
+      <div class="toolbar-card" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem;">
         <div class="search-input-wrap">
           <span>🔍</span>
-          <input type="text" id="telemetry-search" placeholder="Search spoken sentences, teacher names, words..." oninput="filterTelemetry()" />
+          <input type="text" id="telemetry-search" placeholder="Search spoken sentences, words, pronunciation..." oninput="filterTelemetry()" />
         </div>
 
         <div class="filter-group">
-          <select id="telemetry-district-filter" class="filter-select" onchange="filterTelemetry()">
+          <select id="telemetry-district-filter" class="filter-select" onchange="onDistrictChanged()">
             <option value="all">All Districts</option>
             <option value="Dumka">Dumka</option>
             <option value="East Singhbhum">East Singhbhum</option>
@@ -707,10 +759,27 @@
             <option value="mundari">Mundari (Devanagari)</option>
           </select>
 
-          <button class="btn-action" onclick="exportTelemetryCSV()">
-            <span>📥 Export CSV</span>
-          </button>
+          <select id="telemetry-confidence-filter" class="filter-select" onchange="filterTelemetry()">
+            <option value="all">All Confidence</option>
+            <option value="verified">Verified Sentences</option>
+            <option value="lexicon">Dictionary Lexicon</option>
+            <option value="partial">Rule Fallbacks</option>
+          </select>
         </div>
+      </div>
+
+      <!-- Active Drill-Down Breadcrumb Banner -->
+      <div id="active-drilldown-banner" style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 16px; margin-bottom: 1.25rem; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.88rem;">
+          <span style="font-weight: 800; color: #1e40af;">📍 Filtered View:</span>
+          <span class="chip" id="banner-school-chip" style="background: #dbeafe; color: #1e40af; font-weight: 700;">🏫 All Schools</span>
+          <span style="color: #64748b;">➔</span>
+          <span class="chip" id="banner-teacher-chip" style="background: #e0e7ff; color: #3730a3; font-weight: 700;">👩‍🏫 All Teachers</span>
+          <span class="chip" id="banner-count-chip" style="background: #dcfce7; color: #166534; font-weight: 800;">0 Sentences</span>
+        </div>
+        <button onclick="resetSchoolTeacherFilters()" style="background: transparent; border: none; color: #1e40af; font-size: 0.78rem; font-weight: 700; cursor: pointer; text-decoration: underline;">
+          Clear Filter ✕
+        </button>
       </div>
 
       <!-- Feed Container -->
@@ -928,6 +997,8 @@
       });
     }
 
+    let currentSchoolsDirectory = [];
+
     // ─── DATA FETCHING ───
     async function refreshAllData() {
       await Promise.all([fetchTelemetry(), fetchComplaints()]);
@@ -935,18 +1006,44 @@
 
     async function fetchTelemetry() {
       try {
-        const res = await fetch('/api/telemetry?limit=250&t=' + Date.now());
+        const res = await fetch('/api/telemetry?limit=300&t=' + Date.now());
         if (res.ok) {
           const data = await res.json();
           allTelemetryRecords = data.records || [];
+          currentSchoolsDirectory = data.analytics?.schoolsDirectory || buildFallbackSchoolsDirectory(allTelemetryRecords);
+
           renderAnalytics(data.analytics, data.total);
-          renderTelemetryFeed(allTelemetryRecords);
+          renderSchoolsDirectory(currentSchoolsDirectory);
+          populateSchoolAndTeacherFilters();
+          filterTelemetry();
           renderVocabMining(data.analytics?.missingVocabCandidates || []);
+
           document.getElementById('telemetry-count-badge').innerText = data.total || 0;
+          document.getElementById('schools-count-badge').innerText = `${currentSchoolsDirectory.length} Schools`;
         }
       } catch (err) {
         console.warn('Telemetry fetch error:', err);
       }
+    }
+
+    function buildFallbackSchoolsDirectory(records) {
+      const map = {};
+      records.forEach(r => {
+        const s = r.schoolName || 'राजकीय उत्क्रमित मध्य विद्यालय';
+        if (!map[s]) {
+          map[s] = { schoolName: s, district: r.district || 'Dumka', totalSentences: 0, teachers: {} };
+        }
+        map[s].totalSentences++;
+        const tId = r.teacherId || r.teacherName;
+        if (!map[s].teachers[tId]) {
+          map[s].teachers[tId] = { teacherId: r.teacherId, teacherName: r.teacherName, grade: r.grade, count: 0 };
+        }
+        map[s].teachers[tId].count++;
+      });
+      return Object.values(map).map(s => ({
+        ...s,
+        teachers: Object.values(s.teachers)
+      })).sort((a, b) => b.totalSentences - a.totalSentences);
     }
 
     async function fetchComplaints() {
@@ -964,7 +1061,7 @@
       }
     }
 
-    // ─── RENDERING: ANALYTICS ───
+    // ─── RENDERING: ANALYTICS & SCHOOLS DIRECTORY ───
     function renderAnalytics(analytics, totalCount) {
       if (!analytics) return;
       document.getElementById('metric-total-sentences').innerText = totalCount || 0;
@@ -1010,11 +1107,141 @@
       }
     }
 
+    function renderSchoolsDirectory(directory) {
+      const container = document.getElementById('schools-directory-grid');
+      if (!directory || directory.length === 0) {
+        container.innerHTML = '<div class="empty-placeholder">No school telemetry harvested yet.</div>';
+        return;
+      }
+
+      container.innerHTML = directory.map(s => `
+        <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+              <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary); margin: 0; line-height: 1.35;">
+                🏫 ${escapeHtml(s.schoolName)}
+              </h4>
+              <span class="chip" style="background: #fef3c7; color: #92400e; font-weight: 800; flex-shrink: 0;">
+                ${s.totalSentences} Phrases
+              </span>
+            </div>
+            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+              📍 District: <strong>${escapeHtml(s.district)}</strong> • Active Teachers: <strong>${s.teachers.length}</strong>
+            </div>
+
+            <!-- Teachers List inside school -->
+            <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px;">
+              ${s.teachers.map(t => `
+                <button type="button" onclick="selectSchoolAndTeacher('${escapeHtml(s.schoolName)}', '${escapeHtml(t.teacherId)}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #1e293b; padding: 4px 8px; border-radius: 8px; font-size: 0.74rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Click to view all sentences used by ${escapeHtml(t.teacherName)}">
+                  <span>👩‍🏫 ${escapeHtml(t.teacherName)}</span>
+                  <span style="background: #ed8936; color: #fff; font-size: 0.65rem; padding: 1px 5px; border-radius: 8px;">${t.count}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <button class="btn-outline" style="color: #0f2744; border-color: #cbd5e1; padding: 6px 12px; font-size: 0.78rem; font-weight: 700; width: 100%; text-align: center;" onclick="selectSchoolAndTeacher('${escapeHtml(s.schoolName)}', 'all')">
+            🔍 Inspect All School Speech ➔
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // ─── HIERARCHICAL SCHOOL & TEACHER SELECTORS ───
+    function populateSchoolAndTeacherFilters(preferredSchool = 'all', preferredTeacher = 'all') {
+      const schoolSelect = document.getElementById('telemetry-school-filter');
+      const teacherSelect = document.getElementById('telemetry-teacher-filter');
+
+      // Preserve existing value if not given
+      const currentSelectedSchool = preferredSchool !== 'all' ? preferredSchool : schoolSelect.value;
+      const currentSelectedTeacher = preferredTeacher !== 'all' ? preferredTeacher : teacherSelect.value;
+
+      // 1. Populate Schools
+      schoolSelect.innerHTML = '<option value="all">🏫 All Schools (Statewide)</option>';
+      currentSchoolsDirectory.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.schoolName;
+        opt.textContent = `🏫 ${s.schoolName} (${s.totalSentences} phrases)`;
+        if (s.schoolName === currentSelectedSchool) opt.selected = true;
+        schoolSelect.appendChild(opt);
+      });
+
+      // 2. Populate Teachers based on selected school
+      populateTeacherDropdown(schoolSelect.value, currentSelectedTeacher);
+    }
+
+    function populateTeacherDropdown(selectedSchool, selectedTeacher = 'all') {
+      const teacherSelect = document.getElementById('telemetry-teacher-filter');
+      teacherSelect.innerHTML = '<option value="all">👩‍🏫 All Teachers</option>';
+
+      let teachersList = [];
+      if (selectedSchool === 'all') {
+        // Collect all teachers across all schools
+        const teacherMap = {};
+        currentSchoolsDirectory.forEach(s => {
+          s.teachers.forEach(t => {
+            if (!teacherMap[t.teacherId]) {
+              teacherMap[t.teacherId] = { ...t, school: s.schoolName };
+            } else {
+              teacherMap[t.teacherId].count += t.count;
+            }
+          });
+        });
+        teachersList = Object.values(teacherMap);
+      } else {
+        const found = currentSchoolsDirectory.find(s => s.schoolName === selectedSchool);
+        teachersList = found ? found.teachers : [];
+      }
+
+      teachersList.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.teacherId || t.teacherName;
+        opt.textContent = `👩‍🏫 ${t.teacherName} (${t.grade || 'Primary'} • ${t.count} phrases)`;
+        if (opt.value === selectedTeacher || t.teacherName === selectedTeacher) {
+          opt.selected = true;
+        }
+        teacherSelect.appendChild(opt);
+      });
+    }
+
+    function onSchoolChanged() {
+      const schoolVal = document.getElementById('telemetry-school-filter').value;
+      populateTeacherDropdown(schoolVal, 'all');
+      filterTelemetry();
+    }
+
+    function onTeacherChanged() {
+      filterTelemetry();
+    }
+
+    function onDistrictChanged() {
+      filterTelemetry();
+    }
+
+    function resetSchoolTeacherFilters() {
+      document.getElementById('telemetry-school-filter').value = 'all';
+      populateTeacherDropdown('all', 'all');
+      document.getElementById('telemetry-search').value = '';
+      document.getElementById('telemetry-district-filter').value = 'all';
+      document.getElementById('telemetry-lang-filter').value = 'all';
+      document.getElementById('telemetry-confidence-filter').value = 'all';
+      filterTelemetry();
+    }
+
+    function selectSchoolAndTeacher(schoolName, teacherId) {
+      switchTab('telemetry');
+      const schoolSelect = document.getElementById('telemetry-school-filter');
+      schoolSelect.value = schoolName;
+      populateTeacherDropdown(schoolName, teacherId);
+      document.getElementById('telemetry-teacher-filter').value = teacherId;
+      filterTelemetry();
+    }
+
     // ─── RENDERING: TELEMETRY FEED ───
     function renderTelemetryFeed(items) {
       const container = document.getElementById('telemetry-feed-container');
       if (items.length === 0) {
-        container.innerHTML = '<div class="empty-placeholder">📭 No classroom sentences match filter criteria.</div>';
+        container.innerHTML = '<div class="empty-placeholder">📭 No classroom sentences match the selected School and Teacher filters.</div>';
         return;
       }
 
@@ -1023,8 +1250,9 @@
           <div class="feed-meta-row">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <span class="teacher-badge">👩‍🏫 ${escapeHtml(r.teacherName || 'Teacher')}</span>
+              <span class="chip" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">🏫 ${escapeHtml(r.schoolName || 'School')}</span>
               <span class="chip">📍 ${escapeHtml(r.district || 'Dumka')} (${escapeHtml(r.block || 'Sadar')})</span>
-              <span class="chip">🏫 ${escapeHtml(r.grade || 'Class 1')}</span>
+              <span class="chip">🎒 ${escapeHtml(r.grade || 'Class 1')}</span>
               <span class="chip">${escapeHtml(r.language?.toUpperCase() || 'SANTALI')}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -1051,19 +1279,42 @@
 
     function filterTelemetry() {
       const q = (document.getElementById('telemetry-search').value || '').toLowerCase().trim();
+      const school = document.getElementById('telemetry-school-filter').value;
+      const teacher = document.getElementById('telemetry-teacher-filter').value;
       const dist = document.getElementById('telemetry-district-filter').value;
       const lang = document.getElementById('telemetry-lang-filter').value;
+      const conf = document.getElementById('telemetry-confidence-filter').value;
 
       const filtered = allTelemetryRecords.filter(r => {
         const matchesQ = !q || (
           (r.sourceText && r.sourceText.toLowerCase().includes(q)) ||
           (r.translatedText && r.translatedText.toLowerCase().includes(q)) ||
-          (r.teacherName && r.teacherName.toLowerCase().includes(q))
+          (r.teacherName && r.teacherName.toLowerCase().includes(q)) ||
+          (r.schoolName && r.schoolName.toLowerCase().includes(q))
+        );
+        const matchesSchool = school === 'all' || (r.schoolName && r.schoolName.toLowerCase() === school.toLowerCase());
+        const matchesTeacher = teacher === 'all' || (
+          (r.teacherId && r.teacherId.toLowerCase() === teacher.toLowerCase()) ||
+          (r.teacherName && r.teacherName.toLowerCase() === teacher.toLowerCase())
         );
         const matchesDist = dist === 'all' || (r.district && r.district.toLowerCase() === dist.toLowerCase());
         const matchesLang = lang === 'all' || (r.language && r.language.toLowerCase() === lang.toLowerCase());
-        return matchesQ && matchesDist && matchesLang;
+        const matchesConf = conf === 'all' || (r.confidence && r.confidence.toLowerCase() === conf.toLowerCase());
+
+        return matchesQ && matchesSchool && matchesTeacher && matchesDist && matchesLang && matchesConf;
       });
+
+      // Update active drill-down breadcrumb banner
+      const banner = document.getElementById('active-drilldown-banner');
+      const isFiltered = (school !== 'all' || teacher !== 'all' || dist !== 'all' || lang !== 'all' || conf !== 'all' || q !== '');
+      if (isFiltered) {
+        banner.style.display = 'flex';
+        document.getElementById('banner-school-chip').innerText = school === 'all' ? '🏫 All Schools' : `🏫 ${school}`;
+        document.getElementById('banner-teacher-chip').innerText = teacher === 'all' ? '👩‍🏫 All Teachers' : `👩‍🏫 ${teacher}`;
+        document.getElementById('banner-count-chip').innerText = `${filtered.length} ${filtered.length === 1 ? 'Sentence' : 'Sentences'} Found`;
+      } else {
+        banner.style.display = 'none';
+      }
 
       renderTelemetryFeed(filtered);
     }
@@ -1073,9 +1324,9 @@
         alert('No telemetry records to export.');
         return;
       }
-      let csv = 'ID,Timestamp,Teacher,District,Block,Grade,Language,SpokenHindi,TranslatedTribal,Confidence\n';
+      let csv = 'ID,Timestamp,School,Teacher,TeacherID,District,Block,Grade,Language,SpokenHindi,TranslatedTribal,Confidence\n';
       allTelemetryRecords.forEach(r => {
-        csv += `"${r.id}","${r.timestamp}","${r.teacherName}","${r.district}","${r.block}","${r.grade}","${r.language}","${(r.sourceText || '').replace(/"/g, '""')}","${(r.translatedText || '').replace(/"/g, '""')}","${r.confidence}"\n`;
+        csv += `"${r.id}","${r.timestamp}","${(r.schoolName || '').replace(/"/g, '""')}","${r.teacherName}","${r.teacherId}","${r.district}","${r.block}","${r.grade}","${r.language}","${(r.sourceText || '').replace(/"/g, '""')}","${(r.translatedText || '').replace(/"/g, '""')}","${r.confidence}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
