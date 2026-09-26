@@ -1,5 +1,5 @@
 /**
- * PalashSetu Offline Linguistic Engine & Acoustic TTS Automated Test Suite
+ * Palash Vani Offline Linguistic Engine & Acoustic TTS Automated Test Suite
  * =======================================================================
  * Runs 100% locally with zero external network or PyTorch dependency.
  * Validates:
@@ -134,7 +134,7 @@ function assert(name, actual, expectedCheck) {
 }
 
 console.log('===============================================================');
-console.log('🧪 PALASHSETU ON-DEVICE LINGUISTIC & TTS ENGINE TEST SUITE');
+console.log('🧪 PALASH VANI ON-DEVICE LINGUISTIC & TTS ENGINE TEST SUITE');
 console.log('===============================================================');
 
 // Category 1: Classroom Instructions & Greetings (Exact Matching)

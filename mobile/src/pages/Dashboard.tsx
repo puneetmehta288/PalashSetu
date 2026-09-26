@@ -124,7 +124,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', position: 'relative', zIndex: 1 }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.12)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, color: '#fbd38d', marginBottom: '0.6rem' }}>
-              <span>🌿 PalashSetu</span>
+              <span>🌿 Palash Vani</span>
               <span>•</span>
               <span>{assignedGrade} ({district})</span>
             </div>

@@ -821,7 +821,7 @@ const Worksheets: React.FC = () => {
               Govt. of Jharkhand • PALASH MTB-MLE Programme (SIH 26042)
             </div>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f2744', margin: '4px 0' }}>
-              PalashSetu NIPUN Practice Worksheet ({tribalLang === 'ho' ? 'कामी साकाम' : tribalLang === 'mundari' ? 'कामी साकाम' : 'ᱠᱟᱹᱢᱤ ᱥᱟᱠᱟᱢ'})
+              Palash Vani NIPUN Practice Worksheet ({tribalLang === 'ho' ? 'कामी साकाम' : tribalLang === 'mundari' ? 'कामी साकाम' : 'ᱠᱟᱹᱢᱤ ᱥᱟᱠᱟᱢ'})
             </h2>
             <div style={{ fontSize: '0.88rem', color: '#c05621', fontWeight: 700, marginBottom: '4px' }}>
               {grade} • {domain} • {selectedDrill?.label} ({tribalLang.toUpperCase()})

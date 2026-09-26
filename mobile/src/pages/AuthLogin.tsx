@@ -70,8 +70,8 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
       {/* Sleek Minimal Branding */}
       <div style={{ textAlign: 'center', marginBottom: '0.85rem' }}>
         <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f6ad55', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-          <span>🌿 PalashSetu</span>
-          <span style={{ fontSize: '1.05rem', color: '#fed7aa' }}>(पलाश सेतु)</span>
+          <span>🌿 Palash Vani</span>
+          <span style={{ fontSize: '1.05rem', color: '#fed7aa' }}>(पलाश वाणी)</span>
         </div>
       </div>
 

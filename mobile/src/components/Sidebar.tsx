@@ -90,10 +90,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
               </div>
               <div>
                 <div style={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.3px', color: '#ffffff' }}>
-                  PalashSetu
+                  Palash Vani
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>
-                  पलाश सेतु • MTB-MLE
+                  पलाश वाणी • MTB-MLE
                 </div>
               </div>
             </div>

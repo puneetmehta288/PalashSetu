@@ -78,8 +78,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, 
 
           <div>
             <div style={{ fontSize: '1.15rem', fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f2744', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>🌿 PalashSetu</span>
-              <span style={{ fontSize: '0.8rem', color: '#ed8936', fontWeight: 700 }}>(पलाश सेतु)</span>
+              <span>🌿 Palash Vani</span>
+              <span style={{ fontSize: '0.8rem', color: '#ed8936', fontWeight: 700 }}>(पलाश वाणी)</span>
             </div>
             <div style={{ fontSize: '0.7rem', color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 500 }}>
               Govt. of Jharkhand • PALASH MTB-MLE (SIH 26042)

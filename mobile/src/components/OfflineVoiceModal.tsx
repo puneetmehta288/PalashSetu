@@ -97,7 +97,7 @@ export const OfflineVoiceModal: React.FC<OfflineVoiceModalProps> = ({ isOpen, on
 
         {/* Intro */}
         <p style={{ fontSize: '0.9rem', color: '#4a5568', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
-          PalashSetu works <strong>100% offline</strong> in rural classrooms. Tap the buttons below to enable offline voice directly from your device:
+          Palash Vani works <strong>100% offline</strong> in rural classrooms. Tap the buttons below to enable offline voice directly from your device:
         </p>
 
         {/* Step 1: Microphone */}

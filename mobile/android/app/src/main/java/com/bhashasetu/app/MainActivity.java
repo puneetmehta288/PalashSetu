@@ -27,7 +27,7 @@ public class MainActivity extends BridgeActivity {
     private void speakNative(String text) {
         if (text == null || text.trim().isEmpty()) return;
         if (nativeTts != null) {
-            nativeTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "PalashSetuTTS_" + System.currentTimeMillis());
+            nativeTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "PalashVaniTTS_" + System.currentTimeMillis());
         }
     }
 
@@ -102,7 +102,7 @@ public class MainActivity extends BridgeActivity {
                 @Override
                 public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
                     new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("PalashSetu")
+                        .setTitle("Palash Vani")
                         .setMessage(message)
                         .setPositiveButton(android.R.string.ok, (dialog, which) -> result.confirm())
                         .setCancelable(false)
@@ -114,7 +114,7 @@ public class MainActivity extends BridgeActivity {
                 @Override
                 public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
                     new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("PalashSetu")
+                        .setTitle("Palash Vani")
                         .setMessage(message)
                         .setPositiveButton(android.R.string.ok, (dialog, which) -> result.confirm())
                         .setNegativeButton(android.R.string.cancel, (dialog, which) -> result.cancel())
@@ -145,8 +145,8 @@ public class MainActivity extends BridgeActivity {
                             if (bridge != null && bridge.getWebView() != null) {
                                 android.print.PrintManager printManager = (android.print.PrintManager) getSystemService(android.content.Context.PRINT_SERVICE);
                                 if (printManager != null) {
-                                    android.print.PrintDocumentAdapter printAdapter = bridge.getWebView().createPrintDocumentAdapter("PalashSetu_Print");
-                                    printManager.print("PalashSetu Worksheet", printAdapter, new android.print.PrintAttributes.Builder().build());
+                                    android.print.PrintDocumentAdapter printAdapter = bridge.getWebView().createPrintDocumentAdapter("PalashVani_Print");
+                                    printManager.print("Palash Vani Worksheet", printAdapter, new android.print.PrintAttributes.Builder().build());
                                 }
                             }
                         } catch (Exception e) {

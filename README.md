@@ -1,4 +1,4 @@
-# PalashSetu (पलाश सेतु)
+# Palash Vani (पलाश वाणी)
 ### Standalone On-Device Tablet App for Mother Tongue-Based Multilingual Education (MTB-MLE)
 **Smart India Hackathon 2026 — Problem Statement SIH 26042**  
 *Govt. of Jharkhand • Department of School Education & Literacy*
@@ -13,7 +13,7 @@
 [![Central Hub](https://img.shields.io/badge/Central%20Hub-Live%20on%20Vercel-000000.svg)](https://palashsetu-xi.vercel.app)
 [![Download APK](https://img.shields.io/badge/Download%20APK-4.5%20MB%20(Direct%20Install)-2ea44f?logo=android&logoColor=white)](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashSetu-v1.0-debug.apk)
 
-> ### 📱 [👉 Click Here to Download PalashSetu Android App (.APK) — 4.5 MB](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashSetu-v1.0-debug.apk)
+> ### 📱 [👉 Click Here to Download Palash Vani Android App (.APK) — 4.5 MB](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashSetu-v1.0-debug.apk)
 > **Direct Sideload Build** • **100% Offline • Zero Internet Required**  
 > *Pre-configured for Android 9.0 to 14.0 tablets & smartphones (Runs comfortably on 2 GB RAM devices with < 500 MB RAM)*
 
@@ -41,13 +41,13 @@ Most teams reading Problem Statement SIH 26042 see *"budget 2 GB RAM Android tab
 
 ```
 Total Hardware RAM: 2,048 MB (2.0 GB)
-┌───────────────────────────────────────┬───────────────────────┬────────────────────────┐
-│ Android OS, HAL & System (~1,100 MB)  │ PalashSetu (~280 MB)  │ Free Safety Buffer     │
-│ [Non-Negotiable OS Baseline]          │ [Peak Load: 336 MB]   │ [~632 MB - Zero Crash] │
-└───────────────────────────────────────┴───────────────────────┴────────────────────────┘
+┌───────────────────────────────────────┬────────────────────────┬────────────────────────┐
+│ Android OS, HAL & System (~1,100 MB)  │ Palash Vani (~280 MB)  │ Free Safety Buffer     │
+│ [Non-Negotiable OS Baseline]          │ [Peak Load: 336 MB]    │ [~632 MB - Zero Crash] │
+└───────────────────────────────────────┴────────────────────────┴────────────────────────┘
 ```
 
-**PalashSetu's Architectural Solution**:
+**Palash Vani's Architectural Solution**:
 By identifying this constraint from the problem statement, our team engineered specifically for the real **1 GB usable budget**:
 - **100% Offline Edge Tablet App**: An on-device rule-based linguistic engine with **7,503 total dictionary lookup entries (spanning ~2,500 core Hindi root concepts with full grammatical conjugations)**, native Ol Chiki font rendering, phonetic acoustic voice synthesis, and teacher-scoped attendance register. It executes in **< 5 ms on Android tablets** and operates strictly **under 500 MB RAM** (tested live on hardware: **170 MB – 336 MB Total PSS**, with app Java Heap under **10 MB**), leaving over **600 MB of safety headroom** so the tablet never crashes or lags.
 - **Store-and-Forward Classroom Telemetry**: Sentences spoken by teachers during classroom instruction are buffered locally in an offline telemetry queue. When connectivity is restored, the queue syncs with **PalashCentralHub** and automatically purges locally.
@@ -60,7 +60,7 @@ By identifying this constraint from the problem statement, our team engineered s
 
 ```
 +-------------------------------------------------------------------------------------------------+
-|                               PALASHSETU ARCHITECTURAL TOPOLOGY                                 |
+|                               PALASH VANI ARCHITECTURAL TOPOLOGY                                |
 +-------------------------------------------------------------------------------------------------+
 
                       OFFLINE VILLAGE CLASSROOM (No Internet • Airplane Mode)
@@ -113,7 +113,7 @@ Our linguistic engine maintains strict academic honesty and clear tier different
 | **Ho** (`hoc_Deva`) | Devanagari (हो भाषा) | **Pilot Dialect Pack** | ~175 core classroom terms, NIPUN counting 1–10, basic greetings | Native Devanagari phonetic synthesis |
 | **Mundari** (`unr_Deva`) | Devanagari (मुंडारी) | **Pilot Dialect Pack** | ~175 core classroom terms, NIPUN counting 1–10, basic greetings | Native Devanagari phonetic synthesis |
 
-> **Note on Ol Chiki Script Fonts**: Budget government tablets do not ship with Ol Chiki Unicode glyphs pre-installed. PalashSetu bundles `NotoSansOlChiki-Medium.ttf` and `NotoSansOlChiki-Bold.ttf` directly inside the APK assets (`assets/fonts/`), guaranteeing flawless zero-network rendering without external Google Fonts CDN calls.
+> **Note on Ol Chiki Script Fonts**: Budget government tablets do not ship with Ol Chiki Unicode glyphs pre-installed. Palash Vani bundles `NotoSansOlChiki-Medium.ttf` and `NotoSansOlChiki-Bold.ttf` directly inside the APK assets (`assets/fonts/`), guaranteeing flawless zero-network rendering without external Google Fonts CDN calls.
 
 <a id="dictionary-architecture"></a>
 ### 3.1 Dictionary Architecture: 7,503 Lookup Entries vs. ~2,500 Core Root Concepts
@@ -214,7 +214,7 @@ PalashCentralHub serves as the command center for block education officers (BEOs
 | **Hardware HAL & SurfaceFlinger Compositor** | ~350 MB | GPU hardware buffers and display pipeline |
 | **Total System Overhead at Boot** | **~1,100 MB** | Non-negotiable OS baseline |
 | **Real Usable Working Budget for User Apps** | **~948 MB (~1 GB)** | Theoretical ceiling before Android kills apps |
-| **PalashSetu Operating Footprint (Total PSS)** | **~230 MB – 336 MB** | **Well under 500 MB budget** (Java Heap < 10 MB) |
+| **Palash Vani Operating Footprint (Total PSS)** | **~230 MB – 336 MB** | **Well under 500 MB budget** (Java Heap < 10 MB) |
 | **Guaranteed Crash-Free Safety Cushion** | **~612 MB** | Free unallocated RAM preventing LMK termination |
 
 ### Core Performance Benchmarks:
@@ -250,7 +250,7 @@ node scripts/test_offline_engine.js
 **Output:**
 ```
 ===============================================================
-🧪 PALASHSETU ON-DEVICE LINGUISTIC & TTS ENGINE TEST SUITE
+🧪 PALASH VANI ON-DEVICE LINGUISTIC & TTS ENGINE TEST SUITE
 ===============================================================
 Results: 46 passed, 0 failed out of 46 assertions.
 ⏱️ Average Translation Latency: 0.0047 ms per sentence (Tested over 1000 iterations).

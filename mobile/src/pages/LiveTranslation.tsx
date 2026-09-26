@@ -655,7 +655,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       alert(
         '👧 Student Mode: Interactive Tap-to-Respond Active!\n\n' +
         'In rural primary classrooms, children use the intuitive 1-tap visual response cards below to speak Hindi to the teacher.\n\n' +
-        'Direct spoken Santali ASR via on-device quantized IndicWav2Vec is planned for PalashSetu v2.0!'
+        'Direct spoken Santali ASR via on-device quantized IndicWav2Vec is planned for Palash Vani v2.0!'
       );
       return;
     }

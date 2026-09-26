@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">PalashSetu</string>
-    <string name="title_activity_main">PalashSetu</string>
+    <string name="app_name">Palash Vani</string>
+    <string name="title_activity_main">Palash Vani</string>
     <string name="package_name">com.bhashasetu.app</string>
     <string name="custom_url_scheme">com.bhashasetu.app</string>
 </resources>
