@@ -28,12 +28,10 @@ const AppRoutes: React.FC = () => {
       navigate('/login', { replace: true });
     }
 
-    // Prevent system status bar from overlapping webview
+    // Enable clean immersive fullscreen mode for tablets
     const configureStatusBar = async () => {
       try {
-        await StatusBar.setOverlaysWebView({ overlay: false });
-        await StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light });
-        await StatusBar.setBackgroundColor({ color: isDarkMode ? '#0f172a' : '#ffffff' });
+        await StatusBar.hide();
       } catch (err) {
         // Ignored on web/browser preview
       }

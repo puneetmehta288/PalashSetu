@@ -22,6 +22,7 @@ build/
 local.properties
 *.apk
 !PalashSetu-v1.0-debug.apk
+!PalashVani-v1.0-debug.apk
 *.aab
 
 # Models (Ignore weights & downloads, keep README)
