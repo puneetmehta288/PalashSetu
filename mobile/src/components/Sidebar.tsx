@@ -73,21 +73,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div
+              <img
+                src="/favicon.png"
+                alt="Palash Vani"
                 style={{
                   width: '38px',
                   height: '38px',
                   borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #ed8936 0%, #c05621 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.3rem',
-                  boxShadow: '0 4px 10px rgba(237,137,54,0.35)',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                  objectFit: 'contain',
                 }}
-              >
-                🌿
-              </div>
+              />
               <div>
                 <div style={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.3px', color: '#ffffff' }}>
                   Palash Vani

@@ -69,8 +69,13 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
     >
       {/* Sleek Minimal Branding */}
       <div style={{ textAlign: 'center', marginBottom: '0.85rem' }}>
+        <img
+          src="/favicon.png"
+          alt="Palash Vani"
+          style={{ width: '56px', height: '56px', borderRadius: '14px', marginBottom: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.3)' }}
+        />
         <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f6ad55', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-          <span>🌿 Palash Vani</span>
+          <span>Palash Vani</span>
           <span style={{ fontSize: '1.05rem', color: '#fed7aa' }}>(पलाश वाणी)</span>
         </div>
       </div>

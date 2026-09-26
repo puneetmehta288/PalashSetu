@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PalashSetu (पलाश सेतु) — Classroom Features & Pedagogical User Workflow</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Ol+Chiki:wght@500;700&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+    .ol-chiki {
+      font-family: 'Noto Sans Ol Chiki', sans-serif;
+    }
+    .step-card {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .step-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 antialiased">
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Header Banner -->
+    <header class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <span class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-xs font-bold tracking-wide uppercase">
+              Field Tested in Jharkhand
+            </span>
+            <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-bold tracking-wide uppercase flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 100% Airplane Mode (Zero Cloud)
+            </span>
+            <span class="px-3 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full text-xs font-bold tracking-wide uppercase">
+              NEP 2020 MTB-MLE &amp; NIPUN Bharat
+            </span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+            PalashSetu (पलाश सेतु)
+          </h1>
+          <p class="text-base sm:text-lg text-amber-400/90 font-medium mt-1">
+            Classroom Features &amp; Pedagogical User Workflow
+          </p>
+          <p class="text-xs sm:text-sm text-slate-300 mt-2 max-w-3xl leading-relaxed">
+            Bridging non-tribal Hindi-speaking primary teachers with Santali (<span class="ol-chiki text-amber-300">ᱚᱞ ᱪᱤᱠᱤ</span>), Ho (<span class="text-amber-300 font-semibold">Warang Citi</span>), and Mundari indigenous learners in remote rural single-room schools.
+          </p>
+        </div>
+
+        <!-- Legend Box -->
+        <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-4 shrink-0 flex flex-col gap-2.5 shadow-inner">
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Workflow Legend</div>
+          <div class="flex items-center gap-2.5 text-xs text-slate-200">
+            <span class="w-3.5 h-3.5 rounded-md bg-blue-500 border border-blue-400 shadow-sm"></span>
+            <span class="font-medium text-blue-300">Teacher Actions</span>
+            <span class="text-slate-400">(Instructional Hindi)</span>
+          </div>
+          <div class="flex items-center gap-2.5 text-xs text-slate-200">
+            <span class="w-3.5 h-3.5 rounded-md bg-amber-500 border border-amber-400 shadow-sm"></span>
+            <span class="font-medium text-amber-300">Tribal Outputs</span>
+            <span class="text-slate-400">(Ol Chiki / Native Audio)</span>
+          </div>
+          <div class="flex items-center gap-2.5 text-xs text-slate-200">
+            <span class="w-3.5 h-3.5 rounded-md bg-emerald-500 border border-emerald-400 shadow-sm"></span>
+            <span class="font-medium text-emerald-300">Student Outcomes</span>
+            <span class="text-slate-400">(FLN Mastery &amp; Response)</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Context Strip -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 flex items-start gap-3.5">
+        <div class="p-2.5 bg-blue-500/20 text-blue-400 rounded-lg text-xl">👨‍🏫</div>
+        <div>
+          <div class="text-xs font-bold text-blue-400 uppercase tracking-wide">Primary User Persona</div>
+          <div class="text-sm font-semibold text-slate-100 mt-0.5">Hindi-Speaking Primary Teacher</div>
+          <div class="text-xs text-slate-300 mt-1 leading-relaxed">Assigned to Dumka / East Singhbhum, lacks native fluency in Santhali, Ho, or Mundari.</div>
+        </div>
+      </div>
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 flex items-start gap-3.5">
+        <div class="p-2.5 bg-amber-500/20 text-amber-400 rounded-lg text-xl">👧👦</div>
+        <div>
+          <div class="text-xs font-bold text-amber-400 uppercase tracking-wide">Classroom Learners</div>
+          <div class="text-sm font-semibold text-slate-100 mt-0.5">Class 1–3 Indigenous Children</div>
+          <div class="text-xs text-slate-300 mt-1 leading-relaxed">Monolingual tribal mother-tongue speakers experiencing severe first-generation school hesitation.</div>
+        </div>
+      </div>
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 flex items-start gap-3.5">
+        <div class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-xl">🌲</div>
+        <div>
+          <div class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Classroom Reality</div>
+          <div class="text-sm font-semibold text-slate-100 mt-0.5">Off-Grid Rural Primary School</div>
+          <div class="text-xs text-slate-300 mt-1 leading-relaxed">Zero cellular connectivity, shared low-cost tablet, multi-teacher roster, intermittent electricity.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Daily Pedagogical Workflow -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>📅</span>
+            <span>A Typical Day in a Tribal School: End-to-End User Journey</span>
+          </h2>
+          <p class="text-xs text-slate-300 mt-0.5">
+            Sequential progression from 08:45 AM teacher arrival to weekend Block Cluster Resource Center sync.
+          </p>
+        </div>
+        <div class="text-xs text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+          5 Sequential Stages • 10 Grounded Features
+        </div>
+      </div>
+
+      <!-- Flowchart Nodes (Linear Journey) -->
+      <div class="relative bg-slate-800/80 border border-slate-700 rounded-2xl p-6 sm:p-8 overflow-hidden shadow-xl">
+        <div class="space-y-6">
+
+          <!-- STAGE 1: MORNING ARRIVAL & PROFILE ISOLATION -->
+          <div class="flex flex-col md:flex-row items-stretch gap-4">
+            <div class="w-full md:w-48 shrink-0 flex md:flex-col justify-between items-start p-4 bg-slate-900/90 rounded-xl border border-slate-700/80">
+              <span class="px-2.5 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-md">Stage 1: 08:45 AM</span>
+              <div class="my-auto">
+                <div class="text-sm font-bold text-white">Morning Setup</div>
+                <div class="text-xs text-slate-300">Shared Tablet Unlock</div>
+              </div>
+              <span class="text-xs text-slate-300">Offline Auth</span>
+            </div>
+
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Node 1 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-blue-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-blue-400 uppercase tracking-wide">Teacher Action</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">1. Profile &amp; PIN</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">Teacher Offline PIN Login</h4>
+                <p class="text-xs text-slate-300 mb-2">Teacher picks their name from shared tablet roster and taps 4-digit PIN verified via on-device hash.</p>
+                <div class="text-xs text-emerald-400 bg-emerald-950/40 p-2 rounded border border-emerald-800/40">
+                  <strong class="text-emerald-300">Outcome:</strong> Immediate access to assigned grade without needing internet or OTP.
+                </div>
+              </div>
+
+              <!-- Node 2 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-blue-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-blue-400 uppercase tracking-wide">Teacher Action</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">2. Dashboard</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">Classroom Hub Dashboard</h4>
+                <p class="text-xs text-slate-300 mb-2">Presents quick 1-tap launchpads for Live Voice, NIPUN lessons, textbook readers, and attendance.</p>
+                <div class="text-xs text-blue-400 bg-blue-950/40 p-2 rounded border border-blue-800/40">
+                  <strong class="text-blue-300">Outcome:</strong> Teacher begins lesson prep with zero lag and zero configuration hurdles.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Down Arrow Divider -->
+          <div class="flex justify-center -my-2">
+            <div class="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-sm shadow-md border border-slate-600">
+              ↓
+            </div>
+          </div>
+
+          <!-- STAGE 2: LIVE VOICE BRIDGING & STUDENT INTERACTION -->
+          <div class="flex flex-col md:flex-row items-stretch gap-4">
+            <div class="w-full md:w-48 shrink-0 flex md:flex-col justify-between items-start p-4 bg-slate-900/90 rounded-xl border border-slate-700/80">
+              <span class="px-2.5 py-1 bg-amber-500/20 text-amber-300 text-xs font-bold rounded-md">Stage 2: 09:15 AM</span>
+              <div class="my-auto">
+                <div class="text-sm font-bold text-white">Live Instruction</div>
+                <div class="text-xs text-slate-300">Bilingual Voice Bridge</div>
+              </div>
+              <span class="text-xs text-slate-300">&lt;5ms Edge NLP</span>
+            </div>
+
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Node 3 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-amber-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-amber-400 uppercase tracking-wide">Tribal Output</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">3. Voice Bridge</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">Classroom Live Voice Bridge</h4>
+                <p class="text-xs text-slate-300 mb-2">Teacher speaks Hindi instruction; tablet translates deterministically to Ol Chiki and speaks at clear 0.85x speed.</p>
+                <div class="text-xs text-amber-400 bg-amber-950/40 p-2 rounded border border-amber-800/40">
+                  <strong class="text-amber-300">Tribal Output:</strong> <span class="ol-chiki">ᱟᱢᱟᱜ ᱯᱩᱛᱷᱤ ᱡᱷᱤᱡᱽ ᱢᱮ</span> ("Open your book") acoustic playback.
+                </div>
+              </div>
+
+              <!-- Node 4 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-emerald-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Student Outcome</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">4. Response Cards</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">Student Tap-to-Respond Cards</h4>
+                <p class="text-xs text-slate-300 mb-2">Tribal children tap 9 illustrated cards ("Understood", "Repeat please", "May I drink water?") to talk back.</p>
+                <div class="text-xs text-emerald-400 bg-emerald-950/40 p-2 rounded border border-emerald-800/40">
+                  <strong class="text-emerald-300">Outcome:</strong> Tablet voices clear Hindi back to teacher, eliminating fear of teacher scolding.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Down Arrow Divider -->
+          <div class="flex justify-center -my-2">
+            <div class="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-sm shadow-md border border-slate-600">
+              ↓
+            </div>
+          </div>
+
+          <!-- STAGE 3: NIPUN PANCHAADI LESSON & TEXTBOOK READING -->
+          <div class="flex flex-col md:flex-row items-stretch gap-4">
+            <div class="w-full md:w-48 shrink-0 flex md:flex-col justify-between items-start p-4 bg-slate-900/90 rounded-xl border border-slate-700/80">
+              <span class="px-2.5 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-md">Stage 3: 10:15 AM</span>
+              <div class="my-auto">
+                <div class="text-sm font-bold text-white">Curriculum &amp; Texts</div>
+                <div class="text-xs text-slate-300">NEP 5-Step Panchaadi</div>
+              </div>
+              <span class="text-xs text-slate-300">Dual-Column Sync</span>
+            </div>
+
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Node 5 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-blue-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-blue-400 uppercase tracking-wide">Teacher Action</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">5. NIPUN Studio</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">NIPUN Bharat Lesson Studio</h4>
+                <p class="text-xs text-slate-300 mb-2">Teacher executes 36 prewritten bilingual lesson plans: Warm-up → Direct Instruction → Guided Practice → Independent Practice → Assessment.</p>
+                <div class="text-xs text-emerald-400 bg-emerald-950/40 p-2 rounded border border-emerald-800/40">
+                  <strong class="text-emerald-300">Outcome:</strong> Standardized pedagogy with tribal contextual hooks (forest animals, local weekly haats).
+                </div>
+              </div>
+
+              <!-- Node 6 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-amber-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-amber-400 uppercase tracking-wide">Tribal Output</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">6. JCERT Reader</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">JCERT Bilingual Textbook Reader</h4>
+                <p class="text-xs text-slate-300 mb-2">Dual-column Grade 1–3 state textbooks with Hindi on the left and Ol Chiki on the right, plus word tap-to-inspect popups.</p>
+                <div class="text-xs text-amber-400 bg-amber-950/40 p-2 rounded border border-amber-800/40">
+                  <strong class="text-amber-300">Tribal Output:</strong> Paragraph-by-paragraph acoustic voice narration in mother tongue.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Down Arrow Divider -->
+          <div class="flex justify-center -my-2">
+            <div class="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-sm shadow-md border border-slate-600">
+              ↓
+            </div>
+          </div>
+
+          <!-- STAGE 4: MULTISENSORY FLN DRILLS & SCREENLESS WORKSHEETS -->
+          <div class="flex flex-col md:flex-row items-stretch gap-4">
+            <div class="w-full md:w-48 shrink-0 flex md:flex-col justify-between items-start p-4 bg-slate-900/90 rounded-xl border border-slate-700/80">
+              <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-md">Stage 4: 11:45 AM</span>
+              <div class="my-auto">
+                <div class="text-sm font-bold text-white">Hands-on Practice</div>
+                <div class="text-xs text-slate-300">Digital + Screenless</div>
+              </div>
+              <span class="text-xs text-slate-300">A4 PDF Generation</span>
+            </div>
+
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Node 7 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-emerald-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Student Outcome</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">7. FLN Flashcards</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">FLN Visual Flashcards</h4>
+                <p class="text-xs text-slate-300 mb-2">16 unlocked decks with 96 SVG cards: 3D flip-and-reveal, geometric shapes, dot counting grids, and tens bundles.</p>
+                <div class="text-xs text-emerald-400 bg-emerald-950/40 p-2 rounded border border-emerald-800/40">
+                  <strong class="text-emerald-300">Outcome:</strong> Immediate native pronunciation hints accelerate phonics and numeracy.
+                </div>
+              </div>
+
+              <!-- Node 8 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-blue-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-blue-400 uppercase tracking-wide">Teacher Action</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">8. Worksheets</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">Bilingual Worksheet Generator</h4>
+                <p class="text-xs text-slate-300 mb-2">Randomized math drills, number matrices, and 1-tap printable bilingual A4 PDFs with official school headers.</p>
+                <div class="text-xs text-blue-400 bg-blue-950/40 p-2 rounded border border-blue-800/40">
+                  <strong class="text-blue-300">Outcome:</strong> Paper-based student distribution prevents screen fatigue in resource-poor classrooms.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Down Arrow Divider -->
+          <div class="flex justify-center -my-2">
+            <div class="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-sm shadow-md border border-slate-600">
+              ↓
+            </div>
+          </div>
+
+          <!-- STAGE 5: ATTENDANCE, GRIEVANCES & STORE-AND-FORWARD SYNC -->
+          <div class="flex flex-col md:flex-row items-stretch gap-4">
+            <div class="w-full md:w-48 shrink-0 flex md:flex-col justify-between items-start p-4 bg-slate-900/90 rounded-xl border border-slate-700/80">
+              <span class="px-2.5 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-md">Stage 5: 02:30 PM+</span>
+              <div class="my-auto">
+                <div class="text-sm font-bold text-white">Close &amp; Sync</div>
+                <div class="text-xs text-slate-300">Offline Register &amp; Hub</div>
+              </div>
+              <span class="text-xs text-slate-300">Auto-Purging Queue</span>
+            </div>
+
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Node 9 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-blue-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-blue-400 uppercase tracking-wide">Teacher Action</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">9. Attendance &amp; Cohorts</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">Multi-Teacher Offline Attendance</h4>
+                <p class="text-xs text-slate-300 mb-2">100% offline roster tracking with linguistic cohort distribution (Santali, Ho, Mundari) and 1-click e-Vidyavahini CSV export.</p>
+                <div class="text-xs text-emerald-400 bg-emerald-950/40 p-2 rounded border border-emerald-800/40">
+                  <strong class="text-emerald-300">Outcome:</strong> Unsaved-changes protection ensures official state compliance without loss of records.
+                </div>
+              </div>
+
+              <!-- Node 10 -->
+              <div class="step-card bg-slate-900/70 border-l-4 border-l-amber-500 border border-slate-700/60 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-amber-400 uppercase tracking-wide">Sync &amp; Feedback</span>
+                  <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">10. Store &amp; Forward</span>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">Store-and-Forward Telemetry Hub Sync</h4>
+                <p class="text-xs text-slate-300 mb-2">Queues up to 1,500 classroom actions &amp; dialect feedback tickets. Syncs to PalashCentralHub on Vercel at weekly block meetings.</p>
+                <div class="text-xs text-amber-400 bg-amber-950/40 p-2 rounded border border-amber-800/40">
+                  <strong class="text-amber-300">Outcome:</strong> Auto-purges locally on success; provides state admin visibility without requiring daily cell signals.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 Detailed Feature Cards Section -->
+    <section class="space-y-4 pt-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-3">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>🗂️</span>
+            <span>The 10 Core Features Grounded in Codebase</span>
+          </h2>
+          <p class="text-xs text-slate-300 mt-0.5">
+            Classroom purpose, primary user action, and pedagogical student &amp; teacher outcome for each capability.
+          </p>
+        </div>
+        <span class="text-xs font-semibold px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-slate-300">
+          Zero Cloud Dependency in Classroom
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <!-- Card 1 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-blue-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-blue-500/20 text-blue-300 text-xs font-bold rounded">Feature 01 • Teacher Action</span>
+              <span class="text-xs text-slate-400 font-mono">authService</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>🔐</span> Local Profile &amp; PIN Authentication
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Secures multi-teacher profile switching on shared rural tablets without requiring cloud accounts or cellular connectivity.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Teacher selects their profile name from list and enters a 4-digit PIN verified through local cryptographic SHA-256 hash.</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Prevents accidental data overwrite between colleagues; immediately isolates grade roster and classroom preferences offline.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-amber-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-amber-500/20 text-amber-300 text-xs font-bold rounded">Feature 02 • Tribal Output</span>
+              <span class="text-xs text-slate-400 font-mono">LiveTranslation &amp; Speech</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>🎙️</span> Classroom Live Voice Bridge
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Dissolves the linguistic barrier by instantly converting teacher's Hindi instructions into tribal mother tongue.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Teacher taps glowing microphone button and speaks natural instructional Hindi ("अपनी किताब खोलो", "सेबों को गिनो").</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Deterministic sub-5ms translation produces Ol Chiki text and plays gentle 0.85x acoustic speech synthesis; tribal children comprehend without fear.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-emerald-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded">Feature 03 • Student Outcome</span>
+              <span class="text-xs text-slate-400 font-mono">Touch Visual Cards</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>👧</span> Student Tap-to-Respond Visual Cards
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Gives Class 1–3 indigenous children a voice to communicate back to non-tribal teachers with zero intimidation.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Children tap illustrated response cards: "I understood" (<span class="ol-chiki text-amber-300">ᱦᱚᱭ ᱢᱟᱪᱮᱛ</span>), "Repeat please" (<span class="ol-chiki text-amber-300">ᱟᱨᱦᱚᱸ ᱞᱟᱹᱭ ᱢᱮ</span>), or "May I answer?".</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Tablet speaks polite Hindi audio back to the teacher, establishing two-way psychological safety and immediate formative feedback.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-blue-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-blue-500/20 text-blue-300 text-xs font-bold rounded">Feature 04 • Teacher Action</span>
+              <span class="text-xs text-slate-400 font-mono">Panchaadi Studio</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>📖</span> NIPUN Bharat Lesson Studio
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Delivers structured NEP 2020 Mother Tongue-Based Multilingual Education lessons across Balvatika to Class 3.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Teacher navigates through the 5-step Panchaadi pedagogy: Warm-up → Direct Instruction → Guided Practice → Independent Practice → Assessment.</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Teacher gains structured classroom discipline without preparing external notes; students master foundational concepts via indigenous cultural analogies.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-emerald-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded">Feature 05 • Student Outcome</span>
+              <span class="text-xs text-slate-400 font-mono">FLN Visual Decks</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>🃏</span> FLN Visual Flashcards
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Accelerates early childhood phonics, shape recognition, and foundational numeracy through tactile multisensory cards.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Students explore 16 unlocked decks (96 vector cards), triggering 3D flip-and-reveal for dot counting grids, tens bundles, and native pronunciation taps.</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-amber-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Children internalize mathematical place value and phonemic sounds without relying on rote memorization.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-blue-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-blue-500/20 text-blue-300 text-xs font-bold rounded">Feature 06 • Teacher Action</span>
+              <span class="text-xs text-slate-400 font-mono">Worksheet Generator</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>🖨️</span> Dynamic Bilingual Worksheet Generator
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Provides screenless, pencil-and-paper student assessments and homework drills in resource-constrained schools.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Teacher customizes grade and drill type (randomized arithmetic drills, number matrices) and triggers 1-tap printable A4 bilingual PDF generation.</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Students complete screenless desk drills with dual-language headers; teacher preserves tablet battery life for instruction.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-amber-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-amber-500/20 text-amber-300 text-xs font-bold rounded">Feature 07 • Tribal Output</span>
+              <span class="text-xs text-slate-400 font-mono">JCERT Dual-Reader</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>📚</span> JCERT Bilingual Textbook Reader
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Decodes official Jharkhand state syllabus textbooks directly into indigenous scripts and spoken dialects.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Teacher opens Grade 1–3 reader in dual-column layout (Hindi left, tribal script right), tapping words for inspect popups or audio read-alouds.</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Children read along with paragraph audio; textbook becomes fully accessible instead of an incomprehensible barrier.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 8 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-blue-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-blue-500/20 text-blue-300 text-xs font-bold rounded">Feature 08 • Teacher Action</span>
+              <span class="text-xs text-slate-400 font-mono">Attendance &amp; Cohorts</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>📋</span> Multi-Teacher Attendance &amp; Linguistic Cohort Register
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Manages daily offline student roster while automatically tracking linguistic diversity (Santali, Ho, Mundari).
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Teacher toggles Present/Absent/Late with dirty-state safety warnings and exports official Jharkhand e-Vidyavahini CSV format with 1-click.</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Zero record loss during tablet shutdowns; teacher identifies language minority students at risk of dropout.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 9 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-amber-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-amber-500/20 text-amber-300 text-xs font-bold rounded">Feature 09 • Teacher Grievance</span>
+              <span class="text-xs text-slate-400 font-mono">ReportIssue &amp; Queue</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>✍️</span> Teacher Grievance &amp; Dialect Feedback Portal
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Empowers rural educators to report missing regional village terms and pronunciation nuances straight from the field.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Teacher logs missing vocabulary or wrong inflection in offline form with priority flags and optional contextual description.</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-amber-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">Curriculum researchers receive grassroots linguistic feedback to continuously expand tribal vocabulary banks.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 10 -->
+        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 hover:border-purple-500/50 transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 bg-purple-500/20 text-purple-300 text-xs font-bold rounded">Feature 10 • Administrative Sync</span>
+              <span class="text-xs text-slate-400 font-mono">telemetryService</span>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <span>🔄</span> Store-and-Forward Telemetry &amp; State Hub Sync
+            </h3>
+            <p class="text-xs text-amber-400/90 font-medium mb-3">
+              <strong>Classroom Purpose:</strong> Provides state-level literacy monitoring without requiring continuous internet in remote villages.
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-blue-400 font-bold">Key User Action:</span>
+                <span class="text-slate-200 ml-1">Local queue securely retains ≤1,500 records; when teacher attends weekly block meeting with internet, app auto-syncs to PalashCentralHub and purges sent records.</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="text-emerald-400 font-bold">Student &amp; Teacher Outcome:</span>
+                <span class="text-slate-200 ml-1">District officers view live FLN progress across tribal blocks without burdening rural teachers with manual paperwork.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer Note -->
+    <footer class="border-t border-slate-800 pt-5 pb-6 text-center text-xs text-slate-400">
+      PalashSetu (पलाश सेतु) • Designed for Rural Primary Classrooms in Jharkhand • Problem ID: SIH 26042
+    </footer>
+
+  </div>
+
+</body>
+</html>
