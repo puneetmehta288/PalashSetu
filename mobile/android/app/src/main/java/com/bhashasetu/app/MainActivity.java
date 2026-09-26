@@ -5,8 +5,11 @@ import android.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.content.Intent;
+import android.net.Uri;
 import android.webkit.JsResult;
 import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import androidx.core.app.ActivityCompat;
@@ -18,13 +21,12 @@ public class MainActivity extends BridgeActivity {
     private TextToSpeech nativeTts;
     private boolean isTtsReady = false;
     private String pendingSpeak = null;
+    private ValueCallback<Uri[]> mFilePathCallback;
+    private final static int FILE_CHOOSER_REQUEST_CODE = 1001;
 
     private void speakNative(String text) {
         if (text == null || text.trim().isEmpty()) return;
         if (nativeTts != null) {
-            try {
-                android.widget.Toast.makeText(MainActivity.this, "🔊 " + text, android.widget.Toast.LENGTH_SHORT).show();
-            } catch (Exception ignored) {}
             nativeTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "PalashSetuTTS_" + System.currentTimeMillis());
         }
     }
@@ -78,6 +80,23 @@ public class MainActivity extends BridgeActivity {
                 @Override
                 public void onPermissionRequest(final PermissionRequest request) {
                     runOnUiThread(() -> request.grant(request.getResources()));
+                }
+
+                @Override
+                public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+                    if (mFilePathCallback != null) {
+                        mFilePathCallback.onReceiveValue(null);
+                    }
+                    mFilePathCallback = filePathCallback;
+
+                    Intent intent = fileChooserParams.createIntent();
+                    try {
+                        startActivityForResult(intent, FILE_CHOOSER_REQUEST_CODE);
+                    } catch (Exception e) {
+                        mFilePathCallback = null;
+                        return false;
+                    }
+                    return true;
                 }
 
                 @Override
@@ -178,6 +197,31 @@ public class MainActivity extends BridgeActivity {
                 }
             }, "AndroidVoiceBridge");
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FILE_CHOOSER_REQUEST_CODE) {
+            if (mFilePathCallback != null) {
+                Uri[] results = null;
+                if (resultCode == RESULT_OK && data != null) {
+                    String dataString = data.getDataString();
+                    if (dataString != null) {
+                        results = new Uri[]{Uri.parse(dataString)};
+                    } else if (data.getClipData() != null) {
+                        int count = data.getClipData().getItemCount();
+                        results = new Uri[count];
+                        for (int i = 0; i < count; i++) {
+                            results[i] = data.getClipData().getItemAt(i).getUri();
+                        }
+                    }
+                }
+                mFilePathCallback.onReceiveValue(results);
+                mFilePathCallback = null;
+            }
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

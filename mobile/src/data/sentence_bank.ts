@@ -276,33 +276,56 @@ export const SENTENCE_BANK: Record<string, string> = {
 };
 
 /**
- * Fuzzy-match a Hindi input against the sentence bank.
- * Returns best Santali translation or null if no good match found.
+ * Exact & normalized matching of a Hindi sentence against the verified sentence bank.
+ * Returns verified Santali translation or null if no sentence-level match found.
  *
- * Priority:
- * 1. Exact match (with/without trailing punctuation)
- * 2. Case-insensitive match
- * 3. Partial contains match
+ * NOTE: Substring/contains matching is intentionally NOT used to prevent catastrophic
+ * false positives (e.g. matching single word "तीन" inside "पेड़ पर तीन चिड़िया बैठी हैं").
  */
 export function lookupSentence(input: string): string | null {
   const clean = input.trim().replace(/[।॥?!,\.]+$/, '').trim();
   if (!clean) return null;
 
-  // 1. Exact match
+  // 1. Direct match with common punctuation variations
+  if (SENTENCE_BANK[input.trim()]) return SENTENCE_BANK[input.trim()];
   if (SENTENCE_BANK[clean]) return SENTENCE_BANK[clean];
   if (SENTENCE_BANK[clean + '।']) return SENTENCE_BANK[clean + '।'];
   if (SENTENCE_BANK[clean + '?']) return SENTENCE_BANK[clean + '?'];
+  if (SENTENCE_BANK[clean + '!']) return SENTENCE_BANK[clean + '!'];
 
-  // 2. Case-insensitive match
-  const lower = clean.toLowerCase();
+  // 2. Normalized whitespace & punctuation match
+  const normalizedInput = clean.replace(/\s+/g, ' ').toLowerCase();
   for (const [k, v] of Object.entries(SENTENCE_BANK)) {
-    if (k.toLowerCase().replace(/[।॥?!,\.]+$/, '').trim() === lower) return v;
+    const kNorm = k.replace(/[।॥?!,\.]+$/, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (kNorm === normalizedInput) return v;
   }
 
-  // 3. Partial / contains match
-  for (const [k, v] of Object.entries(SENTENCE_BANK)) {
-    const kClean = k.replace(/[।॥?!,\.]+$/, '').trim();
-    if (kClean.includes(clean) || clean.includes(kClean)) return v;
+  return null;
+}
+
+/**
+ * Reverse lookup for Student Mode: Santali (Ol Chiki) -> Hindi
+ * Matches validated classroom sentences from the sentence bank.
+ */
+export function lookupSentenceReverse(santaliInput: string): string | null {
+  const clean = santaliInput.trim().replace(/[᱾।॥?!,\.]+$/, '').trim();
+  if (!clean) return null;
+
+  // 1. Direct match with punctuation stripped
+  for (const [hindi, sat] of Object.entries(SENTENCE_BANK)) {
+    const satClean = sat.trim().replace(/[᱾।॥?!,\.]+$/, '').trim();
+    if (sat.trim() === santaliInput.trim() || satClean === clean) {
+      return hindi;
+    }
+  }
+
+  // 2. Normalized whitespace match
+  const normalizedInput = clean.replace(/\s+/g, ' ');
+  for (const [hindi, sat] of Object.entries(SENTENCE_BANK)) {
+    const satNorm = sat.replace(/[᱾।॥?!,\.]+$/, '').replace(/\s+/g, ' ').trim();
+    if (satNorm === normalizedInput) {
+      return hindi;
+    }
   }
 
   return null;

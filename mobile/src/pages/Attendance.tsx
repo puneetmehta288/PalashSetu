@@ -6,19 +6,27 @@ import {
   DailyAttendanceRecord,
   AttendanceStatus,
 } from '../services/attendanceService';
+import { authService, TeacherProfile } from '../services/authService';
 import { sfx } from '../utils/sfx';
 import { useTheme } from '../context/ThemeContext';
+
+export const getLocalDateString = (d: Date = new Date()): string => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export const Attendance: React.FC = () => {
   const { isDarkMode } = useTheme();
 
+  // Active Teacher Profile
+  const [activeTeacher] = useState<TeacherProfile | null>(() => authService.getActiveProfile());
+
   // 1. Selection State
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>('c_1');
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const [selectedDate, setSelectedDate] = useState<string>(() => getLocalDateString());
 
   // 2. Data State
   const [students, setStudents] = useState<Student[]>([]);
@@ -40,22 +48,31 @@ export const Attendance: React.FC = () => {
   const [newClassName, setNewClassName] = useState('');
   const [newClassGrade, setNewClassGrade] = useState('Class 1');
 
-  // Load Classes on mount
+  // Load Classes on mount & match active teacher's assigned grade
   useEffect(() => {
     const loadedClasses = attendanceService.getClasses();
     setClasses(loadedClasses);
-    if (loadedClasses.length > 0 && !loadedClasses.find(c => c.id === selectedClassId)) {
-      setSelectedClassId(loadedClasses[0].id);
+    if (loadedClasses.length > 0) {
+      if (activeTeacher?.assignedGrade) {
+        const matched = loadedClasses.find(c => c.grade.toLowerCase().includes(activeTeacher.assignedGrade.toLowerCase()) || activeTeacher.assignedGrade.toLowerCase().includes(c.grade.toLowerCase()));
+        if (matched) {
+          setSelectedClassId(matched.id);
+          return;
+        }
+      }
+      if (!loadedClasses.find(c => c.id === selectedClassId)) {
+        setSelectedClassId(loadedClasses[0].id);
+      }
     }
-  }, []);
+  }, [activeTeacher]);
 
-  // Reload Students & Attendance Record whenever class or date changes
+  // Reload Students & Attendance Record whenever class, date, or active teacher changes
   useEffect(() => {
     if (!selectedClassId) return;
     const loadedStudents = attendanceService.getStudents(selectedClassId);
     setStudents(loadedStudents);
 
-    const record = attendanceService.getAttendanceRecord(selectedClassId, selectedDate);
+    const record = attendanceService.getAttendanceRecord(selectedClassId, selectedDate, activeTeacher?.id);
     // Ensure all current students have a status
     const mergedStatuses: Record<string, AttendanceStatus> = { ...record.statuses };
     loadedStudents.forEach(st => {
@@ -64,7 +81,7 @@ export const Attendance: React.FC = () => {
       }
     });
     setStatuses(mergedStatuses);
-  }, [selectedClassId, selectedDate]);
+  }, [selectedClassId, selectedDate, activeTeacher?.id]);
 
   // Handle Status Change for a Student
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
@@ -85,16 +102,60 @@ export const Attendance: React.FC = () => {
     setStatuses(allP);
   };
 
-  // Save Attendance to localStorage
+  // Mark All Absent
+  const handleMarkAllAbsent = () => {
+    sfx.playTap();
+    const allA: Record<string, AttendanceStatus> = {};
+    students.forEach(st => {
+      allA[st.id] = 'absent';
+    });
+    setStatuses(allA);
+  };
+
+  // Export Attendance Register as CSV
+  const handleExportCsv = () => {
+    sfx.playTap();
+    const activeClassObj = classes.find(c => c.id === selectedClassId);
+    if (!activeClassObj || students.length === 0) return;
+    const headers = ['Roll No', 'Student Name', 'Gender', 'Mother Tongue', 'Status', 'Date', 'Class', 'Teacher Name', 'e-Vidyavahini ID'];
+    const teacherName = activeTeacher ? activeTeacher.name : 'Teacher';
+    const teacherIdStr = activeTeacher ? activeTeacher.teacherId : '';
+    const rows = students.map(st => [
+      st.rollNo,
+      `"${st.name.replace(/"/g, '""')}"`,
+      st.gender,
+      st.motherTongue,
+      statuses[st.id] || 'present',
+      selectedDate,
+      `"${activeClassObj.name}"`,
+      `"${teacherName}"`,
+      `"${teacherIdStr}"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const safeTeacher = (activeTeacher ? activeTeacher.name : 'Teacher').replace(/\s+/g, '_');
+    link.setAttribute('download', `Attendance_${safeTeacher}_${activeClassObj.name.replace(/\s+/g, '_')}_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Save Attendance to localStorage, scoped to active teacher
   const handleSaveAttendance = () => {
     sfx.playSuccess();
     const record: DailyAttendanceRecord = {
       date: selectedDate,
       classId: selectedClassId,
+      teacherId: activeTeacher?.id,
+      teacherName: activeTeacher?.name,
       statuses,
       updatedAt: new Date().toISOString(),
     };
-    attendanceService.saveAttendanceRecord(record);
+    attendanceService.saveAttendanceRecord(record, activeTeacher?.id);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
   };
@@ -178,10 +239,10 @@ export const Attendance: React.FC = () => {
     return { total, present, absent, leave, percent, langCounts };
   }, [students, statuses]);
 
-  // Attendance History
+  // Attendance History filtered by active teacher
   const history = useMemo(() => {
-    return attendanceService.getClassHistory(selectedClassId);
-  }, [selectedClassId, saveSuccess]);
+    return attendanceService.getClassHistory(selectedClassId, activeTeacher?.id);
+  }, [selectedClassId, activeTeacher?.id, saveSuccess]);
 
   const activeClassObj = classes.find(c => c.id === selectedClassId);
 
@@ -197,7 +258,16 @@ export const Attendance: React.FC = () => {
           <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f2744', margin: 0 }}>
             छात्र उपस्थिति पंजी (Student Attendance)
           </h1>
-          <p style={{ fontSize: '0.85rem', color: isDarkMode ? '#94a3b8' : '#64748b', margin: '3px 0 0' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginTop: '6px', backgroundColor: isDarkMode ? '#1e293b' : '#f0fdf4', border: `1px solid ${isDarkMode ? '#334155' : '#86efac'}`, padding: '4px 10px', borderRadius: '10px' }}>
+            <span style={{ fontSize: '1rem' }}>🧑‍🏫</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: isDarkMode ? '#86efac' : '#15803d' }}>
+              शिक्षक: {activeTeacher ? activeTeacher.name : 'Teacher'} ({activeTeacher?.teacherId || 'EVV-JH-000000'})
+            </span>
+            <span style={{ fontSize: '0.74rem', color: isDarkMode ? '#94a3b8' : '#166534', opacity: 0.85 }}>
+              • व्यक्तिगत रजिस्टर
+            </span>
+          </div>
+          <p style={{ fontSize: '0.85rem', color: isDarkMode ? '#94a3b8' : '#64748b', margin: '4px 0 0' }}>
             100% ऑफ़लाइन सुरक्षित • मातृभाषा ट्रैकिंग (Santali, Ho, Mundari) • NIPUN FLN उपस्थिति
           </p>
         </div>
@@ -318,7 +388,7 @@ export const Attendance: React.FC = () => {
               <button
                 onClick={() => {
                   sfx.playTap();
-                  setSelectedDate(new Date().toISOString().split('T')[0]);
+                  setSelectedDate(getLocalDateString());
                 }}
                 style={{
                   background: 'none',
@@ -336,8 +406,9 @@ export const Attendance: React.FC = () => {
               <button
                 onClick={() => {
                   sfx.playTap();
-                  const yesterday = new Date(Date.now() - 86400000);
-                  setSelectedDate(yesterday.toISOString().split('T')[0]);
+                  const yesterday = new Date();
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  setSelectedDate(getLocalDateString(yesterday));
                 }}
                 style={{
                   background: 'none',
@@ -456,9 +527,10 @@ export const Attendance: React.FC = () => {
             {activeClassObj?.name} — {selectedDate}
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={handleMarkAllPresent}
+              title="Mark all students in this class as present"
               style={{
                 backgroundColor: '#22c55e',
                 color: '#ffffff',
@@ -473,7 +545,47 @@ export const Attendance: React.FC = () => {
                 gap: '4px',
               }}
             >
-              ✅ सब उपस्थित (All Present)
+              ✅ सब उपस्थित
+            </button>
+
+            <button
+              onClick={handleMarkAllAbsent}
+              title="Mark all students as absent"
+              style={{
+                backgroundColor: '#ef4444',
+                color: '#ffffff',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              ❌ सब अनुपस्थित
+            </button>
+
+            <button
+              onClick={handleExportCsv}
+              title="Download offline CSV register for school records"
+              style={{
+                backgroundColor: '#0284c7',
+                color: '#ffffff',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              📄 CSV Export
             </button>
 
             <button

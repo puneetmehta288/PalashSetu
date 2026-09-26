@@ -4,6 +4,7 @@ import { speakText } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import { authService, TeacherProfile } from '../services/authService';
 import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
+import { telemetryService, TelemetryRecord } from '../services/telemetryService';
 
 export const JHARKHAND_TRIBAL_DISTRICTS = [
   { name: 'Dumka', sat: 'ᱫᱩᱢᱠᱟᱹ', region: 'Santhal Pargana' },
@@ -49,6 +50,65 @@ const Settings: React.FC = () => {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isPlayingTest, setIsPlayingTest] = useState(false);
 
+  // 5. Store-and-Forward Telemetry states
+  const [telemetryQueue, setTelemetryQueue] = useState<TelemetryRecord[]>(() => telemetryService.getQueue());
+  const [isSyncingTelemetry, setIsSyncingTelemetry] = useState(false);
+  const [telemetrySyncMessage, setTelemetrySyncMessage] = useState<string | null>(null);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState<boolean>(() => telemetryService.isAutoSyncEnabled());
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => telemetryService.getLastSyncTime());
+  const [showQueueTimeline, setShowQueueTimeline] = useState(false);
+
+  const refreshTelemetryState = () => {
+    setTelemetryQueue(telemetryService.getQueue());
+    setLastSyncTime(telemetryService.getLastSyncTime());
+  };
+
+  const handleSyncTelemetry = async () => {
+    sfx.playTap();
+    setIsSyncingTelemetry(true);
+    setTelemetrySyncMessage(null);
+    try {
+      const res = await telemetryService.pushTelemetryToHub();
+      if (res.success) {
+        sfx.playSuccess();
+        setTelemetrySyncMessage(`✅ Synced ${res.pushedCount} sentence(s) to PalashCentralHub! Local items purged.`);
+      } else {
+        setTelemetrySyncMessage(`⚠️ Sync failed: ${res.error || 'Server unreachable'}. Sentences remain stored offline.`);
+      }
+    } catch (e: any) {
+      setTelemetrySyncMessage(`⚠️ Error: ${e?.message || 'Network error'}. Sentences remain stored offline.`);
+    } finally {
+      setIsSyncingTelemetry(false);
+      refreshTelemetryState();
+      setTimeout(() => setTelemetrySyncMessage(null), 7000);
+    }
+  };
+
+  const handleToggleAutoSync = () => {
+    const next = !autoSyncEnabled;
+    setAutoSyncEnabled(next);
+    telemetryService.setAutoSyncEnabled(next);
+  };
+
+  const handleClearTelemetryQueue = () => {
+    if (window.confirm('Are you sure you want to clear all local classroom sentence logs?')) {
+      sfx.playTap();
+      telemetryService.clearQueue();
+      refreshTelemetryState();
+    }
+  };
+
+  const handleExportTelemetry = () => {
+    sfx.playTap();
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(telemetryService.exportToJSON());
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `palash_telemetry_${teacherId}_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
   // Sync state if active profile changes
   useEffect(() => {
     const profile = authService.getActiveProfile();
@@ -60,6 +120,7 @@ const Settings: React.FC = () => {
       setBlockName(profile.block);
       setPrimaryClass(profile.assignedGrade);
     }
+    refreshTelemetryState();
   }, []);
 
   const handleSaveSettings = (e: React.FormEvent) => {
@@ -479,7 +540,211 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        {/* ─── SECTION 3: SYSTEM HEALTH & OFFLINE DIAGNOSTICS ─── */}
+        {/* ─── SECTION 3: CLASSROOM TELEMETRY & PALASH CENTRAL HUB SYNC ─── */}
+        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.3rem' }}>📡</span>
+              <div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f2744', margin: 0 }}>
+                  Store-and-Forward Classroom Telemetry
+                </h2>
+                <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                  Locally buffers spoken classroom phrases; syncs to PalashCentralHub when online.
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                padding: '4px 12px',
+                borderRadius: '20px',
+                backgroundColor: telemetryQueue.length > 0 ? '#fff7ed' : '#f0fdf4',
+                color: telemetryQueue.length > 0 ? '#c2410c' : '#15803d',
+                border: `1px solid ${telemetryQueue.length > 0 ? '#fed7aa' : '#bbf7d0'}`
+              }}>
+                {telemetryQueue.length} {telemetryQueue.length === 1 ? 'Sentence' : 'Sentences'} in Local Queue
+              </span>
+            </div>
+          </div>
+
+          {telemetrySyncMessage && (
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              backgroundColor: telemetrySyncMessage.startsWith('✅') ? '#f0fdf4' : '#fffbeb',
+              border: `1px solid ${telemetrySyncMessage.startsWith('✅') ? '#bbf7d0' : '#fde68a'}`,
+              color: telemetrySyncMessage.startsWith('✅') ? '#15803d' : '#b45309',
+              fontSize: '0.84rem',
+              fontWeight: 700
+            }}>
+              {telemetrySyncMessage}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+            {/* Sync Now Action Card */}
+            <div style={{ padding: '14px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '10px' }}>
+              <div>
+                <div style={{ fontWeight: 800, color: '#0f2744', fontSize: '0.92rem' }}>
+                  🚀 Push to PalashCentralHub
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                  Uploads queued classroom Hindi/tribal sentences to central state hub. Sent records are automatically purged from tablet storage.
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSyncTelemetry}
+                disabled={isSyncingTelemetry || telemetryQueue.length === 0}
+                style={{
+                  backgroundColor: telemetryQueue.length === 0 ? '#cbd5e1' : '#ed8936',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '9px 16px',
+                  borderRadius: '10px',
+                  fontWeight: 800,
+                  fontSize: '0.84rem',
+                  cursor: telemetryQueue.length === 0 ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: telemetryQueue.length === 0 ? 'none' : '0 2px 6px rgba(237,137,54,0.3)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>{isSyncingTelemetry ? '⏳ Pushing to Hub...' : '🚀 Sync Now to Hub'}</span>
+              </button>
+            </div>
+
+            {/* Offline Audit & Export */}
+            <div style={{ padding: '14px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '10px' }}>
+              <div>
+                <div style={{ fontWeight: 800, color: '#0f2744', fontSize: '0.92rem' }}>
+                  📥 Offline Field Auditor Export
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                  Export sentence logs directly for visiting CRC/BPO officers without needing active internet connection.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={handleExportTelemetry}
+                  disabled={telemetryQueue.length === 0}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    color: '#334155',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    cursor: telemetryQueue.length === 0 ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  💾 Download JSON
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowQueueTimeline(!showQueueTimeline)}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    color: '#334155',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showQueueTimeline ? 'Hide' : '👁️ View'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Sync Preferences & Last Synced */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f1f5f9', padding: '10px 14px', borderRadius: '10px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                type="checkbox"
+                id="telemetry_autosync"
+                checked={autoSyncEnabled}
+                onChange={handleToggleAutoSync}
+                style={{ width: '16px', height: '16px', accentColor: '#ed8936', cursor: 'pointer' }}
+              />
+              <label htmlFor="telemetry_autosync" style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
+                Auto-sync in background whenever internet / WiFi becomes available
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                Last synced: {lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}
+              </span>
+              {telemetryQueue.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearTelemetryQueue}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#dc2626',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  Clear Queue
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Collapsible Timeline of Queued Phrases */}
+          {showQueueTimeline && (
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+              <div style={{ backgroundColor: '#f8fafc', padding: '8px 14px', fontWeight: 800, fontSize: '0.82rem', color: '#0f2744', borderBottom: '1px solid #e2e8f0' }}>
+                Queued Classroom Sentences Timeline ({telemetryQueue.length})
+              </div>
+              <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                {telemetryQueue.length === 0 ? (
+                  <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem' }}>
+                    No phrases pending sync in tablet queue.
+                  </div>
+                ) : (
+                  telemetryQueue.map((item, i) => (
+                    <div key={item.id || i} style={{ padding: '8px 14px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#0f2744' }}>"{item.sourceText}"</div>
+                        <div style={{ color: '#c05621', fontSize: '0.78rem' }}>➔ {item.translatedText}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '6px', backgroundColor: item.confidence === 'verified' ? '#f0fdf4' : '#fff7ed', color: item.confidence === 'verified' ? '#15803d' : '#c2410c', fontWeight: 700 }}>
+                          {item.confidence}
+                        </span>
+                        <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '2px' }}>
+                          {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ─── SECTION 4: SYSTEM HEALTH & OFFLINE DIAGNOSTICS ─── */}
         <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
             <span style={{ fontSize: '1.3rem' }}>📊</span>

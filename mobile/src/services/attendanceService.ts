@@ -32,6 +32,8 @@ export interface ClassRoom {
 export interface DailyAttendanceRecord {
   date: string; // YYYY-MM-DD
   classId: string;
+  teacherId?: string; // Scoped per teacher profile
+  teacherName?: string;
   statuses: Record<string, AttendanceStatus>; // studentId -> status
   updatedAt: string;
   notes?: string;
@@ -175,11 +177,13 @@ class AttendanceService {
   }
 
   /**
-   * Get or initialize attendance record for a class on a specific date
+   * Get or initialize attendance record for a class on a specific date, scoped by teacher ID.
+   * Each teacher profile maintains their own distinct attendance register.
    */
-  getAttendanceRecord(classId: string, date: string): DailyAttendanceRecord {
+  getAttendanceRecord(classId: string, date: string, teacherId?: string): DailyAttendanceRecord {
     const allRecords = this.getAllRecords();
-    const key = `${classId}_${date}`;
+    const tId = teacherId || 'shared_default';
+    const key = `${tId}_${classId}_${date}`;
     if (allRecords[key]) {
       return allRecords[key];
     }
@@ -194,17 +198,20 @@ class AttendanceService {
     const newRecord: DailyAttendanceRecord = {
       date,
       classId,
+      teacherId: tId,
       statuses: initialStatuses,
       updatedAt: new Date().toISOString(),
     };
     return newRecord;
   }
 
-  saveAttendanceRecord(record: DailyAttendanceRecord): void {
+  saveAttendanceRecord(record: DailyAttendanceRecord, teacherId?: string): void {
     const allRecords = this.getAllRecords();
-    const key = `${record.classId}_${record.date}`;
+    const tId = teacherId || record.teacherId || 'shared_default';
+    const key = `${tId}_${record.classId}_${record.date}`;
     allRecords[key] = {
       ...record,
+      teacherId: tId,
       updatedAt: new Date().toISOString(),
     };
     localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(allRecords));
@@ -221,12 +228,13 @@ class AttendanceService {
   }
 
   /**
-   * Get attendance history list for a class
+   * Get attendance history list for a class, filtered by teacher ID
    */
-  getClassHistory(classId: string): DailyAttendanceRecord[] {
+  getClassHistory(classId: string, teacherId?: string): DailyAttendanceRecord[] {
     const allRecords = this.getAllRecords();
+    const tId = teacherId || 'shared_default';
     return Object.values(allRecords)
-      .filter(r => r.classId === classId)
+      .filter(r => r.classId === classId && (r.teacherId === tId || (!r.teacherId && tId === 'shared_default')))
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 }

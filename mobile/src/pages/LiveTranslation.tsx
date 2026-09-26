@@ -7,7 +7,8 @@ import { COMPREHENSIVE_HINDI_TO_SANTALI } from '../data/santali_comprehensive_di
 import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
 import { HO_CATEGORIZED_PHRASES, translateHindiToHo, translateHoToHindi, HO_METADATA } from '../data/ho_dictionary';
 import { MUNDARI_CATEGORIZED_PHRASES, translateHindiToMundari, translateMundariToHindi, MUNDARI_METADATA } from '../data/mundari_dictionary';
-import { lookupSentence, SENTENCE_BANK } from '../data/sentence_bank';
+import { lookupSentence, lookupSentenceReverse, SENTENCE_BANK } from '../data/sentence_bank';
+import { telemetryService } from '../services/telemetryService';
 
 // Comprehensive Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
@@ -77,10 +78,91 @@ const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
   'मैं': 'ᱤᱧ', 'तुम': 'ᱟᱢ', 'हम': 'ᱟᱵᱚ', 'घर': 'ᱚᱲᱟᱜ', 'सुंदर': 'ᱪᱚᱨᱚᱠ',
 };
 
+const PRIMARY_SANTALI_TO_HINDI: Record<string, string> = {
+  // Prevent obscure dictionary collisions (e.g. पुस्तक overwriting किताब, वर्षा overwriting पानी, संज्ञा overwriting नाम, वृक्ष overwriting पेड़)
+  'ᱯᱩᱛᱷᱤ': 'किताब',
+  'ᱫᱟᱜ': 'पानी',
+  'ᱫᱟᱨᱮ': 'पेड़',
+  'ᱧᱩᱛᱩᱢ': 'नाम',
+  'ᱟᱨ': 'और',
+  'ᱟᱢᱟᱜ': 'अपनी',
+  'ᱟᱢ': 'तुम',
+  'ᱟᱵᱚ': 'हम',
+  'ᱤᱧ': 'मैं',
+  'ᱱᱚᱣᱟ': 'यह',
+  'ᱚᱱᱟ': 'वह',
+  'ᱱᱚᱣᱟᱠᱚ': 'ये',
+  'ᱚᱱᱟᱠᱚ': 'वे',
+  'ᱜᱤᱫᱽᱨᱟᱹᱠᱚ': 'बच्चों',
+  'ᱜᱤᱫᱽᱨᱟᱹ': 'बच्चा',
+  'ᱢᱟᱪᱮᱛ': 'शिक्षक',
+  'ᱟᱥᱲᱟ': 'स्कूल',
+  'ᱠᱚᱞᱚᱢ': 'कलम',
+  'ᱡᱚᱦᱟᱨ': 'नमस्ते',
+  'ᱥᱟᱨᱦᱟᱣ': 'धन्यवाद',
+  'ᱦᱚᱭ': 'हाँ',
+  'ᱵᱟᱝ': 'नहीं',
+  'ᱪᱮᱫ': 'क्या',
+  'ᱚᱠᱟᱨᱮ': 'कहाँ',
+  'ᱚᱠᱚᱭ': 'कौन',
+  'ᱵᱮᱥ': 'अच्छा',
+  'ᱥᱟᱵᱟᱥ': 'शाबाश',
+  'ᱢᱟᱨᱟᱝ': 'बड़ा',
+  'ᱦᱩᱰᱤᱧ': 'छोटा',
+  'ᱪᱚᱨᱚᱠ': 'सुंदर',
+  'ᱚᱲᱟᱜ': 'घर',
+  'ᱢᱤᱫ': 'एक',
+  'ᱵᱟᱨ': 'दो',
+  'ᱯᱮ': 'तीन',
+  'ᱯᱩᱱ': 'चार',
+  'ᱢᱚᱬᱮ': 'पाँच',
+  'ᱛᱩᱨᱩᱭ': 'छह',
+  'ᱮᱨᱟᱭ': 'सात',
+  'ᱮᱭᱟᱭ': 'सात',
+  'ᱤᱨᱟᱹᱞ': 'आठ',
+  'ᱤᱨᱞ': 'आठ',
+  'ᱟᱨᱮ': 'नौ',
+  'ᱜᱮᱞ': 'दस',
+  'ᱜᱟᱹᱭ': 'गाय',
+  'ᱢᱮᱨᱚᱢ': 'बकरी',
+  'ᱦᱟᱹᱛᱤ': 'हाथी',
+  'ᱥᱮᱛᱟ': 'कुत्ता',
+  'ᱯᱩᱥᱤ': 'बिल्ली',
+  'ᱥᱮᱣ': 'सेब',
+  'ᱠᱟᱭᱨᱟ': 'केला',
+  'ᱪᱮᱬᱮ': 'चिड़िया',
+  'ᱦᱟᱹᱠᱩ': 'मछली',
+  'ᱠᱷᱚᱱ': 'से',
+  'ᱦᱟᱹᱵᱤᱡ': 'तक',
+  'ᱨᱮ': 'पर',
+  'ᱨᱮᱭᱟᱜ': 'का',
+  'ᱠᱚ': 'को',
+  'ᱠᱟᱱᱟ': 'है',
+  'ᱠᱟᱱᱟᱠᱚ': 'हैं',
+  'ᱛᱟᱦᱮᱸᱠᱟᱱᱟ': 'था',
+  'ᱛᱮᱦᱮᱧ': 'आज',
+  'ᱜᱟᱯᱟ': 'कल',
+  'ᱞᱮᱠᱷᱟ': 'गिनती',
+  'ᱮᱞᱠᱷᱟ': 'संख्या',
+  'ᱫᱩᱲᱩᱵ': 'बैठना',
+  'ᱛᱤ': 'हाथ',
+  'ᱡᱟᱝᱜᱟ': 'पैर',
+  'ᱵᱚᱦᱚᱜ': 'सिर',
+  'ᱢᱮᱫ': 'आंख',
+  'ᱞᱩᱛᱩᱨ': 'कान',
+  'ᱢᱩᱸ': 'नाक',
+  'ᱢᱚᱪᱟ': 'मुंह',
+  'ᱰᱟᱴᱟ': 'दांत',
+  'ᱞᱟᱡ': 'पेट'
+};
+
 const CLIENT_SANTALI_TO_HINDI: Record<string, string> = {};
+// 1. Bulk reverse from comprehensive dictionary
 Object.entries(CLIENT_HINDI_TO_SANTALI).forEach(([hin, sat]) => {
   CLIENT_SANTALI_TO_HINDI[sat] = hin;
 });
+// 2. High-priority standard canonical overrides
+Object.assign(CLIENT_SANTALI_TO_HINDI, PRIMARY_SANTALI_TO_HINDI);
 
 const CATEGORIZED_PHRASES = {
   greetings: [
@@ -136,6 +218,7 @@ const LiveTranslation: React.FC = () => {
   const [pronunciation, setPronunciation] = useState('');
   const [activeModel, setActiveModel] = useState('⚡ Palash On-Device Engine (7,500+ Offline Vocab)');
   const [latencyMs, setLatencyMs] = useState<number>(0);
+  const [confidence, setConfidence] = useState<'verified' | 'lexicon' | 'partial' | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [phraseCategory, setPhraseCategory] = useState<'greetings' | 'commands' | 'numeracy' | 'responses'>('greetings');
   const [showOfflineModal, setShowOfflineModal] = useState(false);
@@ -161,6 +244,7 @@ const LiveTranslation: React.FC = () => {
     setSourceText('');
     setTranslatedText('');
     setPronunciation('');
+    setConfidence(null);
   };
 
   const { isListening, startListening, stopListening, transcript, error: speechError, isSupported: isSpeechSupported } = useSpeechRecognition();
@@ -256,6 +340,10 @@ const GRAMMAR_PARTICLES: Record<string, string> = {
 };
 
 const REVERSE_PHRASE_PATTERNS: Array<[RegExp, string]> = [
+  [/ᱫᱟᱨᱮ\s+ᱪᱮᱛᱟᱱ\s+ᱨᱮ\s+ᱯᱮ\s+ᱪᱮᱬᱮ\s+ᱫᱩᱲᱩᱵ\s+ᱠᱮᱫᱼᱟ\s+ᱠᱟᱱᱟᱠᱚ[।.]?/gi, 'पेड़ पर तीन चिड़िया बैठी हैं।'],
+  [/ᱪᱮᱛᱟᱱ\s+ᱨᱮ/gi, 'पर '],
+  [/ᱫᱩᱲᱩᱵ\s+ᱠᱮᱫᱼᱟ/gi, 'बैठी '],
+  [/ᱫᱩᱲᱩᱵ\s+ᱠᱮᱫ\s+ᱠᱚ/gi, 'बैठे '],
   [/["'“”«»]?ᱡᱚᱦᱟᱨ\s+ᱜᱤᱫᱽᱨᱟᱹᱠᱚ[!।,.\s"'“”«»]*/gi, 'नमस्ते बच्चों! '],
   [/["'“”«»]?ᱡᱚᱦᱟᱨ\s+ᱢᱟᱪᱮᱛ[!।,.\s"'“”«»]*/gi, 'नमस्ते शिक्षक! '],
   [/ᱛᱮᱦᱮᱧ\s+ᱟᱵᱚ/gi, 'आज हम '],
@@ -357,22 +445,30 @@ const REVERSE_GRAMMAR_PARTICLES: Record<string, string> = {
   'ᱫᱟᱜ': 'पानी',
 };
 
-const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): string => {
+interface ClientTranslationOutput {
+  text: string;
+  confidence: 'verified' | 'lexicon' | 'partial';
+}
+
+const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): ClientTranslationOutput => {
   // Strip outer quotes and normalize
   let cleanInput = text.replace(/^["'“”«»\s]+|["'“”«»\s]+$/g, '').trim();
-  if (!cleanInput) return '';
+  if (!cleanInput) return { text: '', confidence: 'lexicon' };
 
   const activeDict = currentMode === 'teacher' ? CLIENT_HINDI_TO_SANTALI : CLIENT_SANTALI_TO_HINDI;
 
-  // 0. Sentence bank lookup (teacher+santali mode only) — 300+ validated full sentences
+  // 0. Sentence bank lookup (300+ validated full classroom sentences)
   if (currentMode === 'teacher') {
     const bankResult = lookupSentence(cleanInput);
-    if (bankResult) return bankResult;
+    if (bankResult) return { text: bankResult, confidence: 'verified' };
+  } else {
+    const reverseBankResult = lookupSentenceReverse(cleanInput);
+    if (reverseBankResult) return { text: reverseBankResult, confidence: 'verified' };
   }
 
   // 1. Direct dictionary match
   if (activeDict[cleanInput]) {
-    return activeDict[cleanInput];
+    return { text: activeDict[cleanInput], confidence: 'lexicon' };
   }
 
   // 2. Phrase-level substitution (Longest Match First)
@@ -386,6 +482,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
   const words = workingText.split(/\s+/);
   const resultWords: string[] = [];
   const activeGrammar = currentMode === 'teacher' ? GRAMMAR_PARTICLES : REVERSE_GRAMMAR_PARTICLES;
+  let hasUnmappedTokens = false;
 
   for (const w of words) {
     const punct = w.match(/[।,?!.:;"'()]+/g)?.[0] || '';
@@ -414,6 +511,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
     } else if (activeDict[w]) {
       resultWords.push(activeDict[w]);
     } else {
+      hasUnmappedTokens = true;
       if (currentMode === 'teacher') {
         resultWords.push(transliterateDevanagariToOlChiki(cleanWord) + punct);
       } else {
@@ -428,7 +526,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
   } else {
     joined = convertOlChikiToDigits(joined).replace(/।᱾/g, '।').replace(/᱾/g, '।');
   }
-  return joined;
+  return { text: joined, confidence: hasUnmappedTokens ? 'partial' : 'lexicon' };
 };
 
   const computePhonetic = (input: string, output: string, currentMode: 'teacher' | 'student'): string => {
@@ -460,9 +558,11 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
       let phonetic = '';
 
       if (selectedLanguage === 'santali') {
-        clientTranslated = translateClientSide(rawInput, mode);
+        const out = translateClientSide(rawInput, mode);
+        clientTranslated = out.text;
+        setConfidence(out.confidence);
         phonetic = computePhonetic(rawInput, clientTranslated, mode);
-        setActiveModel('⚡ Palash On-Device Engine (Santali • 7,500+ Ol Chiki Vocab)');
+        setActiveModel('⚡ Palash Edge Linguistic Engine (Santali • Ol Chiki)');
       } else if (selectedLanguage === 'ho') {
         if (mode === 'teacher') {
           const res = translateHindiToHo(rawInput);
@@ -473,7 +573,8 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           clientTranslated = res.translation;
           phonetic = res.translation;
         }
-        setActiveModel('⚡ Palash On-Device Engine (Ho • Kolhan Warang Citi & Devanagari)');
+        setConfidence('partial');
+        setActiveModel('⚡ Palash Edge Pilot Engine (Ho • Devanagari)');
       } else {
         if (mode === 'teacher') {
           const res = translateHindiToMundari(rawInput);
@@ -484,7 +585,8 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           clientTranslated = res.translation;
           phonetic = res.translation;
         }
-        setActiveModel('⚡ Palash On-Device Engine (Mundari • Chotanagpur Nagari & Bani)');
+        setConfidence('partial');
+        setActiveModel('⚡ Palash Edge Pilot Engine (Mundari • Devanagari)');
       }
 
       const elapsed = Math.max(1, Math.round(performance.now() - startTime));
@@ -503,6 +605,21 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setConversation((prev) => [newTurn, ...prev]);
+
+      // 📡 Log to Offline Classroom Store-and-Forward Telemetry Queue
+      try {
+        const outConf = selectedLanguage === 'santali' ? (translateClientSide(rawInput, mode).confidence || 'lexicon') : 'partial';
+        telemetryService.logSentence({
+          sourceText: rawInput,
+          translatedText: clientTranslated,
+          language: selectedLanguage,
+          mode,
+          confidence: outConf,
+          source: transcript ? 'voice' : 'manual',
+        });
+      } catch (telErr) {
+        console.warn('[Telemetry] Log failed:', telErr);
+      }
 
       // 🎙️ AUTOMATIC VOICE PLAYBACK: Speak translated voice out loud immediately
       if (clientTranslated) {
@@ -828,6 +945,7 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
                   setSourceText('');
                   setTranslatedText('');
                   setPronunciation('');
+                  setConfidence(null);
                 }}
                 style={{
                   padding: '12px 16px',
@@ -859,15 +977,32 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           }}
         >
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '6px' }}>
               <span style={{ fontWeight: 700, fontSize: '0.95rem', color: mode === 'teacher' ? '#c05621' : '#0f2744' }}>
                 {mode === 'teacher' ? `🔤 ${TRIBAL_LANGUAGES[selectedLanguage].name} Translation (${TRIBAL_LANGUAGES[selectedLanguage].script})` : '🇮🇳 Hindi Translation (देवनागरी)'}
               </span>
-              {latencyMs > 0 && (
-                <span style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 700, backgroundColor: '#f0fdf4', padding: '2px 8px', borderRadius: '10px' }}>
-                  ⏱️ {latencyMs} ms lookup
-                </span>
-              )}
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                {confidence === 'verified' && (
+                  <span style={{ fontSize: '0.74rem', color: '#15803d', fontWeight: 700, backgroundColor: '#dcfce7', border: '1px solid #86efac', padding: '2px 7px', borderRadius: '10px' }}>
+                    ✓ Verified Sentence
+                  </span>
+                )}
+                {confidence === 'lexicon' && (
+                  <span style={{ fontSize: '0.74rem', color: '#1d4ed8', fontWeight: 700, backgroundColor: '#dbeafe', border: '1px solid #93c5fd', padding: '2px 7px', borderRadius: '10px' }}>
+                    📖 Lexicon Match
+                  </span>
+                )}
+                {confidence === 'partial' && (
+                  <span style={{ fontSize: '0.74rem', color: '#c2410c', fontWeight: 700, backgroundColor: '#ffedd5', border: '1px solid #fed7aa', padding: '2px 7px', borderRadius: '10px' }}>
+                    ⚡ Rule Fallback
+                  </span>
+                )}
+                {latencyMs > 0 && (
+                  <span style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 700, backgroundColor: '#f0fdf4', padding: '2px 8px', borderRadius: '10px' }}>
+                    ⏱️ {latencyMs} ms
+                  </span>
+                )}
+              </div>
             </div>
 
             <div
@@ -1156,6 +1291,20 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
                     setLatencyMs(1);
                     setActiveModel(`⚡ Palash On-Device Engine (Hindi ➔ ${TRIBAL_LANGUAGES[selectedLanguage].name})`);
                     speakText(phrase.pronunciation || tribalText);
+                  }
+
+                  // 📡 Log phrasebook selection to telemetry
+                  try {
+                    telemetryService.logSentence({
+                      sourceText: mode === 'student' ? tribalText : hindiText,
+                      translatedText: mode === 'student' ? hindiText : tribalText,
+                      language: selectedLanguage,
+                      mode,
+                      confidence: 'verified',
+                      source: 'phrasebook',
+                    });
+                  } catch (e) {
+                    console.warn('[Telemetry] Log failed:', e);
                   }
                 }}
                 style={{

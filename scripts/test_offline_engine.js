@@ -148,6 +148,8 @@ assert('Phrase: अपनी किताब खोलो', translate('अपन
 assert('Phrase: बैठ जाओ', translate('बैठ जाओ'), 'ᱫᱩᱲᱩᱵᱽ ᱢᱮ');
 assert('Phrase: खड़े हो जाओ', translate('खड़े हो जाओ'), 'ᱛᱤᱸᱜᱩᱱ ᱢᱮ');
 assert('Phrase: बहुत अच्छा', translate('बहुत अच्छा'), 'ᱟᱹᱰᱤ ᱵᱮᱥ');
+assert('Regression: किताब translates to ᱯᱩᱛᱷᱤ (not full sentence)', translate('किताब'), 'ᱯᱩᱛᱷᱤ');
+assert('Regression: पेड़ पर तीन चिड़िया बैठी हैं does not collapse to ᱯᱮ', translate('पेड़ पर तीन चिड़िया बैठी हैं'), val => val !== 'ᱯᱮ' && val.includes('ᱯᱮ'));
 
 // Category 2: Pronouns & Abstract Nouns
 assert('Phrase: आपकी किस्मत', translate('आपकी किस्मत'), 'ᱟᱢᱟᱜ ᱠᱚᱯᱟᱲ');
