@@ -516,7 +516,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   // ─── DELETE: Reset store ───
   if (req.method === 'DELETE') {
     const key = req.query?.key;
-    if (key !== 'palashsetu-admin') {
+    if (key !== 'palashsetu-admin' && key !== 'palashvani-admin') {
       return res.status(403).json({ error: 'Unauthorized: admin key required' });
     }
     global.__palashTelemetry = [...DEFAULT_BASELINE_TELEMETRY];

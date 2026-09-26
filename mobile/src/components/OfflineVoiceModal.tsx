@@ -32,7 +32,7 @@ export const OfflineVoiceModal: React.FC<OfflineVoiceModalProps> = ({ isOpen, on
 
   const handleTestAudio = () => {
     sfx.playSuccess();
-    speakText('ᱡᱚᱦᱟᱨ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ! ᱯᱟᱞᱟᱥ ᱥᱮᱛᱩ ᱨᱮ ᱥᱟᱹᱜᱩᱱ ᱫᱟᱨᱟᱢ।', { rate: 0.85 });
+    speakText('ᱡᱚᱦᱟᱨ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ! ᱯᱟᱞᱟᱥ ᱣᱟᱬᱤ ᱨᱮ ᱥᱟᱹᱜᱩᱱ ᱫᱟᱨᱟᱢ।', { rate: 0.85 });
   };
 
   return (

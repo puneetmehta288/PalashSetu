@@ -110,7 +110,7 @@ const ReportIssue: React.FC<ReportIssueProps> = ({ activeTeacher }) => {
   const handleManualSync = async () => {
     setSyncing(true);
     sfx.playTap();
-    setSyncMessage('Transmitting to https://palashsetu-xi.vercel.app ...');
+    setSyncMessage('Transmitting to Central Hub ...');
     const res = await syncFeedback();
     await refreshAll();
     setSyncing(false);

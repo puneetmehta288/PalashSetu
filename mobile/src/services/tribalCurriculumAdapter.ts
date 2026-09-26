@@ -1,5 +1,5 @@
 /**
- * PalashSetu Universal Multilingual Curriculum Adapter
+ * Palash Vani Universal Multilingual Curriculum Adapter
  * ========================================================
  * Bridges ALL classroom content (JCERT Textbooks, Lesson Studio,
  * Worksheets, Flashcards, and Dashboard) dynamically into:

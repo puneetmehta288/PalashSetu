@@ -1,5 +1,5 @@
 /**
- * PalashSetu Master Hindi to Santali (Ol Chiki) Dictionary
+ * Palash Vani Master Hindi to Santali (Ol Chiki) Dictionary
  * ==========================================================
  * Total entries in file: 7503
  *   - Validated Hindi→Santali word/phrase pairs: ~2,500

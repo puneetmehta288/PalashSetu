@@ -1,5 +1,5 @@
 /**
- * PalashSetu Sound Effects (SFX) Engine
+ * Palash Vani Sound Effects (SFX) Engine
  * 
  * Uses HTML5 Web Audio API to synthesize zero-latency, offline sound effects
  * for educational interactions (tap, success chime, card flip, voice prompt).

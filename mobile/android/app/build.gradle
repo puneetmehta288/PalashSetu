@@ -29,7 +29,7 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "PalashSetu-v${variant.versionName}-${variant.buildType.name}.apk"
+            outputFileName = "PalashVani-v${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
 }

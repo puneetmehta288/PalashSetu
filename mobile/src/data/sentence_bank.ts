@@ -1,5 +1,5 @@
 /**
- * BhashaSetu — Pre-translated Hindi → Santali (Ol Chiki) Sentence Bank
+ * Palash Vani — Pre-translated Hindi → Santali (Ol Chiki) Sentence Bank
  * Source: AI4Bharat IndicTrans2 verified translations + FLN classroom corpus
  * Total: 300+ validated sentence pairs covering full NIPUN Bharat curriculum
  *

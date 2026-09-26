@@ -8,7 +8,7 @@
 import { Preferences } from '@capacitor/preferences';
 import { Network } from '@capacitor/network';
 
-const QUEUE_KEY = 'palashsetu_feedback_queue';
+const QUEUE_KEY = 'palashvani_feedback_queue';
 
 // Absolute Vercel URL — points to the live Vercel deployment
 const SYNC_ENDPOINT = 'https://palashsetu-xi.vercel.app/api/feedback';
@@ -45,7 +45,11 @@ export async function saveFeedbackLocally(
 
 // ── Get all unsent reports ────────────────────────────────────────────────────
 export async function getPendingFeedback(): Promise<FeedbackReport[]> {
-  const { value } = await Preferences.get({ key: QUEUE_KEY });
+  let { value } = await Preferences.get({ key: QUEUE_KEY });
+  if (!value) {
+    const legacy = await Preferences.get({ key: 'palashsetu_feedback_queue' });
+    value = legacy.value;
+  }
   if (!value) return [];
   try {
     return JSON.parse(value) as FeedbackReport[];

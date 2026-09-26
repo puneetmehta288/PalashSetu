@@ -15,8 +15,8 @@ export interface TeacherProfile {
   createdAt: string;
 }
 
-const STORAGE_KEY_PROFILES = 'palashsetu_teacher_profiles';
-const STORAGE_KEY_ACTIVE_SESSION = 'palashsetu_active_teacher_id';
+const STORAGE_KEY_PROFILES = 'palashvani_teacher_profiles';
+const STORAGE_KEY_ACTIVE_SESSION = 'palashvani_active_teacher_id';
 
 const AVATAR_COLORS = ['#1a365d', '#2b6cb0', '#2c7a7b', '#285e61', '#744210', '#6b46c1'];
 
@@ -41,7 +41,7 @@ export async function hashPin(pin: string): Promise<string> {
 export const authService = {
   getProfiles(): TeacherProfile[] {
     try {
-      const data = localStorage.getItem(STORAGE_KEY_PROFILES);
+      const data = localStorage.getItem(STORAGE_KEY_PROFILES) || localStorage.getItem('palashsetu_teacher_profiles');
       if (!data) {
         // Seed default demo teacher profile for instant evaluation
         const defaultProfiles: TeacherProfile[] = [
@@ -117,7 +117,7 @@ export const authService = {
   },
 
   getActiveProfile(): TeacherProfile | null {
-    const activeId = sessionStorage.getItem(STORAGE_KEY_ACTIVE_SESSION);
+    const activeId = sessionStorage.getItem(STORAGE_KEY_ACTIVE_SESSION) || sessionStorage.getItem('palashsetu_active_teacher_id');
     if (!activeId) {
       return null;
     }
@@ -127,7 +127,7 @@ export const authService = {
 
   setActiveSession(teacherId: string) {
     sessionStorage.setItem(STORAGE_KEY_ACTIVE_SESSION, teacherId);
-    try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); } catch {}
+    try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); localStorage.removeItem('palashsetu_active_teacher_id'); } catch {}
   },
 
   updateProfile(id: string, updates: Partial<TeacherProfile>): TeacherProfile | null {
@@ -141,6 +141,7 @@ export const authService = {
 
   logout() {
     sessionStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION);
-    try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); } catch {}
+    sessionStorage.removeItem('palashsetu_active_teacher_id');
+    try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); localStorage.removeItem('palashsetu_active_teacher_id'); } catch {}
   },
 };

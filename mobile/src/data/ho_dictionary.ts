@@ -1,5 +1,5 @@
 /**
- * PalashSetu Ho (ᱦᱳ / हो भाषा) Offline Edge Dictionary
+ * Palash Vani Ho (ᱦᱳ / हो भाषा) Offline Edge Dictionary
  * =======================================================
  * Tribal Region: Kolhan Division (West Singhbhum, East Singhbhum, Seraikela Kharsawan)
  * Script: Devanagari (हो) & Warang Citi (𑢹𑣉) / Phonetic Latin

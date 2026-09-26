@@ -1,5 +1,5 @@
 /**
- * PalashSetu Mundari (ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी भाषा) Offline Edge Dictionary
+ * Palash Vani Mundari (ᱢᱩᱱᱰᱟᱨᱤ / मुंडारी भाषा) Offline Edge Dictionary
  * ====================================================================
  * Tribal Region: South Chotanagpur (Ranchi, Khunti, Simdega, Gumla)
  * Script: Mundari Nagari / Devanagari & Mundari Bani / Phonetic Latin
