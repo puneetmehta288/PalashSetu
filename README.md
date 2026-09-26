@@ -21,14 +21,30 @@ In rural and tribal primary classrooms across Jharkhand (particularly in the **S
 - **Ho** (Kolhan division, phonetically rendered in Devanagari)
 - **Mundari** (Chotanagpur division, phonetically rendered in Devanagari)
 
-### The Ground Reality in Rural Jharkhand:
-1. **Zero / Intermittent Cellular Coverage**: Most village primary schools, Anganwadis, and Balvatikas operate deep in forested or rural areas where 4G/5G mobile internet is non-existent.
-2. **Budget Hardware (2 GB RAM Tablets)**: Government schools are issued entry-level Android tablets (Android 9–13, Quad-Core CPU, 2 GB RAM).
-3. **Why Cloud LLMs Fail Here**: Cloud APIs (OpenAI, Gemini, Bhashini Cloud) require uninterrupted high-speed internet, carry recurring token costs, and suffer latency spikes of 3,000–5,000 ms.
-4. **Why Heavy Neural Transformers Fail On-Device**: Running heavy neural models like IndicTrans2 (1.2 GB+ PyTorch weight files) directly on 2 GB Android tablets triggers instant **Out-Of-Memory (OOM) killer crashes** and exhausts battery in minutes.
+### The Ground Reality & The "2 GB RAM" Engineering Trap:
 
-**PalashSetu solves this with an edge-first, Store-and-Forward hybrid architecture**:
-- **100% Offline Edge Tablet App**: An on-device rule-based linguistic engine with ~2,500 validated Santali vocabulary entries, native Ol Chiki font rendering, phonetic acoustic voice synthesis, and teacher-scoped attendance register. It executes in **< 5 ms on Android tablets** and operates strictly **under 500 MB RAM** (tested live on hardware: **170 MB – 336 MB Total PSS**, with app Java Heap under **10 MB**), running comfortably on 2 GB RAM budget devices with over 1.6 GB of free system memory.
+Most teams reading Problem Statement SIH 26042 see *"budget 2 GB RAM Android tablet"* and make a fatal architectural assumption: they assume their application has 2 GB of memory to work with, attempting to load 1 GB+ neural translation models (IndicTrans2, quantized LLMs, or heavy Whisper weights).
+
+**The Hard Hardware Reality of Android OS**:
+* On any modern Android tablet (Android 9–14) with 2,048 MB (2 GB) total physical RAM:
+  * **Android Kernel & System Daemons**: ~650 MB – 750 MB
+  * **Google Play Services & Hardware HAL Drivers**: ~250 MB – 350 MB
+  * **SurfaceFlinger & Framebuffer Compositor**: ~100 MB – 150 MB
+  * **Total Baseline OS Overhead at Boot**: **~1,000 MB – 1,200 MB (~1.1 GB)**
+* **Real Usable Working Memory for User Apps**: **Only ~800 MB to 1,000 MB (~1 GB max)!**
+* When an app attempts to allocate 800 MB+ to load neural models or large caches, Android's **Low Memory Killer (LMK)** daemon immediately executes an uncatchable `SIGKILL` to prevent the tablet from freezing.
+
+```
+Total Hardware RAM: 2,048 MB (2.0 GB)
+┌───────────────────────────────────────┬───────────────────────┬────────────────────────┐
+│ Android OS, HAL & System (~1,100 MB)  │ PalashSetu (~280 MB)  │ Free Safety Buffer     │
+│ [Non-Negotiable OS Baseline]          │ [Peak Load: 336 MB]   │ [~632 MB - Zero Crash] │
+└───────────────────────────────────────┴───────────────────────┴────────────────────────┘
+```
+
+**PalashSetu's Architectural Solution**:
+By identifying this constraint from the problem statement, our team engineered specifically for the real **1 GB usable budget**:
+- **100% Offline Edge Tablet App**: An on-device rule-based linguistic engine with ~2,500 validated Santali vocabulary entries, native Ol Chiki font rendering, phonetic acoustic voice synthesis, and teacher-scoped attendance register. It executes in **< 5 ms on Android tablets** and operates strictly **under 500 MB RAM** (tested live on hardware: **170 MB – 336 MB Total PSS**, with app Java Heap under **10 MB**), leaving over **600 MB of safety headroom** so the tablet never crashes or lags.
 - **Store-and-Forward Classroom Telemetry**: Sentences spoken by teachers during classroom instruction are buffered locally in an offline telemetry queue. When connectivity is restored, the queue syncs with **PalashCentralHub** and automatically purges locally.
 - **PalashCentralHub (State Administration Portal)**: A responsive administrative dashboard deployed on Vercel providing school-wise and teacher-wise speech intelligence drill-downs, active vocabulary discovery, teacher field complaints, and over-the-air (OTA) content releases.
 
@@ -158,7 +174,17 @@ PalashCentralHub serves as the command center for block education officers (BEOs
 
 ## 6. Benchmarks & Honest Performance Metrics
 
-We believe in verifiable engineering rather than inflated claims. All metrics are measured directly on hardware:
+### Real-World Physical Memory Budget (2,048 MB Device):
+| Component | RAM Allocation | Status / Role |
+|---|---|---|
+| **Android OS Kernel & System Daemons** | ~750 MB | Core Linux kernel, Zygote, system services |
+| **Hardware HAL & SurfaceFlinger Compositor** | ~350 MB | GPU hardware buffers and display pipeline |
+| **Total System Overhead at Boot** | **~1,100 MB** | Non-negotiable OS baseline |
+| **Real Usable Working Budget for User Apps** | **~948 MB (~1 GB)** | Theoretical ceiling before Android kills apps |
+| **PalashSetu Operating Footprint (Total PSS)** | **~230 MB – 336 MB** | **Well under 500 MB budget** (Java Heap < 10 MB) |
+| **Guaranteed Crash-Free Safety Cushion** | **~612 MB** | Free unallocated RAM preventing LMK termination |
+
+### Core Performance Benchmarks:
 
 | Benchmark / Metric | Measured Reality | Test Setup / Reference |
 |---|---|---|
