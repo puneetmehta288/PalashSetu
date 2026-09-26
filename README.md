@@ -11,6 +11,11 @@
 [![FLN Flashcards](https://img.shields.io/badge/FLN%20Cards-16%20Decks%20%2896%20Cards%29-purple.svg)](mobile/src/data/nipunDecks.ts)
 [![Latency](https://img.shields.io/badge/Edge%20Latency-%3C%205ms%20%28On--Device%29-brightgreen.svg)](scripts/test_offline_engine.js)
 [![Central Hub](https://img.shields.io/badge/Central%20Hub-Live%20on%20Vercel-000000.svg)](https://palashsetu-xi.vercel.app)
+[![Download APK](https://img.shields.io/badge/Download%20APK-4.5%20MB%20(Direct%20Install)-2ea44f?logo=android&logoColor=white)](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashSetu-v1.0-debug.apk)
+
+> ### 📱 [👉 Click Here to Download PalashSetu Android App (.APK) — 4.5 MB](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashSetu-v1.0-debug.apk)
+> **Direct Sideload Build** • **100% Offline • Zero Internet Required**  
+> *Pre-configured for Android 9.0 to 14.0 tablets & smartphones (Runs comfortably on 2 GB RAM devices with < 500 MB RAM)*
 
 ---
 
