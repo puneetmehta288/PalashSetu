@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20Tablet%20%7C%20Web-green.svg)](https://github.com/puneetmehta288/PalashSetu)
 [![Offline](https://img.shields.io/badge/Engine-100%25%20Offline%20Edge-success.svg)](https://github.com/puneetmehta288/PalashSetu)
-[![Vocabulary](https://img.shields.io/badge/Santali%20Vocabulary-~2%2C500%20Words-orange.svg)](mobile/src/data/santali_comprehensive_dictionary.ts)
+[![Vocabulary](https://img.shields.io/badge/Dictionary%20Entries-7%2C503%20%28~2%2C500%20Roots%29-orange.svg)](mobile/src/data/santali_comprehensive_dictionary.ts)
 [![RAM](https://img.shields.io/badge/RAM%20Footprint-%3C%20500%20MB%20%28Tested%29-blue.svg)](scripts/test_offline_engine.js)
 [![FLN Flashcards](https://img.shields.io/badge/FLN%20Cards-16%20Decks%20%2896%20Cards%29-purple.svg)](mobile/src/data/nipunDecks.ts)
 [![Latency](https://img.shields.io/badge/Edge%20Latency-%3C%205ms%20%28On--Device%29-brightgreen.svg)](scripts/test_offline_engine.js)
@@ -44,7 +44,7 @@ Total Hardware RAM: 2,048 MB (2.0 GB)
 
 **PalashSetu's Architectural Solution**:
 By identifying this constraint from the problem statement, our team engineered specifically for the real **1 GB usable budget**:
-- **100% Offline Edge Tablet App**: An on-device rule-based linguistic engine with ~2,500 validated Santali vocabulary entries, native Ol Chiki font rendering, phonetic acoustic voice synthesis, and teacher-scoped attendance register. It executes in **< 5 ms on Android tablets** and operates strictly **under 500 MB RAM** (tested live on hardware: **170 MB – 336 MB Total PSS**, with app Java Heap under **10 MB**), leaving over **600 MB of safety headroom** so the tablet never crashes or lags.
+- **100% Offline Edge Tablet App**: An on-device rule-based linguistic engine with **7,503 total dictionary lookup entries (spanning ~2,500 core Hindi root concepts with full grammatical conjugations)**, native Ol Chiki font rendering, phonetic acoustic voice synthesis, and teacher-scoped attendance register. It executes in **< 5 ms on Android tablets** and operates strictly **under 500 MB RAM** (tested live on hardware: **170 MB – 336 MB Total PSS**, with app Java Heap under **10 MB**), leaving over **600 MB of safety headroom** so the tablet never crashes or lags.
 - **Store-and-Forward Classroom Telemetry**: Sentences spoken by teachers during classroom instruction are buffered locally in an offline telemetry queue. When connectivity is restored, the queue syncs with **PalashCentralHub** and automatically purges locally.
 - **PalashCentralHub (State Administration Portal)**: A responsive administrative dashboard deployed on Vercel providing school-wise and teacher-wise speech intelligence drill-downs, active vocabulary discovery, teacher field complaints, and over-the-air (OTA) content releases.
 
@@ -108,6 +108,29 @@ Our linguistic engine maintains strict academic honesty and clear tier different
 | **Mundari** (`unr_Deva`) | Devanagari (मुंडारी) | **Pilot Dialect Pack** | ~175 core classroom terms, NIPUN counting 1–10, basic greetings | Native Devanagari phonetic synthesis |
 
 > **Note on Ol Chiki Script Fonts**: Budget government tablets do not ship with Ol Chiki Unicode glyphs pre-installed. PalashSetu bundles `NotoSansOlChiki-Medium.ttf` and `NotoSansOlChiki-Bold.ttf` directly inside the APK assets (`assets/fonts/`), guaranteeing flawless zero-network rendering without external Google Fonts CDN calls.
+
+### 3.1 Dictionary Architecture: 7,503 Lookup Entries vs. ~2,500 Core Root Concepts
+
+To provide complete technical clarity on our lexicographical structure:
+
+* **~2,500 Core Root Concepts (Lemmas)**: Distinct root headwords in Hindi (e.g., *समझना, जाना, खाना, पढ़ना, पेड़, संख्या, गिनना, जोड़ना*).
+* **7,503 Total Direct Lookup Keys in Code**: Every spoken inflection, tense variation (past, present, future), gender conjugation, and phrase structure mapped directly to its verified Ol Chiki equivalent in `santali_comprehensive_dictionary.ts` (7,517 lines).
+
+**Real-world Example from Code (`santali_comprehensive_dictionary.ts` lines 5310–5340):**  
+A single root concept like `"समझना / बुझना"` (To Understand) expands into multiple natural spoken variants:
+```typescript
+'बुझकर'     : 'ᱵᱩᱡᱷᱟᱹᱣ ᱠᱟᱛᱮ',   // Conjunctive participle
+'बुझा'      : 'ᱵᱩᱡᱷᱟᱹᱣ',         // Past tense
+'बुझाता है' : 'ᱵᱩᱡᱷᱟᱹᱣ ᱮᱫᱟᱭ',     // Present indicative (masculine singular)
+'बुझाती है' : 'ᱵᱩᱡᱷᱟᱹᱣ ᱮᱫᱟᱭ',     // Present indicative (feminine singular)
+'बुझाते हैं': 'ᱵᱩᱡᱷᱟᱹᱣ ᱮᱫᱟᱠᱚ',    // Present indicative (plural)
+'बुझाने का' : 'ᱵᱩᱡᱷᱟᱹᱣ ᱨᱮᱭᱟᱜ',    // Genitive / Purpose
+'बुझायेगा'  : 'ᱵᱩᱡᱷᱟᱹᱣ-ᱟᱭ',      // Future indicative
+```
+
+**Why This Architectural Design is Critical for Rural Classrooms:**
+1. **Zero Cloud/Neural Overhead**: In an active classroom, a Hindi-speaking teacher does not speak in abstract root infinitives (*"बच्चा समझना"*). They speak in real conversational tenses (*"क्या तुम समझ रहे हो?", "उसने समझाया"*).
+2. **Instant < 5 ms O(1) Lookup**: By pre-compiling all **7,503 spoken variations**, the tablet resolves natural teacher speech instantaneously via an in-memory hash table without needing a slow, memory-hungry 1 GB+ neural parser on a 2 GB RAM device.
 
 ---
 
@@ -188,7 +211,7 @@ PalashCentralHub serves as the command center for block education officers (BEOs
 
 | Benchmark / Metric | Measured Reality | Test Setup / Reference |
 |---|---|---|
-| **Santali Vocabulary Size** | **~2,500 validated word/phrase pairs** | Curated & validated pairs in `santali_comprehensive_dictionary.ts` |
+| **Santali Dictionary Scope** | **7,503 lookup keys in code** (~2,500 core concepts + inflections) | Verified in `santali_comprehensive_dictionary.ts` (7,517 lines) |
 | **FLN Flashcard Content** | **16 Decks / 96 Visual Cards** | Verified in `nipunDecks.ts` |
 | **NIPUN Lesson Plans** | **36 Complete Lessons** | Verified in `nipun_lessons_data.ts` |
 | **JCERT Textbooks** | **8 Full Textbooks** | Verified in `jcert_full_textbooks_data.ts` |
