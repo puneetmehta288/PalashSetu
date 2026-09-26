@@ -760,9 +760,15 @@ const Settings: React.FC = () => {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
             <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
-              <div style={{ fontSize: '0.72rem', color: '#166534', fontWeight: 700 }}>OFFLINE DICTIONARY</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#15803d', marginTop: '2px' }}>7,503 Entries</div>
-              <div style={{ fontSize: '0.7rem', color: '#15803d' }}>Santali Lexicon + Sentences</div>
+              <div style={{ fontSize: '0.72rem', color: '#166534', fontWeight: 700 }}>OFFLINE VOCABULARY</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#15803d', marginTop: '2px' }}>~2,500 Words</div>
+              <div style={{ fontSize: '0.7rem', color: '#15803d' }}>Validated Hindi → Santali</div>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '0.72rem', color: '#334155', fontWeight: 700 }}>OPERATING RAM</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f2744', marginTop: '2px' }}>&lt; 500 MB</div>
+              <div style={{ fontSize: '0.7rem', color: '#64748b' }}>App Heap &lt; 10 MB (2GB Safe)</div>
             </div>
 
             <div style={{ padding: '12px', backgroundColor: '#eff6ff', borderRadius: '10px', border: '1px solid #bfdbfe' }}>

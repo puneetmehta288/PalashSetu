@@ -216,7 +216,7 @@ const LiveTranslation: React.FC = () => {
   const [sourceText, setSourceText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
   const [pronunciation, setPronunciation] = useState('');
-  const [activeModel, setActiveModel] = useState('⚡ Palash On-Device Engine (7,500+ Offline Vocab)');
+  const [activeModel, setActiveModel] = useState('⚡ Palash On-Device Engine (~2,500 Offline Vocab)');
   const [latencyMs, setLatencyMs] = useState<number>(0);
   const [confidence, setConfidence] = useState<'verified' | 'lexicon' | 'partial' | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);

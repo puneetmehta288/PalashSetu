@@ -6,7 +6,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20Tablet%20%7C%20Web-green.svg)](https://github.com/puneetmehta288/PalashSetu)
 [![Offline](https://img.shields.io/badge/Engine-100%25%20Offline%20Edge-success.svg)](https://github.com/puneetmehta288/PalashSetu)
-[![Vocabulary](https://img.shields.io/badge/Santali%20Dictionary-7%2C503%20Entries-orange.svg)](mobile/src/data/santali_comprehensive_dictionary.ts)
+[![Vocabulary](https://img.shields.io/badge/Santali%20Vocabulary-~2%2C500%20Words-orange.svg)](mobile/src/data/santali_comprehensive_dictionary.ts)
+[![RAM](https://img.shields.io/badge/RAM%20Footprint-%3C%20500%20MB%20%28Tested%29-blue.svg)](scripts/test_offline_engine.js)
 [![FLN Flashcards](https://img.shields.io/badge/FLN%20Cards-16%20Decks%20%2896%20Cards%29-purple.svg)](mobile/src/data/nipunDecks.ts)
 [![Latency](https://img.shields.io/badge/Edge%20Latency-%3C%205ms%20%28On--Device%29-brightgreen.svg)](scripts/test_offline_engine.js)
 [![Central Hub](https://img.shields.io/badge/Central%20Hub-Live%20on%20Vercel-000000.svg)](https://palashsetu-xi.vercel.app)
@@ -27,7 +28,7 @@ In rural and tribal primary classrooms across Jharkhand (particularly in the **S
 4. **Why Heavy Neural Transformers Fail On-Device**: Running heavy neural models like IndicTrans2 (1.2 GB+ PyTorch weight files) directly on 2 GB Android tablets triggers instant **Out-Of-Memory (OOM) killer crashes** and exhausts battery in minutes.
 
 **PalashSetu solves this with an edge-first, Store-and-Forward hybrid architecture**:
-- **100% Offline Edge Tablet App**: An on-device rule-based linguistic engine with a 7,503-entry Santali dictionary, native Ol Chiki font rendering, phonetic acoustic voice synthesis, and teacher-scoped attendance register. It executes in **< 5 ms on Android tablets** and consumes **< 350 MB Total PSS** (with app Java Heap under **10 MB**), running comfortably on 2 GB RAM budget devices with over 1.5 GB of free system memory.
+- **100% Offline Edge Tablet App**: An on-device rule-based linguistic engine with ~2,500 validated Santali vocabulary entries, native Ol Chiki font rendering, phonetic acoustic voice synthesis, and teacher-scoped attendance register. It executes in **< 5 ms on Android tablets** and operates strictly **under 500 MB RAM** (tested live on hardware: **170 MB – 336 MB Total PSS**, with app Java Heap under **10 MB**), running comfortably on 2 GB RAM budget devices with over 1.6 GB of free system memory.
 - **Store-and-Forward Classroom Telemetry**: Sentences spoken by teachers during classroom instruction are buffered locally in an offline telemetry queue. When connectivity is restored, the queue syncs with **PalashCentralHub** and automatically purges locally.
 - **PalashCentralHub (State Administration Portal)**: A responsive administrative dashboard deployed on Vercel providing school-wise and teacher-wise speech intelligence drill-downs, active vocabulary discovery, teacher field complaints, and over-the-air (OTA) content releases.
 
@@ -50,7 +51,7 @@ In rural and tribal primary classrooms across Jharkhand (particularly in the **S
    |   • 27 Dynamic Arithmetic Worksheets         • Daily Attendance Register (Teacher-Scoped) |
    |                                                                                           |
    |  [ Layer 2: On-Device 4-Tier Linguistic Engine ] (< 5ms on Android, < 0.01ms on PC)       |
-   |   Tier 1: Exact Match Hashmap (7,503 Santali + 350 Ho/Mundari entries)                    |
+   |   Tier 1: Exact Match Hashmap (~2,500 Santali + 350 Ho/Mundari entries)                   |
    |   Tier 2: Phrase Regex & Classroom Sentence Bank (300+ validated structures)              |
    |   Tier 3: Grammatical Particle & Case Suffix Deconstruction (-re, -te, -khon, -ko)        |
    |   Tier 4: Phonetic Ol Chiki Transliteration Fallback (ISO 15919 compliant)                |
@@ -86,7 +87,7 @@ Our linguistic engine maintains strict academic honesty and clear tier different
 
 | Language | Script | Status | Lexicon / Corpus Scope | Acoustic TTS Synthesis |
 |---|---|---|---|---|
-| **Santali** (`sat_Olck`) | **Ol Chiki (ᱚᱞ ᱪᱤᱠᱤ)** | **Flagship (Complete)** | **7,503 curated offline dictionary entries** + 300+ validated classroom sentences + 8 JCERT textbooks | Syllable-level Ol Chiki to acoustic Indic phoneme compiler |
+| **Santali** (`sat_Olck`) | **Ol Chiki (ᱚᱞ ᱪᱤᱠᱤ)** | **Flagship (Complete)** | **~2,500 validated offline vocabulary entries** + 300+ validated classroom sentences + 8 JCERT textbooks | Syllable-level Ol Chiki to acoustic Indic phoneme compiler |
 | **Ho** (`hoc_Deva`) | Devanagari (हो भाषा) | **Pilot Dialect Pack** | ~175 core classroom terms, NIPUN counting 1–10, basic greetings | Native Devanagari phonetic synthesis |
 | **Mundari** (`unr_Deva`) | Devanagari (मुंडारी) | **Pilot Dialect Pack** | ~175 core classroom terms, NIPUN counting 1–10, basic greetings | Native Devanagari phonetic synthesis |
 
@@ -161,15 +162,15 @@ We believe in verifiable engineering rather than inflated claims. All metrics ar
 
 | Benchmark / Metric | Measured Reality | Test Setup / Reference |
 |---|---|---|
-| **Santali Dictionary Size** | **7,503 key-value entries** | Verified in `santali_comprehensive_dictionary.ts` |
+| **Santali Vocabulary Size** | **~2,500 validated word/phrase pairs** | Curated & validated pairs in `santali_comprehensive_dictionary.ts` |
 | **FLN Flashcard Content** | **16 Decks / 96 Visual Cards** | Verified in `nipunDecks.ts` |
 | **NIPUN Lesson Plans** | **36 Complete Lessons** | Verified in `nipun_lessons_data.ts` |
 | **JCERT Textbooks** | **8 Full Textbooks** | Verified in `jcert_full_textbooks_data.ts` |
 | **Edge Lookup Latency (PC)** | **~0.005–0.008 ms per sentence** | Benchmarked over 1,000 iterations via Node.js |
 | **Edge Execution Latency (Tablet)** | **< 5 ms per sentence** | Tested on low-cost Android WebView (Quad-Core, 2GB RAM) |
 | **APK Package Size** | **4.5 MB (Debug APK)** | Verified in `PalashSetu-v1.0-debug.apk` |
-| **Total Operating RAM (PSS)** | **~228 MB – 336 MB (Peak)** | Measured on live Android hardware via `adb shell dumpsys meminfo` (< 350 MB total; well under 500 MB budget, >1.5 GB free RAM) |
-| **App Logic Heap (Java)** | **5.3 MB – 9.4 MB** | App data structures, 7,503 dictionary entries & state footprint |
+| **Operating RAM (Total PSS)** | **< 500 MB (170 MB – 336 MB Tested)** | Measured on live Android hardware via `adb shell dumpsys meminfo` (Peak: 336 MB, Idle: 170 MB; > 1.6 GB free RAM on 2 GB devices) |
+| **App Logic Heap (Java)** | **5.3 MB – 9.4 MB** | App data structures, ~2,500 vocabulary entries & state footprint |
 | **Native Bridge Heap** | **39.9 MB – 47.7 MB** | Capacitor Android bridge, graphics & audio/font handlers |
 | **Memory Leak Status** | **Zero Leaks (Verified)** | Automatic GC actively reclaims ~80 MB after peak interaction |
 | **Test Suite Pass Rate** | **46 / 46 assertions (100%)** | Verified via `node scripts/test_offline_engine.js` |
@@ -310,7 +311,7 @@ PalashSetu/
 │   └── src/
 │       ├── components/            # Header, Sidebar, Layout, VoiceModal
 │       ├── context/               # ThemeContext (Light & Dark theme)
-│       ├── data/                  # 7,503 Santali entries, Ho/Mundari, NIPUN decks, JCERT books
+│       ├── data/                  # ~2,500 Santali entries, Ho/Mundari, NIPUN decks, JCERT books
 │       ├── pages/                 # Dashboard, LiveTranslation, Lessons, Worksheets,
 │       │                          # Flashcards, JCERTTextbooks, Attendance, Settings,
 │       │                          # CentralHub (Admin Portal), AuthLogin, AuthRegister
