@@ -37,6 +37,7 @@ export interface DailyAttendanceRecord {
   statuses: Record<string, AttendanceStatus>; // studentId -> status
   updatedAt: string;
   notes?: string;
+  isSaved?: boolean;
 }
 
 const STORAGE_KEY_CLASSES = 'palash_attendance_classes_v1';
@@ -156,8 +157,14 @@ class AttendanceService {
     const map = this.getAllStudentsMap();
     if (!map[classId]) map[classId] = [];
 
+    const isDuplicate = map[classId].some(s => Number(s.rollNo) === Number(student.rollNo));
+    if (isDuplicate) {
+      throw new Error(`Roll No ${student.rollNo} is already assigned in this class.`);
+    }
+
     const newStudent: Student = {
       ...student,
+      rollNo: Number(student.rollNo),
       id: `st_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
     };
 
@@ -166,6 +173,29 @@ class AttendanceService {
     map[classId].sort((a, b) => a.rollNo - b.rollNo);
     localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(map));
     return newStudent;
+  }
+
+  editStudent(classId: string, studentId: string, updated: Partial<Omit<Student, 'id'>>): Student {
+    const map = this.getAllStudentsMap();
+    if (!map[classId]) throw new Error('Class not found');
+    const idx = map[classId].findIndex(s => s.id === studentId);
+    if (idx === -1) throw new Error('Student not found');
+
+    if (updated.rollNo !== undefined) {
+      const isDuplicate = map[classId].some(s => s.id !== studentId && Number(s.rollNo) === Number(updated.rollNo));
+      if (isDuplicate) {
+        throw new Error(`Roll No ${updated.rollNo} is already assigned to another student in this class.`);
+      }
+    }
+
+    map[classId][idx] = {
+      ...map[classId][idx],
+      ...updated,
+      rollNo: updated.rollNo !== undefined ? Number(updated.rollNo) : map[classId][idx].rollNo,
+    };
+    map[classId].sort((a, b) => a.rollNo - b.rollNo);
+    localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(map));
+    return map[classId][idx];
   }
 
   removeStudent(classId: string, studentId: string): void {
@@ -185,22 +215,17 @@ class AttendanceService {
     const tId = teacherId || 'shared_default';
     const key = `${tId}_${classId}_${date}`;
     if (allRecords[key]) {
-      return allRecords[key];
+      return { ...allRecords[key], isSaved: true };
     }
 
-    // Default: initialize all students as 'present'
-    const students = this.getStudents(classId);
-    const initialStatuses: Record<string, AttendanceStatus> = {};
-    students.forEach(st => {
-      initialStatuses[st.id] = 'present';
-    });
-
+    // Unrecorded day: initialize with empty statuses so students are not falsely assumed present
     const newRecord: DailyAttendanceRecord = {
       date,
       classId,
       teacherId: tId,
-      statuses: initialStatuses,
+      statuses: {},
       updatedAt: new Date().toISOString(),
+      isSaved: false,
     };
     return newRecord;
   }
@@ -212,6 +237,7 @@ class AttendanceService {
     allRecords[key] = {
       ...record,
       teacherId: tId,
+      isSaved: true,
       updatedAt: new Date().toISOString(),
     };
     localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(allRecords));

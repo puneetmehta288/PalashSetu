@@ -43,7 +43,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
       title: 'Live Voice Translation',
       tribal: meta.voiceTitle,
       desc: meta.voiceDesc,
-      badge: tribalLang === 'ho' ? 'Ho Kolhan NLP' : tribalLang === 'mundari' ? 'Mundari NLP' : 'Offline 4-Tier NLP',
+      badge: tribalLang === 'ho' ? 'Ho Pilot Engine' : tribalLang === 'mundari' ? 'Mundari Pilot Engine' : 'Offline On-Device',
       color: '#ed8936',
     },
     {
@@ -52,7 +52,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
       title: 'Visual Flashcards',
       tribal: meta.cardsTitle,
       desc: meta.cardsDesc,
-      badge: tribalLang === 'ho' ? 'Ho SVG Decks' : tribalLang === 'mundari' ? 'Mundari Decks' : '30+ SVG Decks',
+      badge: tribalLang === 'ho' ? 'Ho SVG Decks' : tribalLang === 'mundari' ? 'Mundari Decks' : '16 FLN Decks (96 Cards)',
       color: '#38a169',
     },
     {
