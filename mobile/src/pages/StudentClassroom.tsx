@@ -5,6 +5,7 @@ import { classroomService, ClassroomEvent, ClassroomTranslationEvent, ClassroomI
 import { speakText } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
 import { useTheme } from '../context/ThemeContext';
+import { QRScannerModal } from '../components/QRScannerModal';
 
 const StudentClassroom: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +25,30 @@ const StudentClassroom: React.FC = () => {
   const [submittedWorksheets, setSubmittedWorksheets] = useState<any[]>([]);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [hasReaction, setHasReaction] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinRoomCode, setJoinRoomCode] = useState('');
+  const [showJoinQR, setShowJoinQR] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+
+  const handleJoinSession = (code: string) => {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed || trimmed.length < 4) {
+      setJoinError('कृपया 4-अंकों का कोड दर्ज करें');
+      return;
+    }
+    sfx.playSuccess();
+    // Update student profile with new room code
+    const current = authService.getStudentProfile();
+    if (current) {
+      authService.loginAsStudent(current.studentName, current.grade, trimmed, current.avatarEmoji);
+    }
+    setShowJoinModal(false);
+    setShowJoinQR(false);
+    setJoinRoomCode('');
+    setJoinError(null);
+    // Reload page to re-init classroom connection with new room code
+    window.location.reload();
+  };
 
   const loadSubmissions = () => {
     try {
@@ -57,48 +82,53 @@ const StudentClassroom: React.FC = () => {
     loadSubmissions();
     loadAssigned();
 
-    // Join classroom broadcast bus
-    const unsubscribe = classroomService.joinClassroom(
-      profile.roomCode,
-      {
-        id: (profile as any).id || profile.studentName,
-        name: profile.studentName,
-        grade: profile.grade,
-        avatar: profile.avatarEmoji || '🎒'
-      },
-      (event: ClassroomEvent) => {
-        if (event.type === 'translation') {
-          sfx.playSuccess();
-          setActiveSpeech(event.data);
-          setHistory((prev) => [event.data, ...prev.slice(0, 9)]);
-          setHasReaction(false);
+    // Join classroom broadcast bus only if room code is set
+    let unsubscribe: () => void = () => {};
+    if (profile.roomCode) {
+      unsubscribe = classroomService.joinClassroom(
+        profile.roomCode,
+        {
+          id: (profile as any).id || profile.studentName,
+          name: profile.studentName,
+          grade: profile.grade,
+          avatar: profile.avatarEmoji || '🎒'
+        },
+        (event: ClassroomEvent) => {
+          if (event.type === 'translation') {
+            sfx.playSuccess();
+            setActiveSpeech(event.data);
+            setHistory((prev) => [event.data, ...prev.slice(0, 9)]);
+            setHasReaction(false);
 
-          // Auto-play pronunciation in Santali for immersive child learning
-          playSantaliAudio(event.data.translatedSantali);
-        } else if (event.type === 'worksheet_assigned') {
-          sfx.playSuccess();
-          setIsAssignedDismissed(false);
-          setAssignedWorksheet({
-            id: event.data.worksheetId,
-            title: event.data.title,
-          });
-        } else if (event.type === 'classroom_reset' || event.type === 'clear_worksheet') {
-          setAssignedWorksheet(null);
-          setIsAssignedDismissed(false);
+            // Auto-play pronunciation in Santali for immersive child learning
+            playSantaliAudio(event.data.translatedSantali);
+          } else if (event.type === 'worksheet_assigned') {
+            sfx.playSuccess();
+            setIsAssignedDismissed(false);
+            setAssignedWorksheet({
+              id: event.data.worksheetId,
+              title: event.data.title,
+            });
+          } else if (event.type === 'classroom_reset' || event.type === 'clear_worksheet') {
+            setAssignedWorksheet(null);
+            setIsAssignedDismissed(false);
+          }
+        },
+        (count: number) => {
+          setStudentCount(count);
+        },
+        (info: ClassroomInfo) => {
+          setClassroomInfo(info);
+          setIsCheckingConnection(false);
+        },
+        (status: ConnectionStatus) => {
+          setConnStatus(status);
+          setIsCheckingConnection(false);
         }
-      },
-      (count: number) => {
-        setStudentCount(count);
-      },
-      (info: ClassroomInfo) => {
-        setClassroomInfo(info);
-        setIsCheckingConnection(false);
-      },
-      (status: ConnectionStatus) => {
-        setConnStatus(status);
-        setIsCheckingConnection(false);
-      }
-    );
+      );
+    } else {
+      setIsCheckingConnection(false);
+    }
 
     const onWorksheetAssigned = (e: any) => {
       if (e.detail) {
@@ -208,7 +238,7 @@ const StudentClassroom: React.FC = () => {
               👩‍🏫 शिक्षिका: <strong>{classroomInfo?.teacherName || 'सुनीता मुर्मू'}</strong> • 🏷️ <strong>{classroomInfo?.grade || student?.grade || 'कक्षा 1'}</strong>
             </div>
             <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '2px' }}>
-              कमरा कोड: <strong style={{ color: '#fed7aa', letterSpacing: '1px' }}>#{student?.roomCode}</strong> • छात्र: <strong>{student?.studentName}</strong>
+              कमरा कोड: <strong style={{ color: '#fed7aa', letterSpacing: '1px' }}>{student?.roomCode ? `#${student.roomCode}` : 'कोई नहीं'}</strong> • छात्र: <strong>{student?.studentName}</strong>
             </div>
           </div>
         </div>
@@ -231,31 +261,100 @@ const StudentClassroom: React.FC = () => {
             <span>{Math.max(studentCount, 1)} छात्र जुड़े हैं</span>
           </div>
 
-          <button
-            onClick={() => {
-              sfx.playTap();
-              authService.logout();
-              navigate('/login');
-            }}
-            title="कमरा बदलें"
-            style={{
-              background: 'rgba(239, 68, 68, 0.2)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              color: '#fca5a5',
-              borderRadius: '12px',
-              padding: '6px 12px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            🚪 बाहर निकलें
-          </button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                sfx.playTap();
+                setShowJoinModal(true);
+              }}
+              title="कक्षा में शामिल हों"
+              style={{
+                background: 'rgba(237,137,54,0.2)',
+                border: '1px solid rgba(237,137,54,0.5)',
+                color: '#fed7aa',
+                borderRadius: '12px',
+                padding: '6px 12px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              {student?.roomCode ? '🔍 कक्षा बदलें' : '🔍 कक्षा में शामिल हों'}
+            </button>
+            {student?.roomCode && (
+              <button
+                onClick={() => {
+                  sfx.playTap();
+                  classroomService.leaveClassroom();
+                  authService.leaveSession();
+                  // Navigate to home but stay logged in
+                  navigate('/', { replace: true });
+                  window.location.reload();
+                }}
+                title="सत्र छोड़ें (प्रोफ़ाइल बनी रहेगी)"
+                style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.35)',
+                  color: '#fca5a5',
+                  borderRadius: '12px',
+                  padding: '6px 12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                📤 सत्र छोड़ें
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* ─── No Session: Student hasn't joined a class yet ─── */}
+      {!student?.roomCode && (
+        <div style={{
+          backgroundColor: isDarkMode ? '#1e293b' : '#f0f9ff',
+          border: '2px dashed #60a5fa',
+          borderRadius: '20px',
+          padding: '2rem 1.5rem',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <div style={{ fontSize: '3rem' }}>📡</div>
+          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: isDarkMode ? '#f8fafc' : '#0f2744' }}>
+            अभी कोई कक्षा नहीं जुड़ी है
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#64748b', maxWidth: '320px', lineHeight: 1.5 }}>
+            शिक्षक से 4-अंकों का कोड माँगें या QR कोड स्कैन करें — तब तक फ़्लैशकार्ड और पुस्तकें देख सकते हैं।
+          </div>
+          <button
+            onClick={() => { sfx.playTap(); setShowJoinModal(true); }}
+            style={{
+              backgroundColor: '#0f2744',
+              color: '#fff',
+              border: 'none',
+              padding: '12px 28px',
+              borderRadius: '14px',
+              fontWeight: 800,
+              fontSize: '1rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              boxShadow: '0 4px 16px rgba(15,39,68,0.25)'
+            }}
+          >
+            <span>🔍</span>
+            <span>कक्षा में शामिल हों (Join Class)</span>
+          </button>
+        </div>
+      )}
+
       {/* ─── Hotspot / Wi-Fi Connection Warning (If Teacher Not Reachable) ─── */}
-      {!connStatus.connected && !connStatus.teacherActive && !isCheckingConnection && (
+      {student?.roomCode && !connStatus.connected && !connStatus.teacherActive && !isCheckingConnection && (
         <div
           style={{
             backgroundColor: '#fffbeb',
@@ -333,8 +432,7 @@ const StudentClassroom: React.FC = () => {
             <button
               onClick={() => {
                 sfx.playTap();
-                authService.logout();
-                navigate('/login?role=student');
+                setShowJoinModal(true);
               }}
               style={{
                 backgroundColor: 'transparent',
@@ -347,7 +445,7 @@ const StudentClassroom: React.FC = () => {
                 cursor: 'pointer'
               }}
             >
-              🚪 कोड बदलें / QR दोबारा स्कैन करें
+              🔍 कोड बदलें / QR दोबारा स्कैन करें
             </button>
           </div>
         </div>
@@ -807,6 +905,98 @@ const StudentClassroom: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ─── Join Class Modal ─── */}
+      {showJoinModal && (
+        <div style={{
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff', borderRadius: '20px', padding: '1.75rem',
+            maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '6px' }}>📡</div>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f2744' }}>
+                कक्षा में शामिल हों (Join Class)
+              </h3>
+              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
+                शिक्षक के हॉटस्पॉट से जुड़ें और कोड दर्ज करें
+              </div>
+            </div>
+
+            <button
+              onClick={() => { sfx.playTap(); setShowJoinQR(true); }}
+              style={{
+                width: '100%', padding: '12px', borderRadius: '12px',
+                backgroundColor: '#0f2744', color: '#fff', border: 'none',
+                fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: '8px', marginBottom: '12px'
+              }}
+            >
+              <span>📷</span><span>QR कोड स्कैन करें (Scan QR)</span>
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0 12px' }}>
+              <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700 }}>या कोड टाइप करें</span>
+              <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+            </div>
+
+            <input
+              type="text"
+              maxLength={6}
+              value={joinRoomCode}
+              onChange={(e) => { setJoinRoomCode(e.target.value); setJoinError(null); }}
+              placeholder="4-अंकों का कोड (e.g. 4819)"
+              style={{
+                width: '100%', padding: '12px', borderRadius: '12px',
+                border: '2px solid #ed8936', fontSize: '1.4rem',
+                fontWeight: 900, letterSpacing: '6px', textAlign: 'center',
+                outline: 'none', boxSizing: 'border-box', color: '#b45309', marginBottom: '8px'
+              }}
+            />
+            {joinError && (
+              <div style={{ color: '#e53e3e', fontSize: '0.8rem', fontWeight: 700, textAlign: 'center', marginBottom: '8px' }}>
+                ⚠️ {joinError}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => { setShowJoinModal(false); setJoinError(null); setJoinRoomCode(''); }}
+                style={{
+                  flex: 1, padding: '11px', borderRadius: '12px',
+                  border: '1px solid #e2e8f0', backgroundColor: '#f8fafc',
+                  color: '#475569', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem'
+                }}
+              >
+                रद्द करें
+              </button>
+              <button
+                onClick={() => handleJoinSession(joinRoomCode)}
+                style={{
+                  flex: 2, padding: '11px', borderRadius: '12px',
+                  border: 'none', backgroundColor: '#ed8936',
+                  color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem',
+                  boxShadow: '0 4px 14px rgba(237,137,54,0.4)'
+                }}
+              >
+                🚀 कक्षा में शामिल हों
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Scanner for Join */}
+      <QRScannerModal
+        isOpen={showJoinQR}
+        onClose={() => setShowJoinQR(false)}
+        onScanSuccess={(code) => handleJoinSession(code)}
+      />
     </div>
   );
 };

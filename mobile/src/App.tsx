@@ -197,7 +197,7 @@ const AppRoutes: React.FC = () => {
         />
         <Route
           path="settings"
-          element={role === 'teacher' ? <Settings /> : <Navigate to="/" replace />}
+          element={<Settings />}
         />
         <Route
           path="report"

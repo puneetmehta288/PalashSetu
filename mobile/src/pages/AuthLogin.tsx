@@ -84,16 +84,12 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
       setStudentError('कृपया अपना नाम दर्ज करें (Please enter name)');
       return;
     }
-    if (!roomCode.trim()) {
-      setStudentError('शिक्षक द्वारा दिया गया 4-अंकों का कोड दर्ज करें (Enter Room Code)');
-      return;
-    }
-
+    // roomCode is optional at signup — student can join a class later from classroom screen
     sfx.playSuccess();
     const studentProfile = authService.loginAsStudent(
       studentName,
       studentGrade,
-      roomCode,
+      roomCode, // may be empty — that's fine
       selectedAvatar
     );
     onLoginSuccess(studentProfile);
@@ -421,10 +417,10 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
           <form onSubmit={handleStudentJoin} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '4px' }}>
               <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f2744' }}>
-                कक्षा में प्रवेश करें (Join Class)
+                छात्र प्रोफ़ाइल बनाएं (Create Profile)
               </div>
               <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                शिक्षक के हॉटस्पॉट या वाई-फ़ाई से जुड़कर सीखें
+                नाम और कक्षा चुनें — कक्षा कोड बाद में भी डाल सकते हैं
               </div>
             </div>
 
@@ -574,7 +570,7 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
             {/* 4-Digit Room Code */}
             <div>
               <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a5568', display: 'block', marginBottom: '4px' }}>
-                कक्षा कोड (Classroom Code):
+                कक्षा कोड (Classroom Code) — वैकल्पिक (Optional):
               </label>
               <input
                 type="text"
@@ -626,7 +622,7 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
                 boxShadow: '0 4px 14px rgba(237, 137, 54, 0.4)',
               }}
             >
-              <span>🚀 कक्षा में प्रवेश करें (Enter Classroom)</span>
+              <span>✅ प्रोफ़ाइल बनाएं और शुरू करें (Create Profile)</span>
             </button>
           </form>
         )}

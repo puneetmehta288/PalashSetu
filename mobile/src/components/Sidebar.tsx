@@ -28,6 +28,7 @@ const STUDENT_NAV_ITEMS: NavItemConfig[] = [
   { to: '/worksheets', icon: '📝', label: 'Worksheets', badge: 'Practice' },
   { to: '/flashcards', icon: '🃏', label: 'Flashcards', badge: 'Learn' },
   { to: '/books', icon: '📖', label: 'JCERT Books', badge: 'Read' },
+  { to: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 
 interface SidebarProps {

@@ -26,6 +26,7 @@ const STUDENT_BOTTOM_NAV_ITEMS = [
   { to: '/worksheets', icon: '📝', label: 'Worksheets' },
   { to: '/flashcards', icon: '🃏', label: 'Cards' },
   { to: '/books', icon: '📖', label: 'Books' },
+  { to: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 
 const Layout: React.FC<LayoutProps> = ({ role = 'teacher', activeTeacher, activeStudent, onLogout }) => {

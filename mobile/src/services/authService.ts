@@ -76,7 +76,7 @@ export const authService = {
     const profile: StudentProfile = {
       studentName: studentName.trim() || 'Class 1 Student',
       grade: grade || 'Class 1',
-      roomCode: roomCode.trim().toUpperCase(),
+      roomCode: (roomCode || '').trim().toUpperCase(),
       avatarEmoji: avatarEmoji || '🎒',
       joinedAt: new Date().toISOString()
     };
@@ -201,5 +201,25 @@ export const authService = {
     localStorage.removeItem(STORAGE_KEY_STUDENT_PROFILE);
     localStorage.removeItem(STORAGE_KEY_USER_ROLE);
     try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); localStorage.removeItem('palashsetu_active_teacher_id'); } catch {}
+  },
+
+  leaveSession() {
+    // Only disconnect from the current classroom session.
+    // Does NOT log out the student — profile and name are preserved.
+    sessionStorage.removeItem('palash_active_room');
+    try { localStorage.removeItem('palash_student_room'); } catch {}
+    // Update roomCode in the persisted student profile to empty
+    // so StudentClassroom knows they're not in a session
+    try {
+      const sessionRaw = sessionStorage.getItem('palashvani_student_profile');
+      const localRaw = localStorage.getItem('palashvani_student_profile');
+      const raw = sessionRaw || localRaw;
+      if (raw) {
+        const profile = JSON.parse(raw);
+        profile.roomCode = '';
+        sessionStorage.setItem('palashvani_student_profile', JSON.stringify(profile));
+        localStorage.setItem('palashvani_student_profile', JSON.stringify(profile));
+      }
+    } catch {}
   },
 };

@@ -2,9 +2,110 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { speakText } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
-import { authService, TeacherProfile } from '../services/authService';
+import { authService, TeacherProfile, StudentProfile } from '../services/authService';
 import { OfflineVoiceModal } from '../components/OfflineVoiceModal';
 import { telemetryService, TelemetryRecord } from '../services/telemetryService';
+
+const STUDENT_AVATAR_OPTIONS = ['🎒', '✏️', '🌟', '🦁', '🌸', '🏹'];
+
+const StudentSettings: React.FC<{ studentProfile: StudentProfile | null }> = ({ studentProfile }) => {
+  const navigate = useNavigate();
+  const [name, setName] = useState(studentProfile?.studentName || '');
+  const [grade, setGrade] = useState(studentProfile?.grade || 'Class 1');
+  const [avatar, setAvatar] = useState(studentProfile?.avatarEmoji || '🎒');
+  const [saved, setSaved] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => sfx.isEnabled());
+
+  const handleSave = () => {
+    if (!name.trim()) return;
+    const current = authService.getStudentProfile();
+    authService.loginAsStudent(name, grade, current?.roomCode || '', avatar);
+    sfx.playSuccess();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const handleLogout = () => {
+    sfx.playTap();
+    authService.logout();
+    navigate('/login');
+  };
+
+  return (
+    <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '3rem' }}>
+      <div style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '6px' }}>{avatar}</div>
+        <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#0f2744' }}>छात्र सेटिंग्स (Student Settings)</h2>
+        <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>अपनी प्रोफ़ाइल और ऐप की सेटिंग्स बदलें</div>
+      </div>
+
+      {/* Profile Card */}
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.25rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f2744', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>👤 मेरी प्रोफ़ाइल (My Profile)</div>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a5568', display: 'block', marginBottom: '4px' }}>अवतार (Avatar):</label>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {STUDENT_AVATAR_OPTIONS.map((e) => (
+              <button key={e} onClick={() => setAvatar(e)} style={{ fontSize: '1.4rem', width: '44px', height: '44px', borderRadius: '10px', border: avatar === e ? '2px solid #ed8936' : '1px solid #e2e8f0', backgroundColor: avatar === e ? '#feebc8' : '#f8fafc', cursor: 'pointer' }}>{e}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a5568', display: 'block', marginBottom: '4px' }}>नाम (Name):</label>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="छात्र का नाम" style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.95rem', fontWeight: 600, outline: 'none', boxSizing: 'border-box' }} />
+        </div>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a5568', display: 'block', marginBottom: '6px' }}>कक्षा (Grade):</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+            {['Balvatika', 'Class 1', 'Class 2', 'Class 3'].map((g) => (
+              <button key={g} onClick={() => setGrade(g)} style={{ padding: '8px 4px', borderRadius: '8px', border: grade === g ? '2px solid #0f2744' : '1px solid #e2e8f0', backgroundColor: grade === g ? '#0f2744' : '#f8fafc', color: grade === g ? '#fff' : '#334155', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>{g}</button>
+            ))}
+          </div>
+        </div>
+
+        <button onClick={handleSave} style={{ width: '100%', padding: '11px', borderRadius: '12px', backgroundColor: '#0f2744', color: '#fff', border: 'none', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer' }}>
+          {saved ? '✅ सहेजा गया!' : '💾 सेव करें (Save)'}
+        </button>
+      </div>
+
+      {/* Sound Settings */}
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.25rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f2744', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>🔊 ऑडियो सेटिंग्स</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f2744' }}>ध्वनि प्रभाव (Sound Effects)</div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>बटन दबाने की आवाज़</div>
+          </div>
+          <button onClick={() => { const n = sfx.toggleSound(); setSoundEnabled(n); }} style={{ padding: '6px 16px', borderRadius: '20px', border: 'none', backgroundColor: soundEnabled ? '#0f2744' : '#e2e8f0', color: soundEnabled ? '#fff' : '#475569', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}>
+            {soundEnabled ? '✅ चालू' : '🔕 बंद'}
+          </button>
+        </div>
+      </div>
+
+      {/* App Info */}
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.25rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f2744', marginBottom: '0.75rem' }}>ℹ️ ऐप जानकारी (App Info)</div>
+        <div style={{ fontSize: '0.82rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div>📱 <strong>Palash Vani</strong> v1.0</div>
+          <div>🎓 NIPUN Bharat Aligned • झारखंड FLN</div>
+          <div>🏫 SIH 2025 Problem Statement 26042</div>
+        </div>
+      </div>
+
+      {/* Logout */}
+      <div style={{ backgroundColor: '#fff5f5', borderRadius: '16px', padding: '1.25rem', border: '1px solid #fecaca' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#991b1b', marginBottom: '0.75rem' }}>⚠️ प्रोफ़ाइल हटाएं</div>
+        <div style={{ fontSize: '0.8rem', color: '#7f1d1d', marginBottom: '12px' }}>लॉग आउट करने पर आपकी प्रोफ़ाइल हट जाएगी और दोबारा नाम दर्ज करना होगा।</div>
+        <button onClick={handleLogout} style={{ padding: '10px 20px', borderRadius: '10px', backgroundColor: '#dc2626', color: '#fff', border: 'none', fontWeight: 800, fontSize: '0.88rem', cursor: 'pointer' }}>
+          🚪 लॉग आउट करें (Logout)
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const JHARKHAND_TRIBAL_DISTRICTS = [
   { name: 'Dumka', sat: 'ᱫᱩᱢᱠᱟᱹ', region: 'Santhal Pargana' },
@@ -21,6 +122,8 @@ export const JHARKHAND_TRIBAL_DISTRICTS = [
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
+  const userRole = authService.getUserRole();
+  const studentProfile = authService.getStudentProfile();
 
   // 1. Get Logged In Teacher Profile from authService
   const [activeProfile, setActiveProfile] = useState<TeacherProfile | null>(() => authService.getActiveProfile());
@@ -176,6 +279,11 @@ const Settings: React.FC = () => {
     authService.logout();
     navigate('/login');
   };
+
+  // If student, show basic student settings
+  if (userRole === 'student') {
+    return <StudentSettings studentProfile={studentProfile} />;
+  }
 
   return (
     <div className="fade-in" style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
