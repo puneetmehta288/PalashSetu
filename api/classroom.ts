@@ -142,7 +142,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       teacherName: room.teacherName || 'शिक्षिका',
       schoolName: room.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड',
       grade: room.grade || 'कक्षा 1',
-      teacherActive: (now - (room.lastActive || 0)) < 60000,
+      teacherActive: (now - (room.lastActive || 0)) < 120000,
       studentCount: activeStudents.length,
       students: activeStudents.map(s => ({
         id: s.id,
@@ -228,7 +228,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
             grade: s.grade,
             avatar: s.avatar
           })),
-          teacherActive: (now - (room.lastActive || 0)) < 60000,
+          teacherActive: (now - (room.lastActive || 0)) < 120000,
           teacherName: room.teacherName,
           schoolName: room.schoolName,
           grade: room.grade,
@@ -237,24 +237,69 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         });
       }
 
+      // Action 2b: Teacher heartbeat ping to keep classroom broadcast alive
+      if (body.action === 'teacher_ping') {
+        room.lastActive = now;
+        if (body.teacherName) room.teacherName = body.teacherName;
+        if (body.schoolName) room.schoolName = body.schoolName;
+        if (body.grade) room.grade = body.grade;
+        saveRooms(rooms);
+        return res.status(200).json({ success: true, teacherActive: true, lastActive: now });
+      }
+
       // Action 3: Student submitting worksheet answers
       if (body.action === 'submit_worksheet') {
         if (!room.submissions) room.submissions = [];
-        const submission: WorksheetSubmission = {
-          studentId: String(body.studentId || 'std_' + Math.random().toString(36).slice(2, 6)),
-          studentName: String(body.studentName || 'विद्यार्थी'),
-          studentGrade: String(body.studentGrade || room.grade || 'कक्षा 1'),
-          studentAvatar: String(body.studentAvatar || '🎒'),
-          worksheetId: String(body.worksheetId || 'ws_default'),
-          worksheetTitle: String(body.worksheetTitle || 'कक्षा अभ्यास पत्र'),
-          score: typeof body.score === 'number' ? body.score : 0,
-          totalQuestions: typeof body.totalQuestions === 'number' ? body.totalQuestions : 5,
-          percentage: typeof body.percentage === 'number' ? body.percentage : 0,
-          submittedAt: now,
-          responses: Array.isArray(body.responses) ? body.responses : []
+        const raw = body.submission || body;
+
+        const rawAnswers = raw.answers || raw.responses || [];
+        const normalizedResponses = rawAnswers.map((a: any, idx: number) => ({
+          questionId: a.question_id ?? a.questionId ?? idx,
+          questionHin: a.question_text ?? a.questionHin ?? a.question_hin ?? `प्रश्न ${idx + 1}`,
+          selectedAnswer: String(a.selected_answer ?? a.selectedAnswer ?? ''),
+          correctAnswer: String(a.correct_answer ?? a.correctAnswer ?? ''),
+          isCorrect: typeof a.is_correct === 'boolean' ? a.is_correct : (typeof a.isCorrect === 'boolean' ? a.isCorrect : false)
+        }));
+
+        const studentId = String(raw.student_id || raw.studentId || 'std_' + Math.random().toString(36).slice(2, 6));
+        const studentName = String(raw.student_name || raw.studentName || 'विद्यार्थी');
+        const worksheetId = String(raw.worksheet_id || raw.worksheetId || 'ws_default');
+        const worksheetTitle = String(raw.worksheet_title || raw.worksheetTitle || 'कक्षा अभ्यास पत्र');
+        const score = typeof raw.score === 'number' ? raw.score : normalizedResponses.filter((r: any) => r.isCorrect).length;
+        const total = typeof raw.total_questions === 'number' ? raw.total_questions : (typeof raw.totalQuestions === 'number' ? raw.totalQuestions : normalizedResponses.length || 5);
+        const pct = typeof raw.percentage === 'number' ? raw.percentage : Math.round((score / Math.max(1, total)) * 100);
+        const subTime = raw.timestamp || raw.submittedAt || now;
+
+        const submission: any = {
+          studentId,
+          studentName,
+          studentGrade: String(raw.student_grade || raw.studentGrade || room.grade || 'कक्षा 1'),
+          studentAvatar: String(raw.student_avatar || raw.studentAvatar || '🎒'),
+          worksheetId,
+          worksheetTitle,
+          score,
+          totalQuestions: total,
+          percentage: pct,
+          submittedAt: subTime,
+          responses: normalizedResponses,
+
+          // Snake_case aliases so both naming conventions work everywhere seamlessly
+          student_id: studentId,
+          student_name: studentName,
+          worksheet_id: worksheetId,
+          worksheet_title: worksheetTitle,
+          total_questions: total,
+          timestamp: subTime,
+          answers: normalizedResponses.map((r: any) => ({
+            question_id: r.questionId,
+            question_text: r.questionHin,
+            selected_answer: r.selectedAnswer,
+            correct_answer: r.correctAnswer,
+            is_correct: r.isCorrect
+          }))
         };
 
-        const existingIdx = room.submissions.findIndex(s => s.studentId === submission.studentId && s.worksheetId === submission.worksheetId);
+        const existingIdx = room.submissions.findIndex(s => (s.studentId === studentId || (s as any).student_id === studentId) && (s.worksheetId === worksheetId || (s as any).worksheet_id === worksheetId));
         if (existingIdx >= 0) {
           room.submissions[existingIdx] = submission;
         } else {
@@ -262,7 +307,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         }
 
         const submissionEvent: RoomEvent = {
-          id: `sub_${now}_${submission.studentId}`,
+          id: `sub_${now}_${studentId}`,
           type: 'worksheet_submission' as any,
           timestamp: now,
           data: submission
@@ -271,10 +316,25 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         if (room.events.length > 40) room.events.shift();
 
         saveRooms(rooms);
-        return res.status(200).json({ success: true, submissionId: submission.studentId });
+        return res.status(200).json({ success: true, submissionId: studentId });
       }
 
-      // Action 4: Teacher resetting classroom (new session / clear previous worksheet)
+      // Action 4: Teacher clearing active distributed worksheet
+      if (body.action === 'clear_worksheet') {
+        room.events = room.events.filter(e => e.type !== 'worksheet_assigned');
+        const clearEvent: RoomEvent = {
+          id: `clr_${now}`,
+          type: 'clear_worksheet' as any,
+          timestamp: now,
+          data: { worksheetId: body.worksheetId || 'all' }
+        };
+        room.events.push(clearEvent);
+        if (room.events.length > 40) room.events.shift();
+        saveRooms(rooms);
+        return res.status(200).json({ success: true, cleared: true });
+      }
+
+      // Action 5: Teacher resetting classroom (new session / clear previous worksheet)
       if (body.action === 'reset_classroom') {
         room.events = [];
         room.submissions = [];
@@ -282,7 +342,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         return res.status(200).json({ success: true, reset: true });
       }
 
-      // Action 5: Teacher closing the room
+      // Action 6: Teacher closing the room
       if (body.action === 'close') {
         delete rooms[roomCode];
         saveRooms(rooms);

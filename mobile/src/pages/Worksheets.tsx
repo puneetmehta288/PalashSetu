@@ -823,6 +823,39 @@ const Worksheets: React.FC = () => {
       const qs = generateQuestions('c1_addition', 5);
       setQuestions(qs);
     } else {
+      // Check if opening in review mode from previous assignments
+      const reviewRaw = sessionStorage.getItem('palash_review_worksheet');
+      if (reviewRaw) {
+        try {
+          const rev = JSON.parse(reviewRaw);
+          sessionStorage.removeItem('palash_review_worksheet');
+          if (rev) {
+            setSelectedAssignedTitle(rev.worksheet_title || rev.worksheetTitle || 'पिछला कार्यपत्र');
+            const answers = rev.answers || rev.responses || [];
+            if (answers.length > 0) {
+              const reconstructedQs = answers.map((a: any, idx: number) => ({
+                id: a.question_id ?? a.questionId ?? idx,
+                type: 'review',
+                question_hin: a.question_text ?? a.questionHin ?? `प्रश्न ${idx + 1}`,
+                question_sat: a.question_text ?? a.questionHin ?? `प्रश्न ${idx + 1}`,
+                options: [a.selected_answer || a.selectedAnswer, a.correct_answer || a.correctAnswer].filter(Boolean),
+                correct_answer: a.correct_answer || a.correctAnswer || ''
+              }));
+              setQuestions(reconstructedQs);
+              const selMap: Record<number, string> = {};
+              answers.forEach((a: any, idx: number) => {
+                selMap[a.question_id ?? a.questionId ?? idx] = a.selected_answer || a.selectedAnswer || '';
+              });
+              setStudentSelections(selMap);
+              setSubmissionResult(rev);
+              setIsSubmitted(true);
+              setShowAnswers(true);
+              return;
+            }
+          }
+        } catch (_) {}
+      }
+
       // Student mode: check assigned worksheets
       if (assignedList.length > 0) {
         const first = assignedList[0];
@@ -939,6 +972,30 @@ const Worksheets: React.FC = () => {
         </div>
         {questions.length > 0 && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {userRole === 'student' && (
+              <button
+                onClick={() => {
+                  sfx.playTap();
+                  navigate('/classroom');
+                }}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  border: '1.5px solid #0f2744',
+                  backgroundColor: '#ffffff',
+                  color: '#0f2744',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>← कक्षा में वापस जाएं</span>
+              </button>
+            )}
+
             {userRole === 'teacher' && (
               <>
                 <button
@@ -995,6 +1052,32 @@ const Worksheets: React.FC = () => {
                   }}
                 >
                   <span>📊 छात्र मूल्यांकन रिपोर्ट ({teacherSubmissions.length})</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    sfx.playTap();
+                    if (window.confirm('क्या आप कक्षा के सभी छात्रों के स्क्रीन से वर्तमान वितरित कार्यपत्र हटाना चाहते हैं?')) {
+                      classroomService.clearDistributedWorksheet();
+                      alert('🗑️ वितरित कार्यपत्र कक्षा से हटा दिया गया है।');
+                    }
+                  }}
+                  title="वितरित कार्यपत्र हटाएं"
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #ef4444',
+                    backgroundColor: '#fef2f2',
+                    color: '#dc2626',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>🗑️ कार्यपत्र हटाएं</span>
                 </button>
               </>
             )}
@@ -1352,6 +1435,30 @@ const Worksheets: React.FC = () => {
                   <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center', backgroundColor: '#ffffff', padding: '6px 16px', borderRadius: '20px', border: '1px solid #86efac', fontWeight: 700, fontSize: '0.85rem' }}>
                     <span>✅ शिक्षिका के टैबलेट पर भेजा गया</span>
                   </div>
+                  <div style={{ marginTop: '16px' }}>
+                    <button
+                      onClick={() => {
+                        sfx.playTap();
+                        navigate('/classroom');
+                      }}
+                      style={{
+                        backgroundColor: '#0f2744',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '11px 24px',
+                        borderRadius: '14px',
+                        fontSize: '0.92rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 14px rgba(15,39,68,0.25)'
+                      }}
+                    >
+                      <span>🎒 कक्षा में वापस जाएं (Return to Classroom)</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <button
@@ -1425,10 +1532,12 @@ const Worksheets: React.FC = () => {
               justifyContent: 'space-between',
               alignItems: 'center',
               backgroundColor: '#0f2744',
-              color: '#ffffff'
+              color: '#ffffff',
+              gap: '10px',
+              flexWrap: 'wrap'
             }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span>📊 छात्र मूल्यांकन रिपोर्ट (Student Assessment Reports)</span>
                   <span style={{ fontSize: '0.78rem', backgroundColor: '#16a34a', color: '#fff', padding: '2px 10px', borderRadius: '12px' }}>
                     {teacherSubmissions.length} छात्र जमा
@@ -1438,28 +1547,55 @@ const Worksheets: React.FC = () => {
                   कक्षा में छात्रों द्वारा सबमिट किए गए कार्यपत्र के अंक एवं विस्तृत उत्तर
                 </div>
               </div>
-              <button
-                onClick={() => setShowTeacherReportsModal(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  border: 'none',
-                  color: '#fff',
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50%',
-                  fontSize: '1.2rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                ✕
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={() => {
+                    sfx.playTap();
+                    const subs = classroomService.getSubmissions();
+                    setTeacherSubmissions(subs);
+                    if (subs.length > 0 && !selectedReportStudent) {
+                      setSelectedReportStudent(subs[0]);
+                    }
+                  }}
+                  style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    color: '#fff',
+                    padding: '6px 12px',
+                    borderRadius: '10px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <span>🔄 ताज़ा करें</span>
+                </button>
+                <button
+                  onClick={() => setShowTeacherReportsModal(false)}
+                  style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    border: 'none',
+                    color: '#fff',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}
-            <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
+            <div style={{ padding: '1.25rem', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
               {teacherSubmissions.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⏳</div>
@@ -1471,118 +1607,186 @@ const Worksheets: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 2fr', gap: '1.25rem' }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: (typeof window !== 'undefined' && window.innerWidth < 768 && selectedReportStudent)
+                    ? '1fr'
+                    : (typeof window !== 'undefined' && window.innerWidth < 768 && !selectedReportStudent)
+                    ? '1fr'
+                    : 'minmax(260px, 1fr) 2fr',
+                  gap: '1.25rem'
+                }}>
                   {/* Students Roster List */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      छात्र सूची ({teacherSubmissions.length})
+                  {(!(typeof window !== 'undefined' && window.innerWidth < 768 && selectedReportStudent)) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        छात्र सूची ({teacherSubmissions.length})
+                      </div>
+                      {teacherSubmissions.map((sub: any, sidx) => {
+                        const subStudentId = sub.student_id || sub.studentId;
+                        const currStudentId = selectedReportStudent?.student_id || (selectedReportStudent as any)?.studentId;
+                        const isSelected = subStudentId === currStudentId;
+                        const score = typeof sub.score === 'number' ? sub.score : 0;
+                        const total = typeof sub.total_questions === 'number' ? sub.total_questions : (typeof sub.totalQuestions === 'number' ? sub.totalQuestions : 5);
+                        const pct = typeof sub.percentage === 'number' ? sub.percentage : Math.round((score / Math.max(1, total)) * 100);
+
+                        return (
+                          <div
+                            key={sidx}
+                            onClick={() => {
+                              sfx.playTap();
+                              setSelectedReportStudent(sub);
+                            }}
+                            style={{
+                              padding: '12px 14px',
+                              borderRadius: '14px',
+                              backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                              border: isSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 800, color: '#0f2744', fontSize: '0.95rem' }}>
+                                🎒 {sub.student_name || sub.studentName || 'विद्यार्थी'}
+                              </div>
+                              <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '2px' }}>
+                                {new Date(sub.timestamp || sub.submittedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                            <div style={{
+                              backgroundColor: pct >= 60 ? '#dcfce7' : '#fee2e2',
+                              color: pct >= 60 ? '#15803d' : '#b91c1c',
+                              padding: '4px 10px',
+                              borderRadius: '12px',
+                              fontWeight: 800,
+                              fontSize: '0.82rem'
+                            }}>
+                              {score} / {total} ({pct}%)
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    {teacherSubmissions.map((sub, sidx) => {
-                      const isSelected = selectedReportStudent?.student_id === sub.student_id;
-                      return (
-                        <div
-                          key={sidx}
-                          onClick={() => {
-                            sfx.playTap();
-                            setSelectedReportStudent(sub);
-                          }}
-                          style={{
-                            padding: '12px 14px',
-                            borderRadius: '14px',
-                            backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
-                            border: isSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          <div>
-                            <div style={{ fontWeight: 800, color: '#0f2744', fontSize: '0.95rem' }}>
-                              🎒 {sub.student_name}
-                            </div>
-                            <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '2px' }}>
-                              {new Date(sub.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                          </div>
-                          <div style={{
-                            backgroundColor: sub.percentage >= 60 ? '#dcfce7' : '#fee2e2',
-                            color: sub.percentage >= 60 ? '#15803d' : '#b91c1c',
-                            padding: '4px 10px',
-                            borderRadius: '12px',
-                            fontWeight: 800,
-                            fontSize: '0.82rem'
-                          }}>
-                            {sub.score} / {sub.total_questions} ({sub.percentage}%)
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  )}
 
                   {/* Selected Student Answer Sheet */}
                   {selectedReportStudent ? (
-                    <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.25rem 1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '14px' }}>
-                        <div>
-                          <h4 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f2744' }}>
-                            👤 {selectedReportStudent.student_name} की उत्तर पुस्तिका
-                          </h4>
-                          <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
-                            कार्यपत्र: {selectedReportStudent.worksheet_title}
-                          </div>
-                        </div>
-                        <div style={{
-                          backgroundColor: selectedReportStudent.percentage >= 60 ? '#16a34a' : '#d97706',
-                          color: '#ffffff',
-                          padding: '6px 14px',
-                          borderRadius: '14px',
-                          fontWeight: 800,
-                          fontSize: '0.95rem'
-                        }}>
-                          अंक: {selectedReportStudent.score} / {selectedReportStudent.total_questions} ({selectedReportStudent.percentage}%)
-                        </div>
-                      </div>
+                    <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.25rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                      {/* Mobile Back to Roster Button */}
+                      {typeof window !== 'undefined' && window.innerWidth < 768 && (
+                        <button
+                          onClick={() => setSelectedReportStudent(null)}
+                          style={{
+                            background: '#f1f5f9',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '10px',
+                            padding: '6px 14px',
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            color: '#0f2744',
+                            cursor: 'pointer',
+                            marginBottom: '12px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <span>← वापस छात्र सूची देखें</span>
+                        </button>
+                      )}
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {selectedReportStudent.answers.map((ans, aidx) => (
-                          <div
-                            key={aidx}
-                            style={{
-                              padding: '12px',
-                              borderRadius: '12px',
-                              border: `1.5px solid ${ans.is_correct ? '#86efac' : '#fca5a5'}`,
-                              backgroundColor: ans.is_correct ? '#f0fdf4' : '#fff5f5'
-                            }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                              <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f2744' }}>
-                                प्रश्न {aidx + 1}: {ans.question_text}
-                              </span>
-                              <span style={{
-                                fontSize: '0.75rem',
-                                fontWeight: 800,
-                                color: ans.is_correct ? '#166534' : '#991b1b',
-                                backgroundColor: ans.is_correct ? '#dcfce7' : '#fee2e2',
-                                padding: '2px 8px',
-                                borderRadius: '10px'
-                              }}>
-                                {ans.is_correct ? '✅ 1/1 अंक' : '❌ 0/1 अंक'}
-                              </span>
-                            </div>
-                            <div style={{ fontSize: '0.84rem', marginTop: '4px' }}>
-                              छात्र का चयन: <strong style={{ color: ans.is_correct ? '#166534' : '#b91c1c' }}>{ans.selected_answer || '(अनुत्तरित / कोई विकल्प नहीं चुना)'}</strong>
-                            </div>
-                            {!ans.is_correct && (
-                              <div style={{ fontSize: '0.82rem', color: '#166534', backgroundColor: '#dcfce7', padding: '4px 8px', borderRadius: '6px', marginTop: '6px', fontWeight: 700 }}>
-                                🎯 सही उत्तर: {ans.correct_answer}
+                      {(() => {
+                        const rawAnswers = selectedReportStudent.answers || (selectedReportStudent as any).responses || [];
+                        const score = typeof selectedReportStudent.score === 'number' ? selectedReportStudent.score : 0;
+                        const total = typeof selectedReportStudent.total_questions === 'number'
+                          ? selectedReportStudent.total_questions
+                          : (typeof (selectedReportStudent as any).totalQuestions === 'number' ? (selectedReportStudent as any).totalQuestions : rawAnswers.length || 5);
+                        const pct = typeof selectedReportStudent.percentage === 'number'
+                          ? selectedReportStudent.percentage
+                          : Math.round((score / Math.max(1, total)) * 100);
+
+                        return (
+                          <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                              <div>
+                                <h4 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f2744' }}>
+                                  👤 {selectedReportStudent.student_name || (selectedReportStudent as any).studentName} की उत्तर पुस्तिका
+                                </h4>
+                                <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                                  कार्यपत्र: {selectedReportStudent.worksheet_title || (selectedReportStudent as any).worksheetTitle}
+                                </div>
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                              <div style={{
+                                backgroundColor: pct >= 60 ? '#16a34a' : '#d97706',
+                                color: '#ffffff',
+                                padding: '6px 14px',
+                                borderRadius: '14px',
+                                fontWeight: 800,
+                                fontSize: '0.95rem'
+                              }}>
+                                अंक: {score} / {total} ({pct}%)
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {rawAnswers.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '1.5rem', color: '#64748b', fontSize: '0.85rem' }}>
+                                  इस छात्र की विस्तृत प्रतिक्रिया उपलब्ध नहीं है।
+                                </div>
+                              ) : (
+                                rawAnswers.map((ans: any, aidx: number) => {
+                                  const qText = ans.question_text || ans.questionHin || `प्रश्न ${aidx + 1}`;
+                                  const selAns = ans.selected_answer ?? ans.selectedAnswer ?? '';
+                                  const corAns = ans.correct_answer ?? ans.correctAnswer ?? '';
+                                  const isCor = typeof ans.is_correct === 'boolean' ? ans.is_correct : (typeof ans.isCorrect === 'boolean' ? ans.isCorrect : false);
+
+                                  return (
+                                    <div
+                                      key={aidx}
+                                      style={{
+                                        padding: '12px',
+                                        borderRadius: '12px',
+                                        border: `1.5px solid ${isCor ? '#86efac' : '#fca5a5'}`,
+                                        backgroundColor: isCor ? '#f0fdf4' : '#fff5f5'
+                                      }}
+                                    >
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px' }}>
+                                        <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f2744' }}>
+                                          प्रश्न {aidx + 1}: {qText}
+                                        </span>
+                                        <span style={{
+                                          fontSize: '0.75rem',
+                                          fontWeight: 800,
+                                          color: isCor ? '#166534' : '#991b1b',
+                                          backgroundColor: isCor ? '#dcfce7' : '#fee2e2',
+                                          padding: '2px 8px',
+                                          borderRadius: '10px',
+                                          flexShrink: 0
+                                        }}>
+                                          {isCor ? '✅ 1/1 अंक' : '❌ 0/1 अंक'}
+                                        </span>
+                                      </div>
+                                      <div style={{ fontSize: '0.84rem', marginTop: '4px' }}>
+                                        छात्र का चयन: <strong style={{ color: isCor ? '#166534' : '#b91c1c' }}>{selAns || '(अनुत्तरित / कोई विकल्प नहीं चुना)'}</strong>
+                                      </div>
+                                      {!isCor && (
+                                        <div style={{ fontSize: '0.82rem', color: '#166534', backgroundColor: '#dcfce7', padding: '4px 8px', borderRadius: '6px', marginTop: '6px', fontWeight: 700 }}>
+                                          🎯 सही उत्तर: {corAns}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   ) : (
                     <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>

@@ -900,6 +900,32 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
               >
                 <span>📝 कार्यपत्र एवं मूल्यांकन</span>
               </button>
+
+              <button
+                onClick={() => {
+                  sfx.playTap();
+                  if (window.confirm('क्या आप छात्रों के स्क्रीन से वर्तमान वितरित कार्यपत्र हटाना चाहते हैं?')) {
+                    classroomService.clearDistributedWorksheet();
+                    alert('🗑️ कार्यपत्र कक्षा से हटा दिया गया है।');
+                  }
+                }}
+                title="छात्रों के टैबलेट से वर्तमान कार्यपत्र हटाएं"
+                style={{
+                  backgroundColor: 'rgba(239, 68, 68, 0.25)',
+                  border: '1px solid rgba(239, 68, 68, 0.5)',
+                  color: '#ffffff',
+                  padding: '7px 12px',
+                  borderRadius: '10px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>🗑️ कार्यपत्र हटाएं</span>
+              </button>
             </>
           )}
 
@@ -1297,6 +1323,18 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
                     setLatencyMs(1);
                     setActiveModel(`⚡ Palash On-Device Engine (Hindi ➔ ${TRIBAL_LANGUAGES[selectedLanguage].name})`);
                     speakText(phrase.pronunciation || tribalText);
+
+                    // 📡 Broadcast selected phrase to student screens and auto-play
+                    if (classroomService.isBroadcasting()) {
+                      classroomService.broadcastTranslation({
+                        sourceHindi: hindiText,
+                        translatedSantali: tribalText,
+                        phoneticHindi: phrase.pronunciation || '',
+                        dialect: selectedLanguage,
+                        sourceConfidence: 'verified',
+                        timestamp: Date.now()
+                      });
+                    }
                   }
 
                   // 📡 Log phrasebook selection to telemetry

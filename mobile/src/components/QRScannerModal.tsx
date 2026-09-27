@@ -56,24 +56,59 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
         throw new Error('इस डिवाइस पर कैमरा सपोर्ट उपलब्ध नहीं है।');
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        },
-        audio: false
-      });
+      // Try environment camera first, then fallback to any camera
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
+          audio: false
+        });
+      } catch (firstErr) {
+        console.warn('[QRScanner] Environment camera failed, trying any video camera', firstErr);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+      }
+
+      if (!stream) {
+        throw new Error('कैमरा स्ट्रीम प्राप्त नहीं हो सकी।');
+      }
 
       streamRef.current = stream;
       setHasPermission(true);
 
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute('playsinline', 'true'); // Required for iOS/Android WebView
-        await videoRef.current.play();
-        setIsScanning(true);
-        requestAnimationFrame(tickScan);
+        const video = videoRef.current;
+        video.srcObject = stream;
+        video.muted = true;
+        (video as any).defaultMuted = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('webkit-playsinline', 'true');
+        video.setAttribute('autoplay', 'true');
+        video.setAttribute('muted', 'true');
+
+        const tryPlay = () => {
+          video.play().then(() => {
+            setIsScanning(true);
+            if (!animationFrameRef.current) {
+              animationFrameRef.current = requestAnimationFrame(tickScan);
+            }
+          }).catch((err) => {
+            console.warn('[QRScanner] play() deferred:', err);
+          });
+        };
+
+        video.onloadedmetadata = () => {
+          tryPlay();
+        };
+
+        tryPlay();
       }
     } catch (err: any) {
       console.error('[QRScanner Error]', err);
@@ -227,6 +262,14 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
 
         {/* Camera Viewport Area */}
         <div
+          onClick={() => {
+            if (videoRef.current) {
+              videoRef.current.play().catch(() => {});
+              if (!animationFrameRef.current) {
+                animationFrameRef.current = requestAnimationFrame(tickScan);
+              }
+            }
+          }}
           style={{
             position: 'relative',
             width: '100%',
@@ -235,13 +278,19 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            cursor: 'pointer'
           }}
         >
           {/* Video Stream */}
           <video
             ref={videoRef}
+            autoPlay
+            playsInline
+            muted
             style={{
+              position: 'absolute',
+              inset: 0,
               width: '100%',
               height: '100%',
               objectFit: 'cover'

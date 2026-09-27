@@ -5,6 +5,8 @@
  * - Serverless Relay API (/api/classroom): Real-time fallback across physical devices
  */
 
+import { authService } from './authService';
+
 export interface ClassroomTranslationEvent {
   sourceHindi: string;
   translatedSantali: string;
@@ -47,6 +49,7 @@ export type ClassroomEvent =
   | { type: 'translation'; data: ClassroomTranslationEvent }
   | { type: 'worksheet_assigned'; data: ClassroomWorksheetEvent }
   | { type: 'worksheet_submission'; data: WorksheetSubmission }
+  | { type: 'clear_worksheet'; data?: { worksheetId?: string } }
   | { type: 'classroom_reset'; data?: any };
 
 export interface ConnectedStudent {
@@ -226,9 +229,8 @@ class ClassroomService {
     });
   }
 
-  // ─── TEACHER: Stop Broadcasting ───
+  // ─── TEACHER: Stop Broadcasting (Without wiping assignments) ───
   public stopBroadcast(): void {
-    this.resetClassroom();
     if (this.activeRoomCode) {
       this.postToRelay({ action: 'close', room: this.activeRoomCode });
       try {
@@ -240,6 +242,32 @@ class ClassroomService {
     this.connectedStudentsMap.clear();
     sessionStorage.removeItem('palash_active_room');
     if (this.pollInterval) clearInterval(this.pollInterval);
+  }
+
+  // ─── TEACHER: Clear Distributed Worksheet on Demand ───
+  public clearDistributedWorksheet(worksheetId?: string): void {
+    const room = this.activeRoomCode || (typeof window !== 'undefined' ? sessionStorage.getItem('palash_active_room') : null);
+    try {
+      localStorage.removeItem('palash_assigned_worksheets');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('palash_clear_worksheet', { detail: { worksheetId } }));
+      }
+    } catch (_) {}
+
+    try {
+      this.broadcastChannel?.postMessage({
+        type: 'clear_worksheet',
+        data: { worksheetId }
+      });
+    } catch (_) {}
+
+    if (room) {
+      this.postToRelay({
+        action: 'clear_worksheet',
+        room: room,
+        worksheetId: worksheetId
+      });
+    }
   }
 
   // ─── RESET CLASSROOM ───
@@ -281,29 +309,72 @@ class ClassroomService {
   }
 
   public async submitWorksheetResult(submission: WorksheetSubmission): Promise<any> {
-    const room = this.activeRoomCode || (typeof window !== 'undefined' ? sessionStorage.getItem('palash_active_room') : null);
+    const student = authService.getStudentProfile();
+    const room = this.activeRoomCode ||
+      student?.roomCode ||
+      (typeof window !== 'undefined' ? (localStorage.getItem('palash_student_room') || sessionStorage.getItem('palash_active_room')) : null);
 
-    // Save locally on student tablet
+    const studentId = submission.student_id || student?.studentId || (student as any)?.id || 'std_' + Math.random().toString(36).slice(2, 6);
+    const studentName = submission.student_name || student?.studentName || 'विद्यार्थी';
+
+    const normalizedSubmission: WorksheetSubmission = {
+      ...submission,
+      student_id: studentId,
+      student_name: studentName,
+      worksheet_id: submission.worksheet_id || 'ws_default',
+      worksheet_title: submission.worksheet_title || 'कक्षा अभ्यास पत्र',
+      score: typeof submission.score === 'number' ? submission.score : 0,
+      total_questions: typeof submission.total_questions === 'number' ? submission.total_questions : (submission.answers?.length || 5),
+      percentage: typeof submission.percentage === 'number' ? submission.percentage : 0,
+      timestamp: submission.timestamp || Date.now(),
+      answers: submission.answers || []
+    };
+
+    // 1. Save locally in student completed submissions
     try {
       const stored = JSON.parse(localStorage.getItem('palash_student_my_submissions') || '[]');
-      const updated = [submission, ...stored.filter((s: any) => s.worksheet_id !== submission.worksheet_id)];
-      localStorage.setItem('palash_student_my_submissions', JSON.stringify(updated.slice(0, 15)));
+      const updated = [normalizedSubmission, ...stored.filter((s: any) => s.worksheet_id !== normalizedSubmission.worksheet_id)];
+      localStorage.setItem('palash_student_my_submissions', JSON.stringify(updated.slice(0, 20)));
+
+      // Remove from pending assigned list once submitted
+      const assigned = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+      const remainingAssigned = assigned.filter((w: any) => w.worksheetId !== normalizedSubmission.worksheet_id && w.worksheet_id !== normalizedSubmission.worksheet_id);
+      localStorage.setItem('palash_assigned_worksheets', JSON.stringify(remainingAssigned));
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('palash_worksheet_submitted', { detail: normalizedSubmission }));
+      }
     } catch (_) {}
 
-    // 1. Post to local BroadcastChannel (peer-to-peer / offline)
+    // 2. Post to local BroadcastChannel (peer-to-peer / offline)
     try {
       this.broadcastChannel?.postMessage({
         type: 'worksheet_submission',
-        data: submission
+        data: normalizedSubmission
       });
     } catch (_) {}
 
-    // 2. Post to Relay
+    // 3. Post to Relay
     if (room) {
       return this.postToRelay({
         action: 'submit_worksheet',
         room: room,
-        submission: submission
+        submission: normalizedSubmission,
+        // Flat properties for full server backward compatibility
+        studentId: normalizedSubmission.student_id,
+        studentName: normalizedSubmission.student_name,
+        worksheetId: normalizedSubmission.worksheet_id,
+        worksheetTitle: normalizedSubmission.worksheet_title,
+        score: normalizedSubmission.score,
+        totalQuestions: normalizedSubmission.total_questions,
+        percentage: normalizedSubmission.percentage,
+        responses: normalizedSubmission.answers.map(a => ({
+          questionId: a.question_id,
+          questionHin: a.question_text,
+          selectedAnswer: a.selected_answer,
+          correctAnswer: a.correct_answer,
+          isCorrect: a.is_correct
+        }))
       });
     }
     return { success: true };
@@ -356,14 +427,14 @@ class ClassroomService {
         this.broadcastChannel = new BroadcastChannel(`palash_classroom_${formattedCode}`);
         this.broadcastChannel.onmessage = (msg) => {
           if (msg.data) {
-            if (msg.data.type === 'classroom_reset') {
+            if (msg.data.type === 'classroom_reset' || msg.data.type === 'clear_worksheet') {
               try {
                 localStorage.removeItem('palash_assigned_worksheets');
                 if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
+                  window.dispatchEvent(new CustomEvent('palash_clear_worksheet', { detail: msg.data.data }));
                 }
               } catch (_) {}
-              onEvent({ type: 'classroom_reset' });
+              onEvent({ type: msg.data.type, data: msg.data.data });
             } else if (msg.data.type === 'translation' || msg.data.type === 'worksheet_assigned') {
               if (msg.data.type === 'worksheet_assigned' && msg.data.data) {
                 try {
@@ -408,7 +479,6 @@ class ClassroomService {
       this.broadcastChannel?.close();
     } catch (_) {}
     this.broadcastChannel = null;
-    this.activeRoomCode = null;
     this.listeners = [];
     this.countListeners = [];
     this.studentsListeners = [];
@@ -452,6 +522,16 @@ class ClassroomService {
     if (this.pollInterval) clearInterval(this.pollInterval);
     this.pollInterval = setInterval(async () => {
       try {
+        // 1. Send teacher heartbeat ping to keep classroom alive on relay
+        this.postToRelay({
+          action: 'teacher_ping',
+          room: roomCode,
+          teacherName: this.teacherName,
+          schoolName: this.schoolName,
+          grade: this.teacherGrade
+        });
+
+        // 2. Poll submissions and students
         let url = `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`;
         let res = await fetch(url).catch(() => null);
         if (!res || !res.ok) {
@@ -470,8 +550,27 @@ class ClassroomService {
             this.notifyStudents();
           }
           if (data && Array.isArray(data.submissions)) {
-            data.submissions.forEach((sub: WorksheetSubmission) => {
-              this.submissionsMap.set(`${sub.worksheet_id}_${sub.student_id}`, sub);
+            data.submissions.forEach((sub: any) => {
+              const answersList = Array.isArray(sub.answers) ? sub.answers : (Array.isArray(sub.responses) ? sub.responses.map((r: any) => ({
+                question_id: r.questionId ?? r.question_id,
+                question_text: r.questionHin ?? r.question_text ?? '',
+                selected_answer: r.selectedAnswer ?? r.selected_answer ?? '',
+                correct_answer: r.correctAnswer ?? r.correct_answer ?? '',
+                is_correct: !!(r.isCorrect ?? r.is_correct)
+              })) : []);
+
+              const normalizedSub: WorksheetSubmission = {
+                student_id: sub.student_id || sub.studentId || 'std_' + Math.random().toString(36).slice(2, 6),
+                student_name: sub.student_name || sub.studentName || 'विद्यार्थी',
+                worksheet_id: sub.worksheet_id || sub.worksheetId || 'ws_default',
+                worksheet_title: sub.worksheet_title || sub.worksheetTitle || 'कक्षा अभ्यास पत्र',
+                score: typeof sub.score === 'number' ? sub.score : 0,
+                total_questions: typeof sub.total_questions === 'number' ? sub.total_questions : (typeof sub.totalQuestions === 'number' ? sub.totalQuestions : answersList.length || 5),
+                percentage: typeof sub.percentage === 'number' ? sub.percentage : 0,
+                timestamp: sub.timestamp || sub.submittedAt || Date.now(),
+                answers: answersList
+              };
+              this.submissionsMap.set(`${normalizedSub.worksheet_id}_${normalizedSub.student_id}`, normalizedSub);
             });
             this.notifySubmissions();
           }
@@ -535,14 +634,14 @@ class ClassroomService {
             res.recentEvents.forEach((ev: any) => {
               if (ev && ev.timestamp > this.lastEventTimestamp) {
                 this.lastEventTimestamp = ev.timestamp;
-                if (ev.type === 'classroom_reset') {
+                if (ev.type === 'classroom_reset' || ev.type === 'clear_worksheet') {
                   try {
                     localStorage.removeItem('palash_assigned_worksheets');
                     if (typeof window !== 'undefined') {
-                      window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
+                      window.dispatchEvent(new CustomEvent('palash_clear_worksheet', { detail: ev.data }));
                     }
                   } catch (_) {}
-                  this.listeners.forEach(fn => fn({ type: 'classroom_reset' }));
+                  this.listeners.forEach(fn => fn({ type: ev.type, data: ev.data }));
                 } else if (ev.type === 'worksheet_assigned' && ev.data) {
                   try {
                     const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
@@ -561,7 +660,7 @@ class ClassroomService {
           }
         } else {
           consecutiveFailures++;
-          if (consecutiveFailures >= 3 && onConnectionStatus) {
+          if (consecutiveFailures >= 5 && onConnectionStatus) {
             onConnectionStatus({
               connected: false,
               teacherActive: false,
@@ -571,7 +670,7 @@ class ClassroomService {
         }
       } catch (_) {
         consecutiveFailures++;
-        if (consecutiveFailures >= 3 && onConnectionStatus) {
+        if (consecutiveFailures >= 5 && onConnectionStatus) {
           onConnectionStatus({
             connected: false,
             teacherActive: false,

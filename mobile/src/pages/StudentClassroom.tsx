@@ -20,8 +20,31 @@ const StudentClassroom: React.FC = () => {
   const [history, setHistory] = useState<ClassroomTranslationEvent[]>([]);
   const [studentCount, setStudentCount] = useState<number>(1);
   const [assignedWorksheet, setAssignedWorksheet] = useState<{ id: string; title: string } | null>(null);
+  const [isAssignedDismissed, setIsAssignedDismissed] = useState<boolean>(false);
+  const [submittedWorksheets, setSubmittedWorksheets] = useState<any[]>([]);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [hasReaction, setHasReaction] = useState(false);
+
+  const loadSubmissions = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('palash_student_my_submissions') || '[]');
+      setSubmittedWorksheets(stored);
+    } catch (_) {}
+  };
+
+  const loadAssigned = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+      if (stored && stored.length > 0) {
+        setAssignedWorksheet({
+          id: stored[0].worksheetId || stored[0].worksheet_id,
+          title: stored[0].title || stored[0].worksheet_title || 'कक्षा अभ्यास पत्र',
+        });
+      } else {
+        setAssignedWorksheet(null);
+      }
+    } catch (_) {}
+  };
 
   useEffect(() => {
     const profile = authService.getStudentProfile();
@@ -30,6 +53,9 @@ const StudentClassroom: React.FC = () => {
       return;
     }
     setStudent(profile);
+
+    loadSubmissions();
+    loadAssigned();
 
     // Join classroom broadcast bus
     const unsubscribe = classroomService.joinClassroom(
@@ -51,12 +77,14 @@ const StudentClassroom: React.FC = () => {
           playSantaliAudio(event.data.translatedSantali);
         } else if (event.type === 'worksheet_assigned') {
           sfx.playSuccess();
+          setIsAssignedDismissed(false);
           setAssignedWorksheet({
             id: event.data.worksheetId,
             title: event.data.title,
           });
-        } else if (event.type === 'classroom_reset') {
+        } else if (event.type === 'classroom_reset' || event.type === 'clear_worksheet') {
           setAssignedWorksheet(null);
+          setIsAssignedDismissed(false);
         }
       },
       (count: number) => {
@@ -72,20 +100,10 @@ const StudentClassroom: React.FC = () => {
       }
     );
 
-    // Check existing stored assigned worksheets on mount
-    try {
-      const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
-      if (stored && stored.length > 0) {
-        setAssignedWorksheet({
-          id: stored[0].worksheetId,
-          title: stored[0].title,
-        });
-      }
-    } catch (_) {}
-
     const onWorksheetAssigned = (e: any) => {
       if (e.detail) {
         sfx.playSuccess();
+        setIsAssignedDismissed(false);
         setAssignedWorksheet({
           id: e.detail.worksheetId,
           title: e.detail.title,
@@ -94,20 +112,33 @@ const StudentClassroom: React.FC = () => {
     };
     const onClassroomReset = () => {
       setAssignedWorksheet(null);
+      setIsAssignedDismissed(false);
+    };
+    const onClearWorksheet = () => {
+      setAssignedWorksheet(null);
+      setIsAssignedDismissed(false);
+    };
+    const onWorksheetSubmitted = () => {
+      loadSubmissions();
+      loadAssigned();
     };
 
     window.addEventListener('palash_worksheet_assigned', onWorksheetAssigned);
     window.addEventListener('palash_classroom_reset', onClassroomReset);
+    window.addEventListener('palash_clear_worksheet', onClearWorksheet);
+    window.addEventListener('palash_worksheet_submitted', onWorksheetSubmitted);
 
-    // Timeout check after 4s: if still no teacher ack, show hotspot guidance
+    // Timeout check after 6s: if still no teacher ack, show hotspot guidance
     const timer = setTimeout(() => {
       setIsCheckingConnection(false);
-    }, 4000);
+    }, 6000);
 
     return () => {
       unsubscribe();
       window.removeEventListener('palash_worksheet_assigned', onWorksheetAssigned);
       window.removeEventListener('palash_classroom_reset', onClassroomReset);
+      window.removeEventListener('palash_clear_worksheet', onClearWorksheet);
+      window.removeEventListener('palash_worksheet_submitted', onWorksheetSubmitted);
       clearTimeout(timer);
     };
   }, [navigate]);
@@ -224,7 +255,7 @@ const StudentClassroom: React.FC = () => {
       </div>
 
       {/* ─── Hotspot / Wi-Fi Connection Warning (If Teacher Not Reachable) ─── */}
-      {!connStatus.teacherActive && !isCheckingConnection && (
+      {!connStatus.connected && !connStatus.teacherActive && !isCheckingConnection && (
         <div
           style={{
             backgroundColor: '#fffbeb',
@@ -323,7 +354,7 @@ const StudentClassroom: React.FC = () => {
       )}
 
       {/* ─── Teacher Assigned Worksheet Alert (if present) ─── */}
-      {assignedWorksheet && (
+      {assignedWorksheet && !isAssignedDismissed && (
         <div
           style={{
             backgroundColor: '#dcfce7',
@@ -349,6 +380,79 @@ const StudentClassroom: React.FC = () => {
               </div>
             </div>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                sfx.playTap();
+                navigate('/worksheets');
+              }}
+              style={{
+                backgroundColor: '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '12px',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 8px rgba(22, 163, 74, 0.3)'
+              }}
+            >
+              <span>✏️ कार्यपत्र हल करें ➔</span>
+            </button>
+
+            <button
+              onClick={() => {
+                sfx.playTap();
+                setIsAssignedDismissed(true);
+              }}
+              title="बाद में हल करने के लिए बंद करें"
+              style={{
+                backgroundColor: 'rgba(22, 101, 52, 0.1)',
+                color: '#166534',
+                border: '1px solid rgba(22, 101, 52, 0.25)',
+                padding: '10px 14px',
+                borderRadius: '12px',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                cursor: 'pointer'
+              }}
+            >
+              <span>✕ बाद में करें</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Compact Pending Worksheet Card (When Closed/Minimized) ─── */}
+      {assignedWorksheet && isAssignedDismissed && (
+        <div
+          style={{
+            backgroundColor: isDarkMode ? '#1e293b' : '#f8fafc',
+            border: isDarkMode ? '1px solid #334155' : '1px solid #cbd5e1',
+            borderRadius: '16px',
+            padding: '1rem 1.25rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.6rem' }}>📝</span>
+            <div>
+              <div style={{ fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f2744', fontSize: '0.92rem' }}>
+                लंबित कार्यपत्र: {assignedWorksheet.title}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                शिक्षक द्वारा सौंपा गया • कभी भी हल करें
+              </div>
+            </div>
+          </div>
           <button
             onClick={() => {
               sfx.playTap();
@@ -358,18 +462,17 @@ const StudentClassroom: React.FC = () => {
               backgroundColor: '#16a34a',
               color: '#ffffff',
               border: 'none',
-              padding: '10px 20px',
-              borderRadius: '12px',
+              padding: '8px 16px',
+              borderRadius: '10px',
               fontWeight: 800,
-              fontSize: '0.9rem',
+              fontSize: '0.84rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 2px 8px rgba(22, 163, 74, 0.3)'
+              gap: '6px'
             }}
           >
-            <span>✏️ कार्यपत्र हल करें ➔</span>
+            <span>✏️ हल करें ➔</span>
           </button>
         </div>
       )}
@@ -554,6 +657,98 @@ const StudentClassroom: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ─── Previous Assignments / Submissions Section ─── */}
+      {submittedWorksheets.length > 0 && (
+        <div
+          style={{
+            backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+            borderRadius: '16px',
+            padding: '1.25rem',
+            border: isDarkMode ? '1px solid #334155' : '1px solid #e2e8f0',
+          }}
+        >
+          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f2744', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>📚</span>
+            <span>पिछले कार्यपत्र एवं परिणाम (Previous Assignments)</span>
+            <span style={{ fontSize: '0.75rem', backgroundColor: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px' }}>
+              {submittedWorksheets.length} पूर्ण
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {submittedWorksheets.map((sub: any, idx: number) => {
+              const score = typeof sub.score === 'number' ? sub.score : 0;
+              const total = typeof sub.total_questions === 'number' ? sub.total_questions : (typeof sub.totalQuestions === 'number' ? sub.totalQuestions : 5);
+              const pct = typeof sub.percentage === 'number' ? sub.percentage : Math.round((score / Math.max(1, total)) * 100);
+
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '10px',
+                    border: isDarkMode ? '1px solid #334155' : '1px solid #e2e8f0',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f2744', fontSize: '0.95rem' }}>
+                      📝 {sub.worksheet_title || sub.worksheetTitle || 'कक्षा अभ्यास पत्र'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                      जमा किया: {new Date(sub.timestamp || sub.submittedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • स्थिति: <strong style={{ color: '#16a34a' }}>✅ सबमिट किया गया</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        backgroundColor: pct >= 60 ? '#dcfce7' : '#fee2e2',
+                        color: pct >= 60 ? '#15803d' : '#b91c1c',
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        fontWeight: 800,
+                        fontSize: '0.85rem'
+                      }}
+                    >
+                      अंक: {score} / {total} ({pct}%)
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        sfx.playTap();
+                        sessionStorage.setItem('palash_review_worksheet', JSON.stringify(sub));
+                        navigate('/worksheets');
+                      }}
+                      style={{
+                        backgroundColor: '#0f2744',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '7px 14px',
+                        borderRadius: '10px',
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>👁️ उत्तर देखें</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ─── Classroom Speech History ─── */}
       {history.length > 0 && (

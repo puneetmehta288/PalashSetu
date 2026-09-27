@@ -89,8 +89,14 @@ public class MainActivity extends BridgeActivity {
                     101);
         }
 
-        // Grant webview audio capture permission & inject helper bridge
+        // Grant webview audio/camera capture permission & inject helper bridge
         if (this.bridge != null && this.bridge.getWebView() != null) {
+            android.webkit.WebSettings webSettings = this.bridge.getWebView().getSettings();
+            webSettings.setMediaPlaybackRequiresUserGesture(false);
+            webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+            webSettings.setAllowFileAccess(true);
+            webSettings.setAllowContentAccess(true);
+
             this.bridge.getWebView().setWebChromeClient(new WebChromeClient() {
                 @Override
                 public void onPermissionRequest(final PermissionRequest request) {
