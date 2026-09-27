@@ -11,10 +11,10 @@
 [![FLN Flashcards](https://img.shields.io/badge/FLN%20Cards-16%20Decks%20%2896%20Cards%29-purple.svg)](#fln-flashcards)
 [![Latency](https://img.shields.io/badge/Edge%20Latency-%3C%205ms%20%28On--Device%29-brightgreen.svg)](#linguistic-benchmarks)
 [![Central Hub](https://img.shields.io/badge/Central%20Hub-Live%20on%20Vercel-000000.svg)](https://palashsetu-xi.vercel.app)
-[![Download APK](https://img.shields.io/badge/Download%20APK-5.27%20MB%20(Direct%20Install)-2ea44f?logo=android&logoColor=white)](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
+[![Download APK](https://img.shields.io/badge/Download%20APK-31.5%20MB%20(Direct%20Install)-2ea44f?logo=android&logoColor=white)](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
 [![Runtime Architecture](https://img.shields.io/badge/Architecture-Interactive%20Diagram-blueviolet?logo=html5&logoColor=white)](https://puneetmehta288.github.io/PalashSetu/bhashasetu-architecture.html)
 
-> ### 📱 [👉 Click Here to Download Palash Vani Android App (.APK) — 5.27 MB](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
+> ### 📱 [👉 Click Here to Download Palash Vani Android App (.APK) — 31.5 MB](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
 > **Direct Sideload Build** • **100% Offline • Zero Internet Required**  
 > *Pre-configured for Android 9.0 to 14.0 tablets & smartphones (Runs comfortably on 2 GB RAM devices with < 500 MB RAM)*
 
@@ -71,7 +71,7 @@ By identifying this constraint from the problem statement, our team engineered s
 
                       OFFLINE VILLAGE CLASSROOM (No Internet • Airplane Mode)
    +-------------------------------------------------------------------------------------------+
-   |  BUDGET ANDROID TABLET (2GB RAM • Android 9-14)                                           |
+   |  TEACHER TABLET (2GB RAM • Android 9-14) — Wi-Fi Hotspot Host                             |
    |                                                                                           |
    |  [ Layer 1: Tablet Pedagogical UI ] (React 18.3 + TypeScript + Vite 5 + Capacitor 6)      |
    |   • Live Voice Translator & Phrasebook       • 16 FLN Decks (96 Visual Cards)             |
@@ -88,9 +88,26 @@ By identifying this constraint from the problem statement, our team engineered s
    |   • Compiles Ol Chiki (sat_Olck) graphemes into acoustic Indic phonemes pronounced with   |
    |     high fidelity using Android's native offline hi-IN speech synthesizer.                |
    |                                                                                           |
-   |  [ Layer 4: Offline Persistence & Store-and-Forward Telemetry Queue ]                     |
+   |  [ Layer 4: Local Classroom Relay Server (Port 8888) ] (Zero-Internet Hotspot Bridge)     |
+   |   • Embedded native Java micro-server broadcasting speech translations in real-time       |
+   |   • 4-Digit room code & dynamic QR pairing for connected student devices                  |
+   |   • Multi-tier candidate IP discovery and native Android HTTP relay bridge                |
+   |                                                                                           |
+   |  [ Layer 5: Offline Persistence & Store-and-Forward Telemetry Queue ]                     |
    |   • Teacher profiles & SHA-256 PIN auth      • Teacher-scoped attendance registers (CSV)  |
    |   • Classroom Speech Telemetry Buffer        • Local queue purge upon cloud sync          |
+   +-------------------------------------------------------------------------------------------+
+         │                                                            ▲
+         │ Local Wi-Fi / Hotspot LAN Mesh                             │ Real-Time Student
+         │ (HTTP / WebSocket Events • 0 Bytes Internet)               │ Reactions & Feedback
+         ▼                                                            │
+   +------------------------------------------------------------------┴------------------------+
+   |  STUDENT COMPANION DEVICES (Tablets & Phones)                                             |
+   |                                                                                           |
+   |   • Live Speech Listener: Synchronized Ol Chiki translation subtitles as teacher speaks   |
+   |   • Independent Offline Study: 16 FLN Visual Flashcard decks, JCERT textbooks, Worksheets |
+   |   • Quick Class Join: 1-Tap QR scan / 4-digit code entry; non-destructive session exit   |
+   |   • Student Settings: Profile avatar, grade selection, sound effects toggle, logout       |
    +-------------------------------------------------------------------------------------------+
                                                 │
                                                 ▼  (When Teacher connects to Wi-Fi / Hotspot)
@@ -194,6 +211,21 @@ A single root concept like `"समझना / बुझना"` (To Understand)
 - One-tap sync from Settings when connectivity is detected.
 - Automatic queue purge on sync prevents duplicate transmissions and keeps local storage clean.
 
+### 🛰️ 8. Offline Hotspot Classroom Relay & Student Companion Mode
+- **Zero-Internet Local Mesh**: In remote villages without cellular connectivity, the teacher's Android tablet turns on its portable Wi-Fi Hotspot. Student tablets/smartphones connect to this hotspot with zero data usage or cost.
+- **Embedded Native Java Micro-Server (`LocalClassroomServer`)**: Runs directly inside the teacher's APK on port 8888, serving HTTP endpoints (`/events`, `/publish`, `/join`, `/leave`, `/ping`) and streaming real-time events with sub-millisecond local latency.
+- **Instant Dynamic 4-Digit PIN & QR Pairing**: The teacher's live screen displays an animated 4-digit room code (e.g. `4819`) and an offline QR code. Students can join in 1 second via device camera scan or numerical entry.
+- **Synchronized Subtitles as Teacher Speaks**: As the teacher instructs in Hindi, on-device translation instantly broadcasts the spoken Hindi text, Ol Chiki translation, and phonetic hints directly to all connected student screens.
+- **Autonomous Student Companion App**: Students are not locked out when outside of a classroom session. They can freely browse FLN visual flashcards, JCERT bilingual textbooks, and interactive arithmetic worksheets.
+- **Non-Destructive Session Leaving**: Tapping **"सत्र छोड़ें (Leave Session)"** exits the active broadcast room without logging out the student's profile, keeping their name, avatar, and grade intact.
+- **Student Profile & Settings**: Dedicated student settings screen allows choosing avatars (🎒, ✏️, 🌟, 🦁, 🌸, 🏹), changing grade level, toggling UI sound effects, and reviewing app alignment info.
+- **Native Android Captive-Portal Bypass**: Custom native bridge methods (`getGatewayIp`, `getLocalIp`, `nativeRelayRequest`) automatically route local HTTP traffic past Android OS network isolation locks when connected to no-internet hotspots.
+
+### 👥 9. Shared Tablet Multi-Teacher Onboarding & Security
+- **Multi-Teacher Profile Registry**: Multiple government teachers sharing a single school tablet can register separate profiles with custom names, e-Vidyavahini IDs, blocks, districts, and assigned grades via the **"Add Teacher"** portal.
+- **Offline SHA-256 PIN Security**: Each teacher profile is secured with a 4-digit PIN stored securely in hashed format via browser Web Crypto API.
+- **Isolated Teacher Workspaces**: Each teacher accesses their own isolated attendance registers, draft lesson plans, and customized classroom settings.
+
 ---
 
 ## 5. PalashCentralHub — State Administrative Portal
@@ -233,7 +265,7 @@ PalashCentralHub serves as the command center for block education officers (BEOs
 | **JCERT Textbooks** | **8 Full Textbooks** | Verified in `jcert_full_textbooks_data.ts` |
 | **Edge Lookup Latency (PC)** | **0.0040 ms per sentence** | Benchmarked over 1,000 iterations via `node scripts/test_offline_engine.js` ([[Benchmarks Page](https://palashsetu-xi.vercel.app/benchmarks.html)]) |
 | **Edge Execution Latency (Tablet)** | **< 5 ms per sentence** | Tested on low-cost Android WebView (Quad-Core, 2GB RAM) |
-| **APK Package Size** | **5.27 MB (Debug APK)** | Verified: `PalashVani-v1.0-debug.apk` (5,268,461 bytes) |
+| **APK Package Size** | **31.5 MB (Full Standalone APK)** | Verified: `PalashVani-v1.0-debug.apk` (33,027,430 bytes bundling all offline Ol Chiki fonts, 8 JCERT textbooks, 16 NIPUN decks, audio assets, and embedded Java relay server) |
 | **Operating RAM (Total PSS)** | **< 500 MB (170 MB – 336 MB Tested)** | Measured on live Android hardware via `adb shell dumpsys meminfo` (Peak: 336 MB, Idle: 170 MB; > 1.6 GB free RAM on 2 GB devices) |
 | **App Logic Heap (Java)** | **5.3 MB – 9.4 MB** | App data structures, ~2,500 vocabulary entries & state footprint |
 | **Native Bridge Heap** | **39.9 MB – 47.7 MB** | Capacitor Android bridge, graphics & audio/font handlers |
@@ -367,7 +399,7 @@ The compiled APK is generated at:
 
 ```
 PalashSetu/
-├── PalashVani-v1.0-debug.apk      # Compiled standalone Android debug APK (5.27 MB)
+├── PalashVani-v1.0-debug.apk      # Compiled standalone Android debug APK (31.5 MB)
 ├── api/                           # Vercel serverless functions (Telemetry & Feedback)
 │   ├── complaints.ts              # Teacher field complaints endpoint
 │   ├── feedback.ts                # App feedback submission endpoint
@@ -376,22 +408,23 @@ PalashSetu/
 │   ├── index.html                 # Admin dashboard
 │   ├── benchmarks.html            # Empirical benchmark report with ADB terminal proofs
 │   ├── architecture.html          # Interactive runtime architecture diagram
-│   ├── PalashVani.apk             # APK direct download from Vercel portal (5.27 MB)
+│   ├── PalashVani.apk             # APK direct download from Vercel portal (31.5 MB)
 │   ├── palash_logo.png            # Official Palash Vani app icon
 │   ├── android-studio-profiler.png # Android Studio Profiler screenshot (224.9 MB evidence)
 │   └── offline-engine-test-terminal.png  # Test suite terminal screenshot (0.0040 ms)
 ├── mobile/                        # React + TypeScript + Capacitor mobile application
 │   ├── android/                   # Native Android Studio project
-│   │   └── app/src/main/assets/fonts/ # Bundled NotoSansOlChiki TTF fonts
+│   │   ├── app/src/main/assets/fonts/ # Bundled NotoSansOlChiki TTF fonts
+│   │   └── app/src/main/java/.../MainActivity.java # Native TTS & LocalClassroomServer (Port 8888)
 │   ├── public/                    # Web assets & bundled fonts
 │   └── src/
-│       ├── components/            # Header, Sidebar, Layout, VoiceModal
+│       ├── components/            # Header, Sidebar, Layout, VoiceModal, QRScannerModal
 │       ├── context/               # ThemeContext (Light & Dark theme)
 │       ├── data/                  # ~2,500 Santali entries, Ho/Mundari, NIPUN decks, JCERT books
 │       ├── pages/                 # Dashboard, LiveTranslation, Lessons, Worksheets,
 │       │                          # Flashcards, JCERTTextbooks, Attendance, Settings,
-│       │                          # CentralHub (Admin Portal), AuthLogin, AuthRegister
-│       ├── services/              # attendanceService, authService, telemetryService
+│       │                          # StudentClassroom (Companion/Receiver), AuthLogin, AuthRegister
+│       ├── services/              # classroomService (Hotspot Mesh), attendanceService, authService
 │       └── utils/                 # santaliSpeech (Ol Chiki phonetic compiler), sfx
 ├── scripts/                       # Linguistic test suite & build utilities
 │   ├── test_offline_engine.js     # 46-assertion automated benchmark runner
