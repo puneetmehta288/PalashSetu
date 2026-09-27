@@ -51,14 +51,22 @@ export async function hashPin(pin: string): Promise<string> {
 
 export const authService = {
   getUserRole(): UserRole {
-    const role = sessionStorage.getItem(STORAGE_KEY_USER_ROLE);
-    return role === 'student' ? 'student' : 'teacher';
+    // Teachers use sessionStorage (re-login required for security on app restart)
+    const sessionRole = sessionStorage.getItem(STORAGE_KEY_USER_ROLE);
+    if (sessionRole === 'teacher') return 'teacher';
+    // Students use localStorage (persist across restarts until manual logout)
+    const persistedStudentProfile = localStorage.getItem(STORAGE_KEY_STUDENT_PROFILE);
+    if (persistedStudentProfile) return 'student';
+    return sessionRole === 'student' ? 'student' : 'teacher';
   },
 
   getStudentProfile(): StudentProfile | null {
     try {
-      const data = sessionStorage.getItem(STORAGE_KEY_STUDENT_PROFILE);
-      return data ? JSON.parse(data) : null;
+      // Try sessionStorage first (active session), fall back to localStorage (persisted)
+      const sessionData = sessionStorage.getItem(STORAGE_KEY_STUDENT_PROFILE);
+      if (sessionData) return JSON.parse(sessionData);
+      const localData = localStorage.getItem(STORAGE_KEY_STUDENT_PROFILE);
+      return localData ? JSON.parse(localData) : null;
     } catch {
       return null;
     }
@@ -72,8 +80,12 @@ export const authService = {
       avatarEmoji: avatarEmoji || '🎒',
       joinedAt: new Date().toISOString()
     };
+    // Save in BOTH: sessionStorage for current session, localStorage for persistence across restarts
     sessionStorage.setItem(STORAGE_KEY_USER_ROLE, 'student');
     sessionStorage.setItem(STORAGE_KEY_STUDENT_PROFILE, JSON.stringify(profile));
+    // localStorage persists across app restarts - cleared only on explicit logout
+    localStorage.setItem(STORAGE_KEY_STUDENT_PROFILE, JSON.stringify(profile));
+    localStorage.setItem(STORAGE_KEY_USER_ROLE, 'student');
     return profile;
   },
 
@@ -185,6 +197,9 @@ export const authService = {
     sessionStorage.removeItem(STORAGE_KEY_STUDENT_PROFILE);
     sessionStorage.removeItem('palash_active_room');
     sessionStorage.removeItem('palashsetu_active_teacher_id');
+    // Also clear student localStorage persistence so student must re-login after logout
+    localStorage.removeItem(STORAGE_KEY_STUDENT_PROFILE);
+    localStorage.removeItem(STORAGE_KEY_USER_ROLE);
     try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); localStorage.removeItem('palashsetu_active_teacher_id'); } catch {}
   },
 };

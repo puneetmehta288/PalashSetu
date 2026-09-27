@@ -708,20 +708,29 @@ const Worksheets: React.FC = () => {
       setTeacherSubmissions(subs);
     });
 
-    const onClassroomReset = () => {
+    const clearWorksheetState = () => {
       setAssignedList([]);
       if (userRole === 'student') {
         setQuestions([]);
         setIsSubmitted(false);
         setSubmissionResult(null);
         setStudentSelections({});
+        setSelectedAssignedTitle('');
+        // Teacher cleared worksheet — navigate student back to classroom
+        navigate('/', { replace: true });
       }
     };
+
+    const onClassroomReset = clearWorksheetState;
+    const onClearWorksheet = clearWorksheetState;
+
     window.addEventListener('palash_classroom_reset', onClassroomReset);
+    window.addEventListener('palash_clear_worksheet', onClearWorksheet);
 
     return () => {
       unsub();
       window.removeEventListener('palash_classroom_reset', onClassroomReset);
+      window.removeEventListener('palash_clear_worksheet', onClearWorksheet);
     };
   }, [userRole]);
 
@@ -976,7 +985,7 @@ const Worksheets: React.FC = () => {
               <button
                 onClick={() => {
                   sfx.playTap();
-                  navigate('/classroom');
+                  navigate('/', { replace: true });
                 }}
                 style={{
                   padding: '8px 16px',
@@ -1439,7 +1448,7 @@ const Worksheets: React.FC = () => {
                     <button
                       onClick={() => {
                         sfx.playTap();
-                        navigate('/classroom');
+                        navigate('/', { replace: true });
                       }}
                       style={{
                         backgroundColor: '#0f2744',

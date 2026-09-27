@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +16,55 @@ import StudentClassroom from './pages/StudentClassroom';
 import { authService, TeacherProfile, StudentProfile, UserRole } from './services/authService';
 import { ThemeProvider } from './context/ThemeContext';
 import { StatusBar } from '@capacitor/status-bar';
+
+// ─── White-Screen Safety Net: Error Boundary ─────────────────────────────────
+// If any React subtree throws (including navigation to an unmatched route that
+// causes a component crash), this boundary catches it and sends the user home
+// instead of leaving them on a frozen white screen.
+interface EBState { hasError: boolean; error?: string; }
+class ErrorBoundary extends Component<{ children: React.ReactNode }, EBState> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: any): EBState {
+    return { hasError: true, error: String(error?.message || error) };
+  }
+  componentDidCatch() {
+    // Auto-recover: redirect to home after 2s
+    setTimeout(() => {
+      try { window.location.replace('/'); } catch (_) {}
+    }, 2000);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', background: '#f0f9ff',
+          fontFamily: 'system-ui, sans-serif', padding: '2rem', textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔄</div>
+          <h2 style={{ color: '#0f2744', marginBottom: '0.5rem' }}>वापस जा रहे हैं…</h2>
+          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+            Returning to home screen automatically…
+          </p>
+          <button
+            onClick={() => window.location.replace('/')}
+            style={{
+              marginTop: '1.5rem', padding: '10px 24px', background: '#0f2744',
+              color: '#fff', border: 'none', borderRadius: '12px',
+              fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer'
+            }}
+          >
+            🏠 अभी वापस जाएं (Go Home Now)
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const AppRoutes: React.FC = () => {
   const navigate = useNavigate();
@@ -107,6 +156,18 @@ const AppRoutes: React.FC = () => {
           }
         />
 
+        {/* /classroom alias → same as index so any stale navigate('/classroom') calls work */}
+        <Route
+          path="classroom"
+          element={
+            role === 'student' ? (
+              <StudentClassroom />
+            ) : (
+              <Dashboard activeTeacher={activeTeacher} />
+            )
+          }
+        />
+
         {/* Translation: Teachers get full copilot; students get live listener */}
         <Route
           path="translate"
@@ -142,7 +203,13 @@ const AppRoutes: React.FC = () => {
           path="report"
           element={role === 'teacher' ? <ReportIssue activeTeacher={activeTeacher} /> : <Navigate to="/" replace />}
         />
+
+        {/* Catch-all: any unknown URL redirects home instead of white screen */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+
+      {/* Top-level catch-all */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
@@ -151,7 +218,9 @@ const App: React.FC = () => {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <AppRoutes />
+        <ErrorBoundary>
+          <AppRoutes />
+        </ErrorBoundary>
       </BrowserRouter>
     </ThemeProvider>
   );
