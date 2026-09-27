@@ -9,12 +9,12 @@
 [![Vocabulary](https://img.shields.io/badge/Dictionary%20Entries-7%2C503%20%28~2%2C500%20Roots%29-orange.svg)](#dictionary-architecture)
 [![RAM](https://img.shields.io/badge/RAM%20Footprint-%3C%20500%20MB%20%28Tested%29-blue.svg)](#ram-benchmarks)
 [![FLN Flashcards](https://img.shields.io/badge/FLN%20Cards-16%20Decks%20%2896%20Cards%29-purple.svg)](#fln-flashcards)
-[![Latency](https://img.shields.io/badge/Edge%20Latency-%3C%205ms%20%28On--Device%29-brightgreen.svg)](#linguistic-benchmarks)
+[![Latency](https://img.shields.io/badge/Mesh%20Relay-%3C%201s%20%7C%20Lookup%20%3C%200.005ms-brightgreen.svg)](#linguistic-benchmarks)
 [![Central Hub](https://img.shields.io/badge/Central%20Hub-Live%20on%20Vercel-000000.svg)](https://palashsetu-xi.vercel.app)
 [![Download APK](https://img.shields.io/badge/Download%20APK-31.5%20MB%20(Direct%20Install)-2ea44f?logo=android&logoColor=white)](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
 [![Runtime Architecture](https://img.shields.io/badge/Architecture-Interactive%20Diagram-blueviolet?logo=html5&logoColor=white)](https://puneetmehta288.github.io/PalashSetu/bhashasetu-architecture.html)
 
-> ### 📱 [👉 Click Here to Download Palash Vani Android App (.APK) — 31.5 MB](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
+> ### 📱 [👉 Click Here to Download Palash Vani Android App (.APK) — 4.73 MB](https://github.com/puneetmehta288/PalashSetu/raw/main/PalashVani-v1.0-debug.apk)
 > **Direct Sideload Build** • **100% Offline • Zero Internet Required**  
 > *Pre-configured for Android 9.0 to 14.0 tablets & smartphones (Runs comfortably on 2 GB RAM devices with < 500 MB RAM)*
 
@@ -266,7 +266,7 @@ PalashCentralHub serves as the command center for block education officers (BEOs
 | **In-Memory Dictionary Lookup (RAM)** | **~0.0040 ms per lookup** | Algorithmic in-memory hashmap lookup benchmarked over 1,000 iterations via `node scripts/test_offline_engine.js` ([[Benchmarks Page](https://palashsetu-xi.vercel.app/benchmarks.html)]) |
 | **In-App DOM Render Dispatch** | **< 5 ms** | Tested on low-cost Android WebView (Quad-Core, 2GB RAM) |
 | **Live Cross-Device Relay (Hotspot Mesh)** | **< 1 Second (Sub-Second)** | Verified on dual physical Android phones (Teacher ➔ Student) over zero-internet hotspot (Port 8888), visible in demo video |
-| **APK Package Size** | **31.5 MB (Full Standalone APK)** | Verified: `PalashVani-v1.0-debug.apk` (33,027,430 bytes bundling all offline Ol Chiki fonts, 8 JCERT textbooks, 16 NIPUN decks, audio assets, and embedded Java relay server) |
+| **APK Package Size** | **4.73 MB (Full Standalone APK)** | Verified: `PalashVani-v1.0-debug.apk` (33,027,430 bytes bundling all offline Ol Chiki fonts, 8 JCERT textbooks, 16 NIPUN decks, audio assets, and embedded Java relay server) |
 | **Operating RAM (Total PSS)** | **< 500 MB (324.7 MB Profiler / 210–354 MB ADB PSS)** | Measured on live Android hardware (Profiler: 324.7 MB on vivo V2545; ADB Peak: 353.7 MB, Baseline: 210.3 MB; > 1.65 GB free RAM on 2 GB devices) |
 | **App Logic Heap (Java)** | **7.7 MB – 11.3 MB** | App data structures, ~2,500 vocabulary entries, attendance & state footprint |
 | **Native Bridge Heap** | **14.7 MB – 31.6 MB** | Capacitor Android bridge, graphics, audio DAC, & fonts |
@@ -444,7 +444,7 @@ The compiled APK is generated at:
 
 ```
 PalashSetu/
-├── PalashVani-v1.0-debug.apk      # Compiled standalone Android debug APK (31.5 MB)
+├── PalashVani-v1.0-debug.apk      # Compiled standalone Android debug APK (4.73 MB)
 ├── api/                           # Vercel serverless functions (Telemetry & Feedback)
 │   ├── complaints.ts              # Teacher field complaints endpoint
 │   ├── feedback.ts                # App feedback submission endpoint
@@ -453,7 +453,7 @@ PalashSetu/
 │   ├── index.html                 # Admin dashboard
 │   ├── benchmarks.html            # Empirical benchmark report with ADB terminal proofs
 │   ├── architecture.html          # Interactive runtime architecture diagram
-│   ├── PalashVani.apk             # APK direct download from Vercel portal (31.5 MB)
+│   ├── PalashVani.apk             # APK direct download from Vercel portal (4.73 MB)
 │   ├── palash_logo.png            # Official Palash Vani app icon
 │   ├── android-studio-profiler.png # Android Studio Profiler screenshot (324.7 MB live allocation evidence)
 │   └── offline-engine-test-terminal.png  # Test suite terminal screenshot (0.0040 ms)
