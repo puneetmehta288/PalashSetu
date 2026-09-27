@@ -114,7 +114,7 @@ export const useSpeechRecognition = (defaultLang = 'hi-IN') => {
         if (event.error === 'not-allowed') {
           setError('Microphone permission was denied. Please allow microphone access in your browser address bar.');
         } else if (event.error === 'network') {
-          setError('Network required for online speech recognition in browser. (On Android APK, offline speech engine is used).');
+          setError('Tablet is offline or Hindi speech recognition pack is not installed yet. Connect Wi-Fi or download offline Hindi voice pack in Android Settings.');
         } else {
           setError(`Speech error: ${event.error}`);
         }

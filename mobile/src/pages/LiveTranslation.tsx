@@ -1252,8 +1252,28 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           {isListening ? 'Listening live speech... Tap to finish & translate' : 'Tap to start live classroom voice input'}
         </div>
         {speechError && (
-          <div style={{ marginTop: '8px', padding: '6px 14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '0.8rem', display: 'inline-block' }}>
-            ⚠️ Mic status: {speechError}. (Type in the box above or use 1-Tap phrases)
+          <div style={{ marginTop: '8px', padding: '8px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', color: '#dc2626', fontSize: '0.82rem', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '6px', maxWidth: '600px' }}>
+            <div>⚠️ <strong>Mic Status:</strong> {speechError}</div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2px' }}>
+              <button
+                onClick={() => {
+                  sfx.playTap();
+                  setShowOfflineModal(true);
+                }}
+                style={{
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                ⚙️ 1-Tap Offline Voice Setup
+              </button>
+            </div>
           </div>
         )}
         {!isSpeechSupported && (
