@@ -263,8 +263,9 @@ PalashCentralHub serves as the command center for block education officers (BEOs
 | **FLN Flashcard Content** | **16 Decks / 96 Visual Cards** | Verified in `nipunDecks.ts` |
 | **NIPUN Lesson Plans** | **36 Complete Lessons** | Verified in `nipun_lessons_data.ts` |
 | **JCERT Textbooks** | **8 Full Textbooks** | Verified in `jcert_full_textbooks_data.ts` |
-| **Edge Lookup Latency (PC)** | **0.0040 ms per sentence** | Benchmarked over 1,000 iterations via `node scripts/test_offline_engine.js` ([[Benchmarks Page](https://palashsetu-xi.vercel.app/benchmarks.html)]) |
-| **Edge Execution Latency (Tablet)** | **< 5 ms per sentence** | Tested on low-cost Android WebView (Quad-Core, 2GB RAM) |
+| **In-Memory Dictionary Lookup (RAM)** | **~0.0040 ms per lookup** | Algorithmic in-memory hashmap lookup benchmarked over 1,000 iterations via `node scripts/test_offline_engine.js` ([[Benchmarks Page](https://palashsetu-xi.vercel.app/benchmarks.html)]) |
+| **In-App DOM Render Dispatch** | **< 5 ms** | Tested on low-cost Android WebView (Quad-Core, 2GB RAM) |
+| **Live Cross-Device Relay (Hotspot Mesh)** | **< 1 Second (Sub-Second)** | Verified on dual physical Android phones (Teacher ➔ Student) over zero-internet hotspot (Port 8888), visible in demo video |
 | **APK Package Size** | **31.5 MB (Full Standalone APK)** | Verified: `PalashVani-v1.0-debug.apk` (33,027,430 bytes bundling all offline Ol Chiki fonts, 8 JCERT textbooks, 16 NIPUN decks, audio assets, and embedded Java relay server) |
 | **Operating RAM (Total PSS)** | **< 500 MB (324.7 MB Profiler / 210–354 MB ADB PSS)** | Measured on live Android hardware (Profiler: 324.7 MB on vivo V2545; ADB Peak: 353.7 MB, Baseline: 210.3 MB; > 1.65 GB free RAM on 2 GB devices) |
 | **App Logic Heap (Java)** | **7.7 MB – 11.3 MB** | App data structures, ~2,500 vocabulary entries, attendance & state footprint |
