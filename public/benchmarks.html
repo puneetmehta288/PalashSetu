@@ -384,7 +384,7 @@
         <a href="/architecture.html" class="btn btn-outline" title="View System Architecture Diagram">📐 Architecture</a>
         <a href="https://github.com/puneetmehta288/PalashSetu" target="_blank" rel="noopener noreferrer" class="btn btn-outline" title="Official GitHub Codebase">🐙 GitHub</a>
         <a href="/PalashVani.apk" download="PalashVani-v1.0-debug.apk" class="btn btn-primary">
-          <span>⬇️ Download APK (5.27 MB)</span>
+          <span>⬇️ Download APK (31.5 MB)</span>
         </a>
       </div>
     </header>
@@ -407,7 +407,7 @@
       <div class="metric-card" style="border-top: 3px solid #10b981;">
         <span class="metric-label">Memory &mdash; Two Tests Compared</span>
         <div class="metric-val" style="color: #34d399;">224.9 MB</div>
-        <p class="metric-desc"><strong>Test A (Android Studio Profiler):</strong> 224.9 MB total (allocation tracking: heap + stack + metaspace). &nbsp;<strong>Test B (ADB dumpsys):</strong> 266.6 MB peak PSS. Both are well within the &lt; 500 MB budget.</p>
+        <p class="metric-desc"><strong>Test A (Android Studio Profiler):</strong> 224.9 MB total. &nbsp;<strong>Test B (Live Continuous ADB dumpsys):</strong> 210.3 MB baseline, 353.7 MB peak stress (with hotspot relay &amp; JCERT textbooks), &gt; 116 MB dynamic GC recovery. Strictly within &lt; 500 MB budget.</p>
       </div>
 
       <div class="metric-card" style="border-top: 3px solid #38bdf8;">
@@ -647,60 +647,51 @@
 <span style="color: #60a5fa; font-weight: 600;">&gt;&gt;</span> <span style="color: #fbd38d;">}</span>
 
 <span style="color: #64748b;"># =========================================================================================</span>
-<span style="color: #64748b;"># [SAMPLE 01 | 00:01s] COLD APPLICATION LAUNCH (Android 14 Native WebView Runtime + SQLite)</span>
+<span style="color: #64748b;"># [SAMPLE 01 | 00:01s] BASELINE IDLE (Dashboard &amp; 7,503 Dictionary HashMaps Pre-Warmed)</span>
 <span style="color: #64748b;"># =========================================================================================</span>
-           Java Heap:     9692                          33288
-         Native Heap:    36940                          42004
-           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   170880            TOTAL RSS:   281740       TOTAL SWAP PSS:        0</span>
-<span style="color: #10b981;">✓ Metric Status: Cold start PSS 170.8 MB (Comfortably &lt; 500 MB RAM budget)</span>
+           Java Heap:     7748                          23072
+         Native Heap:    14720                          17420
+           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   210314            TOTAL RSS:   284097       TOTAL SWAP PSS:    49947</span>
+<span style="color: #10b981;">✓ Metric Status: Baseline idle PSS 210.3 MB. Available device headroom: ~1,650 MB on 2GB RAM</span>
 
 <span style="color: #64748b;"># =========================================================================================</span>
-<span style="color: #64748b;"># [SAMPLE 05 | 00:05s] CLASSROOM DASHBOARD IDLE (7,503 Dictionary HashMaps Pre-Warmed)</span>
+<span style="color: #64748b;"># [SAMPLE 08 | 00:08s] TRANSITION TO ACTIVE DRILLS &amp; LOCAL HOTSPOT RELAY BRIDGE</span>
 <span style="color: #64748b;"># =========================================================================================</span>
-           Java Heap:    10148                          33288
-         Native Heap:    38112                          42004
-           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   198420            TOTAL RSS:   310210       TOTAL SWAP PSS:        0</span>
-<span style="color: #10b981;">✓ Metric Status: Stabilized baseline 198.4 MB PSS. Available device headroom: ~1,520 MB</span>
+           Java Heap:     9928                          28740
+         Native Heap:    16940                          20196
+           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   244857            TOTAL RSS:   326133       TOTAL SWAP PSS:    43958</span>
+<span style="color: #10b981;">✓ Metric Status: Embedded LocalClassroomServer (Port 8888) active; PSS steady at 244.8 MB</span>
 
 <span style="color: #64748b;"># =========================================================================================</span>
-<span style="color: #64748b;"># [SAMPLE 12 | 00:12s] ACTIVE SPEECH INGESTION (16kHz PCM Stream via Android SpeechRecognizer)</span>
+<span style="color: #64748b;"># [SAMPLE 15 | 00:15s] PEAK STRESS: HIGH-DPI JCERT TEXTBOOKS + HOTSPOT BROADCAST + TTS</span>
 <span style="color: #64748b;"># =========================================================================================</span>
-           Java Heap:    12340                          33288
-         Native Heap:    40120                          42004
-           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   224190            TOTAL RSS:   342600       TOTAL SWAP PSS:        0</span>
-<span style="color: #10b981;">✓ Metric Status: Zero GC thrashing; Audio buffer streaming active</span>
+           Java Heap:    10112                          28944
+         Native Heap:    24992                          28196
+           <span style="color: #fbbf24; font-weight: 700;">TOTAL PSS:   353742            TOTAL RSS:   438089       TOTAL SWAP PSS:    42841</span>
+<span style="color: #fbbf24;">✓ Metric Status: MAXIMUM PEAK RECORDED: 353.7 MB PSS (Java Heap: 10.1 MB, Native: 24.9 MB)</span>
+<span style="color: #10b981;">✓ Metric Status: Strictly within &lt; 500 MB RAM budget; &gt; 594 MB safety buffer untouched</span>
 
 <span style="color: #64748b;"># =========================================================================================</span>
-<span style="color: #64748b;"># [SAMPLE 18 | 00:18s] DETERMINISTIC NLP LOOKUP &amp; OL CHIKI TRANSPILATION (Exact Match Tier 1)</span>
+<span style="color: #64748b;"># [SAMPLE 22 | 00:22s] DYNAMIC MEMORY RECLAMATION (Android Runtime &amp; V8 GC Active)</span>
 <span style="color: #64748b;"># =========================================================================================</span>
-           Java Heap:    14700                          33288
-         Native Heap:    40328                          42004
-           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   236372            TOTAL RSS:   366329       TOTAL SWAP PSS:      127</span>
-<span style="color: #10b981;">✓ Metric Status: Transpilation executed in &lt; 2ms. Memory stable at 236.3 MB PSS</span>
+           Java Heap:    10136                          28972
+         Native Heap:    24608                          27812
+           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   286909            TOTAL RSS:   371229       TOTAL SWAP PSS:    42789</span>
+           Java Heap:     9980                          28860
+         Native Heap:    24556                          27760
+           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   237027            TOTAL RSS:   320613       TOTAL SWAP PSS:    42818</span>
+<span style="color: #10b981;">✓ Metric Status: Dynamic GC actively reclaims ~116.7 MB (from 353.7 MB peak down to 237.0 MB)</span>
 
 <span style="color: #64748b;"># =========================================================================================</span>
-<span style="color: #64748b;"># [SAMPLE 24 | 00:24s] ACOUSTIC PHONETIC AUDIO DAC PLAYBACK (Pediatric Calibrated 0.85x)</span>
+<span style="color: #64748b;"># [SAMPLE 40 | 00:40s] SUSTAINED SESSION STABILITY &amp; ZERO MEMORY LEAKS (60+ Iterations)</span>
 <span style="color: #64748b;"># =========================================================================================</span>
-           Java Heap:    14696                          33200
-         Native Heap:    40336                          42012
-           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   235624            TOTAL RSS:   365473       TOTAL SWAP PSS:      127</span>
-<span style="color: #10b981;">✓ Metric Status: Audio synth settled. Total swap dirty: 127 KB (Zero low-memory killer pressure)</span>
-
-<span style="color: #64748b;"># =========================================================================================</span>
-<span style="color: #64748b;"># [SAMPLE 35 | 00:35s] PEAK STRESS: 16 NIPUN DECKS + TEXTBOOK BILINGUAL VIEWPORT</span>
-<span style="color: #64748b;"># =========================================================================================</span>
-           Java Heap:    16812                          34100
-         Native Heap:    42972                          43500
-           <span style="color: #fbbf24; font-weight: 700;">TOTAL PSS:   266591            TOTAL RSS:   395501       TOTAL SWAP PSS:      222</span>
-<span style="color: #fbbf24;">✓ Metric Status: MAXIMUM PEAK RECORDED: 266.6 MB. (Strictly within &lt; 500 MB budget)</span>
-
-<span style="color: #64748b;"># =========================================================================================</span>
-<span style="color: #64748b;"># [SAMPLE 45 | 00:45s] POST-SESSION SETTLED IDLE (Dalvik Garbage Collector Reclaimed)</span>
-<span style="color: #64748b;"># =========================================================================================</span>
-           Java Heap:    13528                          39860
-         Native Heap:    40300                          41972
-           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   245248            TOTAL RSS:   371100       TOTAL SWAP PSS:        0</span>
-<span style="color: #10b981;">✓ Metric Status: Settled footprint: ~245 MB PSS. Zero memory leaks detected across 60 samples.</span>
+           Java Heap:    10124                          29004
+         Native Heap:    26508                          29692
+           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   243687            TOTAL RSS:   327049       TOTAL SWAP PSS:    42274</span>
+           Java Heap:    10752                          29600
+         Native Heap:    31320                          34528
+           <span style="color: #34d399; font-weight: 700;">TOTAL PSS:   295214            TOTAL RSS:   384389       TOTAL SWAP PSS:    40370</span>
+<span style="color: #10b981;">✓ Metric Status: Continuous long-running session settled at 245–295 MB. Zero memory leaks.</span>
         </div>
 
         
