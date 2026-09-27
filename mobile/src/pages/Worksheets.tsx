@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { sfx } from '../utils/sfx';
 import { getActiveTribalLanguage } from '../services/tribalCurriculumAdapter';
 import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
@@ -554,6 +555,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
 // COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 const Worksheets: React.FC = () => {
+  const navigate = useNavigate();
   const userRole = authService.getUserRole();
   const [tribalLang, setTribalLang] = useState<TribalLanguage>(getActiveTribalLanguage);
   const [grade, setGrade] = useState<string>('Class 1');
@@ -563,6 +565,16 @@ const Worksheets: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showAnswers, setShowAnswers] = useState<boolean>(false);
   const [showHints, setShowHints] = useState<boolean>(false);
+  const [assignedList, setAssignedList] = useState<any[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+    } catch (_) {
+      return [];
+    }
+  });
+  const [selectedAssignedTitle, setSelectedAssignedTitle] = useState<string>('');
+  const [studentSelections, setStudentSelections] = useState<Record<number, string>>({});
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
   useEffect(() => {
     const onLangChanged = (e: any) => {
@@ -633,11 +645,32 @@ const Worksheets: React.FC = () => {
     setQuestions(qs);
   };
 
-  // Auto-generate initial worksheet so teachers immediately see content
+  // Role-adaptive initial load
   React.useEffect(() => {
-    const qs = generateQuestions('c1_addition', 5);
+    if (userRole === 'teacher') {
+      const qs = generateQuestions('c1_addition', 5);
+      setQuestions(qs);
+    } else {
+      // Student mode: check assigned worksheets
+      if (assignedList.length > 0) {
+        const first = assignedList[0];
+        setSelectedAssignedTitle(first.title || 'कक्षा अभ्यास पत्र');
+        const qs = generateQuestions(first.topic || 'c1_addition', 5);
+        setQuestions(qs);
+      } else {
+        setQuestions([]);
+      }
+    }
+  }, [userRole]);
+
+  const handleOpenAssigned = (ws: any) => {
+    sfx.playSuccess();
+    setSelectedAssignedTitle(ws.title || 'कक्षा अभ्यास पत्र');
+    const qs = generateQuestions(ws.topic || 'c1_addition', 5);
     setQuestions(qs);
-  }, []);
+    setStudentSelections({});
+    setIsSubmitted(false);
+  };
 
   const handlePrint = () => {
     sfx.playTap();
@@ -658,15 +691,31 @@ const Worksheets: React.FC = () => {
       {/* Header */}
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '3px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
-            📝 NIPUN Bharat Worksheet Engine ({tribalLang === 'ho' ? 'Ho • Kolhan' : tribalLang === 'mundari' ? 'Mundari • Chotanagpur' : 'Santali Ol Chiki'})
-          </div>
-          <h1 style={{ color: '#0f2744', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
-            Bilingual Worksheet Generator ({tribalLang === 'ho' ? 'कामी साकाम' : tribalLang === 'mundari' ? 'कामी साकाम' : 'ᱠᱟᱹᱢᱤ ᱥᱟᱠᱟᱢ'})
-          </h1>
-          <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
-            Select Grade → Domain (Literacy/Numeracy) → Drill Type → Generate in {tribalLang === 'ho' ? 'Ho language' : tribalLang === 'mundari' ? 'Mundari language' : 'Santali Ol Chiki'}.
-          </p>
+          {userRole === 'student' ? (
+            <>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#dcfce7', color: '#166534', padding: '3px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                🎒 छात्र अभ्यास कार्यपत्र (Student Practice Worksheets)
+              </div>
+              <h1 style={{ color: '#0f2744', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
+                {selectedAssignedTitle || 'कक्षा अभ्यास कार्यपत्र (Classroom Worksheets)'}
+              </h1>
+              <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
+                शिक्षिका/शिक्षक द्वारा सौंपे गए कार्यपत्र को हल करें और सबमिट करें।
+              </p>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '3px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                📝 NIPUN Bharat Worksheet Engine ({tribalLang === 'ho' ? 'Ho • Kolhan' : tribalLang === 'mundari' ? 'Mundari • Chotanagpur' : 'Santali Ol Chiki'})
+              </div>
+              <h1 style={{ color: '#0f2744', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
+                Bilingual Worksheet Generator ({tribalLang === 'ho' ? 'कामी साकाम' : tribalLang === 'mundari' ? 'कामी साकाम' : 'ᱠᱟᱹᱢᱤ ᱥᱟᱠᱟᱢ'})
+              </h1>
+              <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
+                Select Grade → Domain (Literacy/Numeracy) → Drill Type → Generate in {tribalLang === 'ho' ? 'Ho language' : tribalLang === 'mundari' ? 'Mundari language' : 'Santali Ol Chiki'}.
+              </p>
+            </>
+          )}
         </div>
         {questions.length > 0 && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -705,10 +754,12 @@ const Worksheets: React.FC = () => {
               style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showHints ? '#fef3c7' : '#fff', color: showHints ? '#92400e' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: showHints ? '0 0 8px rgba(234, 179, 8, 0.4)' : 'none' }}>
               💡 {showHints ? 'Hide Hints' : 'Show Hints'}
             </button>
-            <button onClick={() => { if (!showAnswers) sfx.playSuccess(); else sfx.playTap(); setShowAnswers(!showAnswers); }}
-              style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showAnswers ? '#f0fdf4' : '#fff', color: showAnswers ? '#166534' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-              {showAnswers ? '👁️ Hide Answers' : '🔑 Show Answer Key'}
-            </button>
+            {userRole === 'teacher' && (
+              <button onClick={() => { if (!showAnswers) sfx.playSuccess(); else sfx.playTap(); setShowAnswers(!showAnswers); }}
+                style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showAnswers ? '#f0fdf4' : '#fff', color: showAnswers ? '#166534' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+                {showAnswers ? '👁️ Hide Answers' : '🔑 Show Answer Key'}
+              </button>
+            )}
             <button onClick={handlePrint}
               style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', backgroundColor: '#0f2744', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(15,39,68,0.25)' }}>
               🖨️ Print / PDF
@@ -771,11 +822,12 @@ const Worksheets: React.FC = () => {
         </button>
       </div>
 
-      {/* Configuration Panel */}
-      <div className="no-print generator-panel" style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15,39,68,0.05)', border: '1px solid #e2e8f0' }}>
-        <h3 style={{ margin: '0 0 1rem', color: '#0f2744', fontSize: '1rem', fontWeight: 800 }}>
-          ⚙️ Configure Worksheet
-        </h3>
+      {/* Configuration Panel (TEACHER ONLY - RESTRICTED FROM STUDENTS) */}
+      {userRole === 'teacher' && (
+        <div className="no-print generator-panel" style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15,39,68,0.05)', border: '1px solid #e2e8f0' }}>
+          <h3 style={{ margin: '0 0 1rem', color: '#0f2744', fontSize: '1rem', fontWeight: 800 }}>
+            ⚙️ Configure Worksheet
+          </h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
           {/* Grade */}
@@ -845,6 +897,95 @@ const Worksheets: React.FC = () => {
           🎲 Generate {numQuestions}-Question {grade} Worksheet ➔
         </button>
       </div>
+      )}
+
+      {/* Student Assigned Worksheets List (When No Worksheet Currently Open) */}
+      {userRole === 'student' && questions.length === 0 && assignedList.length > 0 && (
+        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ margin: '0 0 1rem', color: '#0f2744', fontSize: '1.1rem', fontWeight: 800 }}>
+            📝 शिक्षिका/शिक्षक द्वारा सौंपे गए कार्यपत्र (Assigned Worksheets):
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {assignedList.map((ws: any, idx: number) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', backgroundColor: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <div style={{ fontWeight: 800, color: '#0f2744', fontSize: '1rem' }}>{ws.title || 'कक्षा अभ्यास कार्यपत्र'}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                    {ws.grade || 'Class 1'} • सौंपा गया: {new Date(ws.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleOpenAssigned(ws)}
+                  style={{
+                    backgroundColor: '#16a34a',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '9px 18px',
+                    borderRadius: '10px',
+                    fontWeight: 800,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(22,163,74,0.25)'
+                  }}
+                >
+                  ✏️ हल करें ➔
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Student Empty Waiting State (When No Worksheet Assigned Yet) */}
+      {userRole === 'student' && questions.length === 0 && assignedList.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '3.5rem 1.5rem', backgroundColor: '#ffffff', borderRadius: '20px', border: '2px dashed #cbd5e1' }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: '12px' }}>⏳</div>
+          <h3 style={{ color: '#0f2744', fontSize: '1.25rem', fontWeight: 800, margin: '0 0 8px 0' }}>
+            अभी कोई कार्यपत्र नहीं सौंपा गया है
+          </h3>
+          <p style={{ color: '#64748b', fontSize: '0.92rem', maxWidth: '480px', margin: '0 auto 1.5rem', lineHeight: 1.55 }}>
+            जब आपके शिक्षक कक्षा में लाइव कार्यपत्र सौंपेंगे, वह यहाँ तुरंत दिखाई देगा। तब तक आप शब्द कार्ड या JCERT पाठ्यपुस्तकें पढ़ सकते हैं!
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                sfx.playTap();
+                navigate('/flashcards');
+              }}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '12px',
+                background: '#0f2744',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '0.88rem',
+                cursor: 'pointer'
+              }}
+            >
+              🃏 शब्द कार्ड पढ़ें
+            </button>
+            <button
+              onClick={() => {
+                sfx.playTap();
+                navigate('/jcert');
+              }}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '12px',
+                background: '#ed8936',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '0.88rem',
+                cursor: 'pointer'
+              }}
+            >
+              📖 JCERT पाठ्यपुस्तकें
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Printable Worksheet */}
       {questions.length > 0 && (
@@ -903,8 +1044,38 @@ const Worksheets: React.FC = () => {
                         ? (translateHindiToHo(opt).translation || opt)
                         : (translateHindiToMundari(opt).translation || opt);
                       return (
-                        <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
-                          <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '1.5px solid #94a3b8', display: 'inline-block', flexShrink: 0 }} />
+                        <div
+                          key={oi}
+                          onClick={() => {
+                            if (userRole === 'student') {
+                              sfx.playTap();
+                              setStudentSelections(prev => ({ ...prev, [q.id]: opt }));
+                            }
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '0.9rem',
+                            cursor: userRole === 'student' ? 'pointer' : 'default',
+                            padding: userRole === 'student' ? '6px 12px' : '0',
+                            borderRadius: '10px',
+                            backgroundColor: studentSelections[q.id] === opt ? '#dcfce7' : 'transparent',
+                            border: studentSelections[q.id] === opt ? '1.5px solid #22c55e' : 'none',
+                            fontWeight: studentSelections[q.id] === opt ? 800 : 500
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '50%',
+                              border: studentSelections[q.id] === opt ? '2px solid #16a34a' : '1.5px solid #94a3b8',
+                              backgroundColor: studentSelections[q.id] === opt ? '#22c55e' : 'transparent',
+                              display: 'inline-block',
+                              flexShrink: 0
+                            }}
+                          />
                           <span>{displayOpt}</span>
                         </div>
                       );
@@ -926,11 +1097,47 @@ const Worksheets: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {/* Submit Answers Button for Student Mode */}
+          {userRole === 'student' && (
+            <div style={{ marginTop: '2rem', textAlign: 'center', borderTop: '2px dashed #e2e8f0', paddingTop: '1.5rem' }}>
+              {isSubmitted ? (
+                <div style={{ backgroundColor: '#dcfce7', border: '2px solid #22c55e', borderRadius: '16px', padding: '1.5rem', color: '#166534', maxWidth: '440px', margin: '0 auto' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '6px' }}>🎉</div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 800 }}>शाबाश! कार्यपत्र जमा हो गया है!</h3>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#15803d' }}>आपके उत्तर शिक्षिका/शिक्षक को भेज दिए गए हैं।</p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    sfx.playSuccess();
+                    setIsSubmitted(true);
+                  }}
+                  style={{
+                    backgroundColor: '#16a34a',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '14px 32px',
+                    borderRadius: '16px',
+                    fontSize: '1.05rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(22,163,74,0.3)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <span>✅ शिक्षक को उत्तर जमा करें (Submit Answers)</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Empty state */}
-      {questions.length === 0 && (
+      {/* Teacher Empty state */}
+      {userRole === 'teacher' && questions.length === 0 && (
         <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f8fafc', borderRadius: '16px', border: '2px dashed #cbd5e1' }}>
           <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>📝</div>
           <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f2744', marginBottom: '6px' }}>Select Grade, Domain & Drill Type</div>

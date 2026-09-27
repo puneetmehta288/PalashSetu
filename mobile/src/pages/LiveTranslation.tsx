@@ -9,7 +9,7 @@ import { HO_CATEGORIZED_PHRASES, translateHindiToHo, translateHoToHindi, HO_META
 import { MUNDARI_CATEGORIZED_PHRASES, translateHindiToMundari, translateMundariToHindi, MUNDARI_METADATA } from '../data/mundari_dictionary';
 import { lookupSentence, lookupSentenceReverse, SENTENCE_BANK } from '../data/sentence_bank';
 import { telemetryService } from '../services/telemetryService';
-import { classroomService } from '../services/classroomService';
+import { classroomService, ConnectedStudent } from '../services/classroomService';
 import { ClassroomQRModal } from '../components/ClassroomQRModal';
 import { authService } from '../services/authService';
 
@@ -231,7 +231,19 @@ const LiveTranslation: React.FC = () => {
   const [isBroadcasting, setIsBroadcasting] = useState(() => classroomService.isBroadcasting());
   const [roomCode, setRoomCode] = useState<string | null>(() => classroomService.getActiveRoomCode());
   const [studentCount, setStudentCount] = useState<number>(0);
+  const [connectedStudents, setConnectedStudents] = useState<ConnectedStudent[]>(() => classroomService.getConnectedStudents());
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showRosterModal, setShowRosterModal] = useState(false);
+
+  useEffect(() => {
+    const unsub = classroomService.onStudentsUpdate((students) => {
+      setConnectedStudents(students);
+      setStudentCount(students.length);
+    });
+    return () => {
+      unsub();
+    };
+  }, []);
 
   const handleToggleBroadcast = () => {
     sfx.playTap();
@@ -240,9 +252,14 @@ const LiveTranslation: React.FC = () => {
       setIsBroadcasting(false);
       setRoomCode(null);
       setStudentCount(0);
+      setConnectedStudents([]);
     } else {
       const teacherProfile = authService.getActiveProfile();
-      const code = classroomService.startBroadcast(teacherProfile?.name || 'Primary Teacher');
+      const code = classroomService.startBroadcast(
+        teacherProfile?.name || 'सुनीता मुर्मू (शिक्षिका)',
+        (teacherProfile as any)?.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड',
+        'कक्षा 1'
+      );
       setRoomCode(code);
       setIsBroadcasting(true);
       setShowQRModal(true);
@@ -783,6 +800,55 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
                 ? `कक्षा कोड: #${roomCode} • आपके बोलते ही संथाली अनुवाद छात्र स्क्रीन पर तुरंत दिखाई देगा`
                 : 'हॉटस्पॉट या वाई-फ़ाई पर छात्र टैबलेट या स्मार्ट टीवी पर अनुवाद सीधे भेजें'}
             </div>
+
+            {/* Live Connected Students Roster Chips */}
+            {isBroadcasting && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRosterModal(true)}
+                  style={{
+                    backgroundColor: connectedStudents.length > 0 ? '#166534' : 'rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    color: '#ffffff',
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <span>🎒 {connectedStudents.length} छात्र जुड़े हैं</span>
+                  <span style={{ fontSize: '0.68rem', opacity: 0.85, textDecoration: 'underline' }}>विवरण देखें</span>
+                </button>
+
+                {connectedStudents.slice(0, 4).map((st) => (
+                  <span
+                    key={st.id}
+                    style={{
+                      background: 'rgba(255,255,255,0.22)',
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      fontSize: '0.72rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 700
+                    }}
+                  >
+                    <span>{st.avatar || '🎒'}</span>
+                    <span>{st.name}</span>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#4ade80' }} />
+                  </span>
+                ))}
+                {connectedStudents.length > 4 && (
+                  <span style={{ fontSize: '0.72rem', opacity: 0.9 }}>+{connectedStudents.length - 4} और</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1487,6 +1553,191 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           teacherName={authService.getActiveProfile()?.name || 'Primary Teacher'}
           onClose={() => setShowQRModal(false)}
         />
+      )}
+
+      {/* 🎒 Connected Students Roster Modal */}
+      {showRosterModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px'
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              backgroundColor: '#ffffff',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '16px 20px',
+                background: 'linear-gradient(135deg, #14532d 0%, #15803d 100%)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.4rem' }}>🎒</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800 }}>
+                    जुड़े हुए छात्र (Connected Students)
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#bbf7d0' }}>
+                    कमरा कोड: #{roomCode} • कुल: {connectedStudents.length} छात्र
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRosterModal(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  color: '#ffffff',
+                  fontSize: '1.1rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Students List */}
+            <div style={{ padding: '20px', maxHeight: '360px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {connectedStudents.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 10px', color: '#64748b' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⏳</div>
+                  <h4 style={{ margin: '0 0 6px 0', color: '#1e293b', fontSize: '1rem', fontWeight: 800 }}>
+                    अभी कोई छात्र नहीं जुड़ा है
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '0.82rem', lineHeight: '1.5', color: '#64748b' }}>
+                    छात्रों को शिक्षक के मोबाइल हॉटस्पॉट (Hotspot) या उसी वाई-फ़ाई से कनेक्ट करवाएं और <strong>QR कोड</strong> या 4-अंकों का कोड (<strong>#{roomCode}</strong>) स्कैन करने को कहें।
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowRosterModal(false);
+                      setShowQRModal(true);
+                    }}
+                    style={{
+                      marginTop: '16px',
+                      background: '#15803d',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '8px 18px',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📷 QR कोड दिखाएं
+                  </button>
+                </div>
+              ) : (
+                connectedStudents.map((st, idx) => (
+                  <div
+                    key={st.id || idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 16px',
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '1.8rem' }}>{st.avatar || '🎒'}</span>
+                      <div>
+                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>
+                          {st.name}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          {st.grade || 'कक्षा 1'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }}></span>
+                      <span>ऑनलाइन</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: '14px 20px',
+                borderTop: '1px solid #e2e8f0',
+                backgroundColor: '#f8fafc',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <button
+                onClick={() => {
+                  setShowRosterModal(false);
+                  setShowQRModal(true);
+                }}
+                style={{
+                  background: 'none',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  padding: '6px 14px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  color: '#334155',
+                  cursor: 'pointer'
+                }}
+              >
+                📷 QR कोड दिखाएं
+              </button>
+
+              <button
+                onClick={() => setShowRosterModal(false)}
+                style={{
+                  background: '#0f2744',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '6px 18px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                बंद करें
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

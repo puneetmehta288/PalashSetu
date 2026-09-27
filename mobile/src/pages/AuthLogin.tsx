@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, TeacherProfile, StudentProfile } from '../services/authService';
 import { sfx } from '../utils/sfx';
+import { QRScannerModal } from '../components/QRScannerModal';
 
 interface AuthLoginProps {
   onLoginSuccess: (profile: TeacherProfile | StudentProfile) => void;
@@ -32,6 +33,7 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
   const [roomCode, setRoomCode] = useState<string>(urlRoom || '');
   const [selectedAvatar, setSelectedAvatar] = useState<string>('🎒');
   const [studentError, setStudentError] = useState<string | null>(null);
+  const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
 
   useEffect(() => {
     const list = authService.getProfiles();
@@ -92,6 +94,22 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
       studentName,
       studentGrade,
       roomCode,
+      selectedAvatar
+    );
+    onLoginSuccess(studentProfile);
+    navigate('/');
+  };
+
+  const handleScanSuccess = (scannedCode: string) => {
+    sfx.playSuccess();
+    setRoomCode(scannedCode);
+    setStudentError(null);
+    setShowQRScanner(false);
+    const name = studentName.trim() || 'विद्यार्थी';
+    const studentProfile = authService.loginAsStudent(
+      name,
+      studentGrade,
+      scannedCode,
       selectedAvatar
     );
     onLoginSuccess(studentProfile);
@@ -494,10 +512,69 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
               </div>
             </div>
 
+            {/* Hotspot / Wi-Fi Guidance Box */}
+            <div
+              style={{
+                backgroundColor: '#fffbeb',
+                border: '1px solid #fef3c7',
+                borderRadius: '12px',
+                padding: '10px 12px',
+                fontSize: '0.78rem',
+                color: '#92400e',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                lineHeight: 1.4
+              }}
+            >
+              <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>📡</span>
+              <div>
+                <strong style={{ color: '#78350f' }}>हॉटस्पॉट / वाई-फ़ाई निर्देश:</strong>
+                <div style={{ fontSize: '0.72rem', marginTop: '2px', color: '#b45309' }}>
+                  शिक्षक के फ़ोन का <strong>हॉटस्पॉट (Hotspot)</strong> ऑन करवाएं और अपने फ़ोन को उससे जोड़ें।
+                </div>
+              </div>
+            </div>
+
+            {/* In-App Camera QR Scanner Button */}
+            <button
+              type="button"
+              onClick={() => {
+                sfx.playTap();
+                setShowQRScanner(true);
+              }}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '12px',
+                backgroundColor: '#0f2744',
+                color: '#ffffff',
+                border: '1px solid rgba(255,255,255,0.2)',
+                fontSize: '0.9rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 10px rgba(15, 39, 68, 0.25)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span style={{ fontSize: '1.2rem' }}>📷</span>
+              <span>QR कोड कैमरा से स्कैन करें (Scan QR)</span>
+            </button>
+
+            {/* Divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '2px 0' }}>
+              <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700 }}>या 4-अंकों का कोड लिखें</span>
+              <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+            </div>
+
             {/* 4-Digit Room Code */}
             <div>
               <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a5568', display: 'block', marginBottom: '4px' }}>
-                4-अंकों का कक्षा कोड (Classroom Code from Teacher):
+                कक्षा कोड (Classroom Code):
               </label>
               <input
                 type="text"
@@ -551,13 +628,16 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
             >
               <span>🚀 कक्षा में प्रवेश करें (Enter Classroom)</span>
             </button>
-
-            <div style={{ textAlign: 'center', fontSize: '0.72rem', color: '#718096', marginTop: '4px' }}>
-              💡 यदि शिक्षक ने QR कोड दिखाया है, तो उसे फ़ोन कैमरा से स्कैन करके भी जुड़ सकते हैं।
-            </div>
           </form>
         )}
       </div>
+
+      {/* In-App QR Scanner Modal */}
+      <QRScannerModal
+        isOpen={showQRScanner}
+        onClose={() => setShowQRScanner(false)}
+        onScanSuccess={handleScanSuccess}
+      />
     </div>
   );
 };

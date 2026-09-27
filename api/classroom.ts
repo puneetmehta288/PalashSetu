@@ -28,11 +28,21 @@ interface RoomEvent {
   data: any;
 }
 
+interface StudentInfo {
+  id: string;
+  name: string;
+  grade?: string;
+  avatar?: string;
+  lastSeen: number;
+}
+
 interface RoomData {
   roomCode: string;
   teacherName?: string;
+  schoolName?: string;
+  grade?: string;
   lastActive: number;
-  students: Record<string, number>; // studentId -> lastPing
+  students: Record<string, StudentInfo>;
   events: RoomEvent[];
 }
 
@@ -77,7 +87,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const rooms = loadRooms();
   const now = Date.now();
 
-  // ─── GET: Poll room events & student count ───
+  // ─── GET: Poll room events & student details ───
   if (req.method === 'GET') {
     const roomCode = String(req.query?.room || '').trim().toUpperCase();
     const since = parseInt(String(req.query?.since || '0'), 10) || 0;
@@ -92,24 +102,31 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         exists: false,
         studentCount: 0,
         teacherActive: false,
+        students: [],
         events: []
       });
     }
 
     // Clean up inactive students (>30s)
-    let activeStudents = 0;
-    Object.entries(room.students || {}).forEach(([_, lastSeen]) => {
-      if (now - lastSeen < 30000) activeStudents++;
-    });
+    const activeStudents = Object.values(room.students || {})
+      .filter(s => (now - s.lastSeen) < 30000);
 
     const newEvents = (room.events || []).filter(e => e.timestamp > since);
 
     return res.status(200).json({
       exists: true,
       roomCode: room.roomCode,
-      teacherName: room.teacherName || 'Primary Teacher',
+      teacherName: room.teacherName || 'शिक्षिका',
+      schoolName: room.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड',
+      grade: room.grade || 'कक्षा 1',
       teacherActive: (now - (room.lastActive || 0)) < 60000,
-      studentCount: activeStudents,
+      studentCount: activeStudents.length,
+      students: activeStudents.map(s => ({
+        id: s.id,
+        name: s.name,
+        grade: s.grade,
+        avatar: s.avatar
+      })),
       events: newEvents
     });
   }
@@ -126,7 +143,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (!rooms[roomCode]) {
         rooms[roomCode] = {
           roomCode,
-          teacherName: body.teacherName || 'Teacher',
+          teacherName: body.teacherName || 'शिक्षिका',
+          schoolName: body.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड',
+          grade: body.grade || 'कक्षा 1',
           lastActive: now,
           students: {},
           events: []
@@ -139,6 +158,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (body.action === 'publish') {
         room.lastActive = now;
         if (body.teacherName) room.teacherName = body.teacherName;
+        if (body.schoolName) room.schoolName = body.schoolName;
+        if (body.grade) room.grade = body.grade;
 
         const newEvent: RoomEvent = {
           id: `ev_${now}_${Math.random().toString(36).slice(2, 6)}`,
@@ -158,20 +179,32 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       // Action 2: Student heartbeat / ping
       if (body.action === 'student_ping') {
         const studentId = String(body.studentId || 'std_' + Math.random().toString(36).slice(2, 6));
-        room.students[studentId] = now;
+        room.students[studentId] = {
+          id: studentId,
+          name: String(body.studentName || 'विद्यार्थी'),
+          grade: String(body.grade || 'कक्षा 1'),
+          avatar: String(body.avatar || '🎒'),
+          lastSeen: now
+        };
 
         saveRooms(rooms);
 
-        // Count active students
-        let activeStudents = 0;
-        Object.entries(room.students).forEach(([_, lastSeen]) => {
-          if (now - lastSeen < 30000) activeStudents++;
-        });
+        const activeStudents = Object.values(room.students)
+          .filter(s => (now - s.lastSeen) < 30000);
 
         return res.status(200).json({
           success: true,
-          studentCount: activeStudents,
-          teacherActive: (now - (room.lastActive || 0)) < 60000
+          studentCount: activeStudents.length,
+          students: activeStudents.map(s => ({
+            id: s.id,
+            name: s.name,
+            grade: s.grade,
+            avatar: s.avatar
+          })),
+          teacherActive: (now - (room.lastActive || 0)) < 60000,
+          teacherName: room.teacherName,
+          schoolName: room.schoolName,
+          grade: room.grade
         });
       }
 
