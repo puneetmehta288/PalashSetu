@@ -27,6 +27,17 @@ export interface FeedbackReport {
   sent: boolean;
 }
 
+// ── Helper to mirror queue to localStorage ─────────────────────────────────────
+function mirrorToLocalStorage(queue: FeedbackReport[]): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+    }
+  } catch (_) {
+    // Ignore storage quota or security errors in strict web contexts
+  }
+}
+
 // ── Save a new report to local queue ──────────────────────────────────────────
 export async function saveFeedbackLocally(
   report: Omit<FeedbackReport, 'id' | 'timestamp' | 'appVersion' | 'sent'>
@@ -41,15 +52,29 @@ export async function saveFeedbackLocally(
   };
   queue.push(newReport);
   await Preferences.set({ key: QUEUE_KEY, value: JSON.stringify(queue) });
+  mirrorToLocalStorage(queue);
 }
 
 // ── Get all unsent reports ────────────────────────────────────────────────────
 export async function getPendingFeedback(): Promise<FeedbackReport[]> {
-  let { value } = await Preferences.get({ key: QUEUE_KEY });
+  let value: string | null = null;
+  try {
+    const prefResult = await Preferences.get({ key: QUEUE_KEY });
+    value = prefResult.value;
+  } catch (_) {}
+
   if (!value) {
-    const legacy = await Preferences.get({ key: 'palashsetu_feedback_queue' });
-    value = legacy.value;
+    try {
+      const legacy = await Preferences.get({ key: 'palashsetu_feedback_queue' });
+      value = legacy.value;
+    } catch (_) {}
   }
+
+  // Web localStorage fallback
+  if (!value && typeof window !== 'undefined' && window.localStorage) {
+    value = window.localStorage.getItem(QUEUE_KEY) || window.localStorage.getItem('palashsetu_feedback_queue');
+  }
+
   if (!value) return [];
   try {
     return JSON.parse(value) as FeedbackReport[];
@@ -75,12 +100,22 @@ export async function syncFeedback(): Promise<{ sent: number; failed: number }> 
 
   for (const report of unsent) {
     try {
-      const res = await fetch(SYNC_ENDPOINT, {
+      let res: Response | null = await fetch(SYNC_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(report),
-      });
-      if (res.ok) {
+      }).catch(() => null);
+
+      // Relative path fallback for web deployments / localhost testing
+      if ((!res || !res.ok) && typeof window !== 'undefined') {
+        res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(report),
+        }).catch(() => null);
+      }
+
+      if (res && res.ok) {
         report.sent = true;
         sentCount++;
       } else {
@@ -93,6 +128,7 @@ export async function syncFeedback(): Promise<{ sent: number; failed: number }> 
 
   // Update queue with sent flags
   await Preferences.set({ key: QUEUE_KEY, value: JSON.stringify(queue) });
+  mirrorToLocalStorage(queue);
   return { sent: sentCount, failed: failedCount };
 }
 
@@ -117,4 +153,6 @@ export async function clearSentReports(): Promise<void> {
   const queue = await getPendingFeedback();
   const unsent = queue.filter((r) => !r.sent);
   await Preferences.set({ key: QUEUE_KEY, value: JSON.stringify(unsent) });
+  mirrorToLocalStorage(unsent);
 }
+

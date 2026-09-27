@@ -1383,14 +1383,57 @@
 
     async function fetchComplaints() {
       try {
-        const res = await fetch('/api/complaints?key=palashsetu-admin&t=' + Date.now());
-        if (res.ok) {
-          const data = await res.json();
-          allComplaints = data.reports || [];
-          renderComplaints(allComplaints);
-          document.getElementById('complaints-count-badge').innerText = allComplaints.length;
-          document.getElementById('metric-complaints-count').innerText = allComplaints.length;
+        let serverReports = [];
+        // 1. Fetch from /api/feedback
+        try {
+          const res = await fetch('/api/feedback?t=' + Date.now());
+          if (res.ok) {
+            const data = await res.json();
+            serverReports = data.reports || [];
+          }
+        } catch (e) {
+          console.warn('Feedback API fetch error, will try /api/complaints', e);
         }
+
+        // 2. Fallback to /api/complaints if needed
+        if (!serverReports || serverReports.length === 0) {
+          try {
+            const res2 = await fetch('/api/complaints?key=palashsetu-admin&t=' + Date.now());
+            if (res2.ok) {
+              const data2 = await res2.json();
+              serverReports = data2.reports || [];
+            }
+          } catch (e) {
+            console.warn('Complaints API fetch error:', e);
+          }
+        }
+
+        // 3. Fallback to browser localStorage if testing locally in the same browser
+        let localQueue = [];
+        try {
+          const raw = localStorage.getItem('palashvani_feedback_queue') || localStorage.getItem('palashsetu_feedback_queue');
+          if (raw) localQueue = JSON.parse(raw);
+        } catch (e) {}
+
+        const mergedMap = new Map();
+        // Server reports first
+        (serverReports || []).forEach(r => { if (r && r.id) mergedMap.set(r.id, r); });
+        // Local reports merged if new
+        (localQueue || []).forEach(r => {
+          if (r && r.id && !mergedMap.has(r.id)) {
+            mergedMap.set(r.id, r);
+          }
+        });
+
+        allComplaints = Array.from(mergedMap.values()).sort((a, b) => {
+          return new Date(b.timestamp || b.receivedAt || 0).getTime() - new Date(a.timestamp || a.receivedAt || 0).getTime();
+        });
+
+        renderComplaints(allComplaints);
+        const countBadge = document.getElementById('complaints-count-badge');
+        if (countBadge) countBadge.innerText = allComplaints.length;
+        const metricCount = document.getElementById('metric-complaints-count');
+        if (metricCount) metricCount.innerText = allComplaints.length;
       } catch (err) {
         console.warn('Complaints fetch error:', err);
       }
