@@ -132,7 +132,9 @@ class ClassroomService {
 
   // ─── TEACHER: Broadcast a Translated Sentence ───
   public broadcastTranslation(event: ClassroomTranslationEvent): void {
-    if (!this.activeRoomCode) return;
+    const room = this.activeRoomCode || (typeof window !== 'undefined' ? sessionStorage.getItem('palash_active_room') : null);
+    if (!room) return;
+    this.activeRoomCode = room;
 
     const classroomEvent: ClassroomEvent = {
       type: 'translation',
@@ -147,7 +149,7 @@ class ClassroomService {
     // 2. Post to Relay endpoint for physical devices
     this.postToRelay({
       action: 'publish',
-      room: this.activeRoomCode,
+      room: room,
       teacherName: this.teacherName,
       schoolName: this.schoolName,
       grade: this.teacherGrade,
@@ -158,7 +160,9 @@ class ClassroomService {
 
   // ─── TEACHER: Assign Worksheet to Class ───
   public broadcastWorksheet(event: ClassroomWorksheetEvent): void {
-    if (!this.activeRoomCode) return;
+    const room = this.activeRoomCode || (typeof window !== 'undefined' ? sessionStorage.getItem('palash_active_room') : null);
+    if (!room) return;
+    this.activeRoomCode = room;
 
     const classroomEvent: ClassroomEvent = {
       type: 'worksheet_assigned',
@@ -170,6 +174,9 @@ class ClassroomService {
       const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
       const updated = [event, ...stored.filter((w: any) => w.worksheetId !== event.worksheetId)];
       localStorage.setItem('palash_assigned_worksheets', JSON.stringify(updated.slice(0, 10)));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: event }));
+      }
     } catch (_) {}
 
     try {
@@ -178,7 +185,7 @@ class ClassroomService {
 
     this.postToRelay({
       action: 'publish',
-      room: this.activeRoomCode,
+      room: room,
       teacherName: this.teacherName,
       schoolName: this.schoolName,
       grade: this.teacherGrade,
@@ -245,6 +252,16 @@ class ClassroomService {
         this.broadcastChannel.onmessage = (msg) => {
           if (msg.data) {
             if (msg.data.type === 'translation' || msg.data.type === 'worksheet_assigned') {
+              if (msg.data.type === 'worksheet_assigned' && msg.data.data) {
+                try {
+                  const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+                  const updated = [msg.data.data, ...stored.filter((w: any) => w.worksheetId !== msg.data.data.worksheetId)];
+                  localStorage.setItem('palash_assigned_worksheets', JSON.stringify(updated.slice(0, 10)));
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: msg.data.data }));
+                  }
+                } catch (_) {}
+              }
               onEvent(msg.data);
             }
             if (msg.data.type === 'teacher_ack' && msg.data.info) {
@@ -387,6 +404,32 @@ class ClassroomService {
               studentCount: res.studentCount || 1
             });
           }
+
+          // Instant active translation delivery on first handshake
+          if (res.activeSpeech && res.activeSpeech.timestamp > this.lastEventTimestamp) {
+            this.lastEventTimestamp = res.activeSpeech.timestamp;
+            this.listeners.forEach(fn => fn({ type: 'translation', data: res.activeSpeech }));
+          }
+
+          // Process recent events received in ping
+          if (Array.isArray(res.recentEvents)) {
+            res.recentEvents.forEach((ev: any) => {
+              if (ev && ev.timestamp > this.lastEventTimestamp) {
+                this.lastEventTimestamp = ev.timestamp;
+                if (ev.type === 'worksheet_assigned' && ev.data) {
+                  try {
+                    const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+                    const updated = [ev.data, ...stored.filter((w: any) => w.worksheetId !== ev.data.worksheetId)];
+                    localStorage.setItem('palash_assigned_worksheets', JSON.stringify(updated.slice(0, 10)));
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: ev.data }));
+                    }
+                  } catch (_) {}
+                }
+                this.listeners.forEach(fn => fn({ type: ev.type, data: ev.data }));
+              }
+            });
+          }
         } else {
           consecutiveFailures++;
           if (consecutiveFailures >= 3 && onConnectionStatus) {
@@ -415,8 +458,7 @@ class ClassroomService {
     // Heartbeat every 7s
     this.heartbeatInterval = setInterval(sendPing, 7000);
 
-    // Poll for new events every 1.5s
-    this.pollInterval = setInterval(async () => {
+    const pollEvents = async () => {
       try {
         let url = `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`;
         let res = await fetch(url).catch(() => null);
@@ -456,6 +498,16 @@ class ClassroomService {
             data.events.forEach((ev: any) => {
               if (ev.timestamp > this.lastEventTimestamp) {
                 this.lastEventTimestamp = ev.timestamp;
+                if (ev.type === 'worksheet_assigned' && ev.data) {
+                  try {
+                    const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+                    const updated = [ev.data, ...stored.filter((w: any) => w.worksheetId !== ev.data.worksheetId)];
+                    localStorage.setItem('palash_assigned_worksheets', JSON.stringify(updated.slice(0, 10)));
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: ev.data }));
+                    }
+                  } catch (_) {}
+                }
                 const mappedEvent: ClassroomEvent = {
                   type: ev.type,
                   data: ev.data
@@ -469,7 +521,13 @@ class ClassroomService {
           }
         }
       } catch (_) {}
-    }, 1500);
+    };
+
+    // Immediate initial poll (0ms) so student gets events right away without waiting
+    pollEvents();
+
+    // Fast poll every 800ms
+    this.pollInterval = setInterval(pollEvents, 800);
   }
 
   private notifyCount(count: number): void {

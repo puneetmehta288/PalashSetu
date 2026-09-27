@@ -899,86 +899,6 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         </div>
       </div>
 
-      {/* Tribal Language Selector Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#ffffff', borderRadius: '16px', padding: '0.75rem 1.25rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '1.2rem' }}>🌐</span>
-          <div>
-            <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f2744' }}>Tribal Language Mode</div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{TRIBAL_LANGUAGES[selectedLanguage].region}</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => handleLanguageSelect('santali')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '12px',
-              border: selectedLanguage === 'santali' ? '2px solid #16a34a' : '1px solid #cbd5e1',
-              backgroundColor: selectedLanguage === 'santali' ? '#f0fdf4' : '#ffffff',
-              color: selectedLanguage === 'santali' ? '#15803d' : '#475569',
-              fontWeight: 800,
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: selectedLanguage === 'santali' ? '0 2px 6px rgba(22,163,74,0.15)' : 'none',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <span>🟢 Santali</span>
-            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(ᱚᱞ ᱪᱤᱠᱤ)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => alert('ℹ️ Ho language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production translation engine.')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '12px',
-              border: '1px dashed #cbd5e1',
-              backgroundColor: '#f8fafc',
-              color: '#94a3b8',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-            title="In Field Pilot with JCERT"
-          >
-            <span>🔒 Ho</span>
-            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(Pilot v2.0)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => alert('ℹ️ Mundari language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production translation engine.')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '12px',
-              border: '1px dashed #cbd5e1',
-              backgroundColor: '#f8fafc',
-              color: '#94a3b8',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-            title="In Field Pilot with JCERT"
-          >
-            <span>🔒 Mundari</span>
-            <span style={{ fontSize: '0.74rem', opacity: 0.85 }}>(Pilot v2.0)</span>
-          </button>
-        </div>
-      </div>
-
       {/* Bidirectional Mode Selector */}
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         <div style={{ display: 'inline-flex', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '20px', gap: '4px', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}>
@@ -1290,6 +1210,125 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           </div>
         )}
       </div>
+      {/* Categorized 1-Tap Quick Phrases */}
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15, 39, 68, 0.05)', border: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '1rem' }}>
+          <h3 style={{ margin: 0, color: '#0f2744', fontSize: '1.1rem', fontWeight: 800 }}>
+            ⚡ 1-Tap Quick Classroom Phrasebook (Offline)
+          </h3>
+
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[
+              { id: 'greetings', label: '👋 Greetings' },
+              { id: 'commands', label: '📢 Commands' },
+              { id: 'numeracy', label: '🔢 Numeracy' },
+              { id: 'responses', label: '👧 Responses' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setPhraseCategory(tab.id as any)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '10px',
+                  border: phraseCategory === tab.id ? '1px solid #ed8936' : '1px solid #cbd5e1',
+                  backgroundColor: phraseCategory === tab.id ? '#fffaf0' : '#ffffff',
+                  color: phraseCategory === tab.id ? '#c05621' : '#475569',
+                  fontWeight: 700,
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+          {(((selectedLanguage === 'ho'
+            ? HO_CATEGORIZED_PHRASES
+            : selectedLanguage === 'mundari'
+            ? MUNDARI_CATEGORIZED_PHRASES
+            : CATEGORIZED_PHRASES) as any)[phraseCategory] || []).map((phrase: any, idx: number) => {
+            const tribalText = phrase.santali || phrase.tribal;
+            const hindiText = phrase.hindi;
+            return (
+              <button
+                key={idx}
+                onClick={() => {
+                  sfx.playTap();
+                  if (mode === 'student') {
+                    setSourceText(tribalText);
+                    setTranslatedText(hindiText);
+                    setPronunciation(phrase.pronunciation || '');
+                    setLatencyMs(1);
+                    setActiveModel(`⚡ Palash On-Device Engine (${TRIBAL_LANGUAGES[selectedLanguage].name} ➔ Hindi)`);
+                    speakText(hindiText, { lang: 'hi-IN' });
+                  } else {
+                    setSourceText(hindiText);
+                    setTranslatedText(tribalText);
+                    setPronunciation(phrase.pronunciation || '');
+                    setLatencyMs(1);
+                    setActiveModel(`⚡ Palash On-Device Engine (Hindi ➔ ${TRIBAL_LANGUAGES[selectedLanguage].name})`);
+                    speakText(phrase.pronunciation || tribalText);
+                  }
+
+                  // 📡 Log phrasebook selection to telemetry
+                  try {
+                    telemetryService.logSentence({
+                      sourceText: mode === 'student' ? tribalText : hindiText,
+                      translatedText: mode === 'student' ? hindiText : tribalText,
+                      language: selectedLanguage,
+                      mode,
+                      confidence: 'verified',
+                      source: 'phrasebook',
+                    });
+                  } catch (e) {
+                    console.warn('[Telemetry] Log failed:', e);
+                  }
+                }}
+                style={{
+                  textAlign: 'left',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  backgroundColor: '#f8fafc',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#fffaf0';
+                  e.currentTarget.style.borderColor = '#fed7aa';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                }}
+              >
+                {mode === 'student' ? (
+                  <>
+                    <div style={{ color: '#c05621', fontSize: '1rem', fontWeight: 800, fontFamily: selectedLanguage === 'santali' ? 'var(--font-santali)' : 'inherit', marginBottom: '2px' }}>
+                      {tribalText}
+                    </div>
+                    <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.88rem' }}>
+                      {hindiText} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.92rem', marginBottom: '2px' }}>
+                      {hindiText}
+                    </div>
+                    <div style={{ color: '#c05621', fontSize: '0.88rem', fontWeight: 700, fontFamily: selectedLanguage === 'santali' ? 'var(--font-santali)' : 'inherit' }}>
+                      {tribalText} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
+                    </div>
+                  </>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Classroom Conversation Feed (Teacher / Student dialogue stream) */}
       {conversation.length > 0 && (
@@ -1419,126 +1458,6 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
           </div>
         </div>
       )}
-
-      {/* Categorized 1-Tap Quick Phrases */}
-      <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(15, 39, 68, 0.05)', border: '1px solid #e2e8f0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '1rem' }}>
-          <h3 style={{ margin: 0, color: '#0f2744', fontSize: '1.1rem', fontWeight: 800 }}>
-            ⚡ 1-Tap Quick Classroom Phrasebook (Offline)
-          </h3>
-
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {[
-              { id: 'greetings', label: '👋 Greetings' },
-              { id: 'commands', label: '📢 Commands' },
-              { id: 'numeracy', label: '🔢 Numeracy' },
-              { id: 'responses', label: '👧 Responses' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setPhraseCategory(tab.id as any)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '10px',
-                  border: phraseCategory === tab.id ? '1px solid #ed8936' : '1px solid #cbd5e1',
-                  backgroundColor: phraseCategory === tab.id ? '#fffaf0' : '#ffffff',
-                  color: phraseCategory === tab.id ? '#c05621' : '#475569',
-                  fontWeight: 700,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
-          {(((selectedLanguage === 'ho'
-            ? HO_CATEGORIZED_PHRASES
-            : selectedLanguage === 'mundari'
-            ? MUNDARI_CATEGORIZED_PHRASES
-            : CATEGORIZED_PHRASES) as any)[phraseCategory] || []).map((phrase: any, idx: number) => {
-            const tribalText = phrase.santali || phrase.tribal;
-            const hindiText = phrase.hindi;
-            return (
-              <button
-                key={idx}
-                onClick={() => {
-                  sfx.playTap();
-                  if (mode === 'student') {
-                    setSourceText(tribalText);
-                    setTranslatedText(hindiText);
-                    setPronunciation(phrase.pronunciation || '');
-                    setLatencyMs(1);
-                    setActiveModel(`⚡ Palash On-Device Engine (${TRIBAL_LANGUAGES[selectedLanguage].name} ➔ Hindi)`);
-                    speakText(hindiText, { lang: 'hi-IN' });
-                  } else {
-                    setSourceText(hindiText);
-                    setTranslatedText(tribalText);
-                    setPronunciation(phrase.pronunciation || '');
-                    setLatencyMs(1);
-                    setActiveModel(`⚡ Palash On-Device Engine (Hindi ➔ ${TRIBAL_LANGUAGES[selectedLanguage].name})`);
-                    speakText(phrase.pronunciation || tribalText);
-                  }
-
-                  // 📡 Log phrasebook selection to telemetry
-                  try {
-                    telemetryService.logSentence({
-                      sourceText: mode === 'student' ? tribalText : hindiText,
-                      translatedText: mode === 'student' ? hindiText : tribalText,
-                      language: selectedLanguage,
-                      mode,
-                      confidence: 'verified',
-                      source: 'phrasebook',
-                    });
-                  } catch (e) {
-                    console.warn('[Telemetry] Log failed:', e);
-                  }
-                }}
-                style={{
-                  textAlign: 'left',
-                  padding: '12px 14px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  backgroundColor: '#f8fafc',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#fffaf0';
-                  e.currentTarget.style.borderColor = '#fed7aa';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f8fafc';
-                  e.currentTarget.style.borderColor = '#e2e8f0';
-                }}
-              >
-                {mode === 'student' ? (
-                  <>
-                    <div style={{ color: '#c05621', fontSize: '1rem', fontWeight: 800, fontFamily: selectedLanguage === 'santali' ? 'var(--font-santali)' : 'inherit', marginBottom: '2px' }}>
-                      {tribalText}
-                    </div>
-                    <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.88rem' }}>
-                      {hindiText} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontWeight: 700, color: '#0f2744', fontSize: '0.92rem', marginBottom: '2px' }}>
-                      {hindiText}
-                    </div>
-                    <div style={{ color: '#c05621', fontSize: '0.88rem', fontWeight: 700, fontFamily: selectedLanguage === 'santali' ? 'var(--font-santali)' : 'inherit' }}>
-                      {tribalText} {phrase.pronunciation ? `• (${phrase.pronunciation})` : ''}
-                    </div>
-                  </>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {/* In-App 1-Tap Offline Voice & TTS Setup Modal */}
       <OfflineVoiceModal

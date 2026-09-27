@@ -70,6 +70,28 @@ const StudentClassroom: React.FC = () => {
       }
     );
 
+    // Check existing stored assigned worksheets on mount
+    try {
+      const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+      if (stored && stored.length > 0) {
+        setAssignedWorksheet({
+          id: stored[0].worksheetId,
+          title: stored[0].title,
+        });
+      }
+    } catch (_) {}
+
+    const onWorksheetAssigned = (e: any) => {
+      if (e.detail) {
+        sfx.playSuccess();
+        setAssignedWorksheet({
+          id: e.detail.worksheetId,
+          title: e.detail.title,
+        });
+      }
+    };
+    window.addEventListener('palash_worksheet_assigned', onWorksheetAssigned);
+
     // Timeout check after 4s: if still no teacher ack, show hotspot guidance
     const timer = setTimeout(() => {
       setIsCheckingConnection(false);
@@ -77,6 +99,7 @@ const StudentClassroom: React.FC = () => {
 
     return () => {
       unsubscribe();
+      window.removeEventListener('palash_worksheet_assigned', onWorksheetAssigned);
       clearTimeout(timer);
     };
   }, [navigate]);

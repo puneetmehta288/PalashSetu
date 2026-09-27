@@ -645,6 +645,28 @@ const Worksheets: React.FC = () => {
     setQuestions(qs);
   };
 
+  // Live event listener for incoming worksheet assignments
+  useEffect(() => {
+    const handleAssigned = (e: any) => {
+      const data = e.detail;
+      if (data) {
+        setAssignedList(prev => [data, ...prev.filter((w: any) => w.worksheetId !== data.worksheetId)]);
+        setSelectedAssignedTitle(data.title || 'कक्षा अभ्यास पत्र');
+        if (data.questions && data.questions.length > 0) {
+          setQuestions(data.questions);
+        } else {
+          const qs = generateQuestions(data.topic || 'c1_addition', 5);
+          setQuestions(qs);
+        }
+        setStudentSelections({});
+        setIsSubmitted(false);
+        sfx.playSuccess();
+      }
+    };
+    window.addEventListener('palash_worksheet_assigned', handleAssigned);
+    return () => window.removeEventListener('palash_worksheet_assigned', handleAssigned);
+  }, []);
+
   // Role-adaptive initial load
   React.useEffect(() => {
     if (userRole === 'teacher') {
@@ -655,8 +677,12 @@ const Worksheets: React.FC = () => {
       if (assignedList.length > 0) {
         const first = assignedList[0];
         setSelectedAssignedTitle(first.title || 'कक्षा अभ्यास पत्र');
-        const qs = generateQuestions(first.topic || 'c1_addition', 5);
-        setQuestions(qs);
+        if (first.questions && first.questions.length > 0) {
+          setQuestions(first.questions);
+        } else {
+          const qs = generateQuestions(first.topic || 'c1_addition', 5);
+          setQuestions(qs);
+        }
       } else {
         setQuestions([]);
       }
@@ -666,8 +692,12 @@ const Worksheets: React.FC = () => {
   const handleOpenAssigned = (ws: any) => {
     sfx.playSuccess();
     setSelectedAssignedTitle(ws.title || 'कक्षा अभ्यास पत्र');
-    const qs = generateQuestions(ws.topic || 'c1_addition', 5);
-    setQuestions(qs);
+    if (ws.questions && ws.questions.length > 0) {
+      setQuestions(ws.questions);
+    } else {
+      const qs = generateQuestions(ws.topic || 'c1_addition', 5);
+      setQuestions(qs);
+    }
     setStudentSelections({});
     setIsSubmitted(false);
   };
@@ -728,6 +758,7 @@ const Worksheets: React.FC = () => {
                     title: `${grade} ${domain}: ${selectedDrill?.label || 'Practice'}`,
                     grade,
                     topic: questionType,
+                    questions: questions,
                     timestamp: Date.now()
                   });
                   alert('📡 अभ्यास पत्र कक्षा को लाइव सौंप दिया गया है! (Worksheet assigned to connected student screens!)');
@@ -766,60 +797,6 @@ const Worksheets: React.FC = () => {
             </button>
           </div>
         )}
-      </div>
-
-      {/* ─── TRIBAL LANGUAGE SWITCHER PILLS (Hidden in Print) ─── */}
-      <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-          🗣️ Worksheet Language:
-        </span>
-        <button
-          onClick={() => handleLanguageSelect('santali')}
-          style={{
-            backgroundColor: tribalLang === 'santali' ? '#0f2744' : '#ffffff',
-            color: tribalLang === 'santali' ? '#ffffff' : '#334155',
-            border: tribalLang === 'santali' ? '2px solid #0f2744' : '1px solid #cbd5e1',
-            borderRadius: '20px',
-            padding: '4px 12px',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ) — Active
-        </button>
-        <button
-          onClick={() => alert('ℹ️ Ho language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production curriculum.')}
-          style={{
-            backgroundColor: '#f1f5f9',
-            color: '#94a3b8',
-            border: '1px dashed #cbd5e1',
-            borderRadius: '20px',
-            padding: '4px 12px',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-          title="In Field Pilot with JCERT"
-        >
-          🔒 Ho (Pilot v2.0)
-        </button>
-        <button
-          onClick={() => alert('ℹ️ Mundari language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production curriculum.')}
-          style={{
-            backgroundColor: '#f1f5f9',
-            color: '#94a3b8',
-            border: '1px dashed #cbd5e1',
-            borderRadius: '20px',
-            padding: '4px 12px',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-          title="In Field Pilot with JCERT"
-        >
-          🔒 Mundari (Pilot v2.0)
-        </button>
       </div>
 
       {/* Configuration Panel (TEACHER ONLY - RESTRICTED FROM STUDENTS) */}

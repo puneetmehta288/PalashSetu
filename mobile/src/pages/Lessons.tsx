@@ -146,36 +146,6 @@ const Lessons: React.FC = () => {
         </div>
       </div>
 
-      {/* ─── TRIBAL LANGUAGE SWITCHER PILLS (Hidden in Print) ─── */}
-      <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-          🗣️ Lesson Language:
-        </span>
-        {(['santali', 'ho', 'mundari'] as TribalLanguage[]).map(lang => {
-          const isSel = tribalLang === lang;
-          const label = lang === 'santali' ? '🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ)' : lang === 'ho' ? '🔵 Ho (ᱦᱳ / Kolhan)' : '🟣 Mundari (मुंडारी / Bani)';
-          return (
-            <button
-              key={lang}
-              onClick={() => handleLanguageSelect(lang)}
-              style={{
-                backgroundColor: isSel ? '#0f2744' : '#ffffff',
-                color: isSel ? '#ffffff' : '#334155',
-                border: isSel ? '2px solid #0f2744' : '1px solid #cbd5e1',
-                borderRadius: '20px',
-                padding: '4px 12px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
       {/* Selection Control Panel */}
       <div className="no-print" style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '1rem' }}>

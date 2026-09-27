@@ -144,184 +144,107 @@ const JCERTTextbooks: React.FC = () => {
         </button>
       </div>
 
-      {/* ─── TRIBAL LANGUAGE SWITCHER PILLS (Hidden in Print) ─── */}
-      <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-          🗣️ Textbook Language:
-        </span>
-        <button
-          onClick={() => handleLanguageSelect('santali')}
-          style={{
-            backgroundColor: tribalLang === 'santali' ? '#0f2744' : '#ffffff',
-            color: tribalLang === 'santali' ? '#ffffff' : '#334155',
-            border: tribalLang === 'santali' ? '2px solid #0f2744' : '1px solid #cbd5e1',
-            borderRadius: '20px',
-            padding: '4px 12px',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ) — Active
-        </button>
-        <button
-          onClick={() => alert('ℹ️ Ho language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production curriculum.')}
-          style={{
-            backgroundColor: '#f1f5f9',
-            color: '#94a3b8',
-            border: '1px dashed #cbd5e1',
-            borderRadius: '20px',
-            padding: '4px 12px',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-          title="In Field Pilot with JCERT"
-        >
-          🔒 Ho (Pilot v2.0)
-        </button>
-        <button
-          onClick={() => alert('ℹ️ Mundari language is in active field pilot with JCERT tribal linguists for v2.0. Santali (Ol Chiki) is the active full production curriculum.')}
-          style={{
-            backgroundColor: '#f1f5f9',
-            color: '#94a3b8',
-            border: '1px dashed #cbd5e1',
-            borderRadius: '20px',
-            padding: '4px 12px',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-          title="In Field Pilot with JCERT"
-        >
-          🔒 Mundari (Pilot v2.0)
-        </button>
-      </div>
-
-      {/* ─── STEP 1: CLASS SELECTION BAR (Hidden in Print) ─── */}
-      <div className="no-print" style={{ backgroundColor: '#ffffff', padding: '1rem 1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f2744', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            1️⃣ Select Class Level (ᱪᱟᱱᱟᱪ ᱵᱟᱪᱷᱟᱣ):
-          </span>
-          <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
-            Current Class: <strong>{selectedGrade}</strong>
-          </span>
+      {/* ─── COMPACT TEXTBOOK SELECTION CONTROLS (Hidden in Print) ─── */}
+      <div
+        className="no-print"
+        style={{
+          backgroundColor: '#ffffff',
+          padding: '1.1rem 1.25rem',
+          borderRadius: '16px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '12px',
+          alignItems: 'center',
+        }}
+      >
+        {/* Class Selection Dropdown */}
+        <div>
+          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+            🏫 Class Level (कक्षा):
+          </label>
+          <select
+            value={selectedGrade}
+            onChange={(e) => handleSelectGrade(e.target.value as GradeLevel)}
+            style={{
+              width: '100%',
+              padding: '9px 12px',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.88rem',
+              fontWeight: 800,
+              color: '#0f2744',
+              backgroundColor: '#f8fafc',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="Balvatika">🧸 Balvatika (ᱵᱟᱞᱣᱟᱴᱤᱠᱟ)</option>
+            <option value="Grade 1">🎒 Class 1 (᱑ ᱪᱟᱱᱟᱪ)</option>
+            <option value="Grade 2">📖 Class 2 (᱒ ᱪᱟᱱᱟᱪ)</option>
+            <option value="Grade 3">🧮 Class 3 (᱓ ᱪᱟᱱᱟᱪ)</option>
+          </select>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
-          {(['Balvatika', 'Grade 1', 'Grade 2', 'Grade 3'] as GradeLevel[]).map(grade => {
-            const isSelected = selectedGrade === grade;
-            const gradeTitle = grade === 'Balvatika' ? '🧸 Balvatika' : grade === 'Grade 1' ? '🏫 Class 1' : grade === 'Grade 2' ? '📖 Class 2' : '🧮 Class 3';
-            return (
-              <button
-                key={grade}
-                onClick={() => handleSelectGrade(grade)}
-                style={{
-                  padding: '12px 14px',
-                  borderRadius: '12px',
-                  border: isSelected ? '2px solid #ed8936' : '1px solid #cbd5e1',
-                  backgroundColor: isSelected ? '#0f2744' : '#f8fafc',
-                  color: isSelected ? '#ffffff' : '#334155',
-                  fontWeight: 800,
-                  fontSize: '0.92rem',
-                  cursor: 'pointer',
-                  opacity: 1,
-                  textAlign: 'center',
-                  boxShadow: isSelected ? '0 4px 12px rgba(15,39,68,0.25)' : 'none',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div>{gradeTitle}</div>
-                <div style={{ fontSize: '0.72rem', opacity: isSelected ? 0.85 : 0.6, marginTop: '2px' }}>
-                  {grade === 'Balvatika' ? 'ᱵᱟᱞᱣᱟᱴᱤᱠᱟ' : grade === 'Grade 1' ? '᱑ ᱪᱟᱱᱟᱪ' : grade === 'Grade 2' ? '᱒ ᱪᱟᱱᱟᱪ' : '᱓ ᱪᱟᱱᱟᱪ'}
-                </div>
-              </button>
-            );
-          })}
+        {/* Subject Filter Dropdown */}
+        <div>
+          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+            📚 Subject (विषय):
+          </label>
+          <select
+            value={selectedSubject}
+            onChange={(e) => {
+              sfx.playTap();
+              setSelectedSubject(e.target.value as SubjectType);
+            }}
+            style={{
+              width: '100%',
+              padding: '9px 12px',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              color: '#334155',
+              backgroundColor: '#f8fafc',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="All">All Subjects</option>
+            <option value="Mathematics">🔢 Mathematics (गणित)</option>
+            <option value="Language">📖 Language (भाषा)</option>
+            <option value="EVS">🌿 EVS (पर्यावरण)</option>
+          </select>
         </div>
-      </div>
 
-      {/* ─── STEP 2: PICK BOOK (Hidden in Print) ─── */}
-      <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f2744' }}>
-            2️⃣ Pick JCERT Textbook ({filteredBooks.length} books in {selectedGrade}):
-          </div>
-
-          {/* Subject Filter Tabs */}
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {(['All', 'Mathematics', 'Language', 'EVS'] as SubjectType[]).map(subj => (
-              <button
-                key={subj}
-                onClick={() => { sfx.playTap(); setSelectedSubject(subj); }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  backgroundColor: selectedSubject === subj ? '#3182ce' : '#e2e8f0',
-                  color: selectedSubject === subj ? '#ffffff' : '#475569',
-                  fontWeight: 700,
-                  fontSize: '0.76rem',
-                  cursor: 'pointer'
-                }}
-              >
-                {subj}
-              </button>
+        {/* Book Picker Dropdown */}
+        <div style={{ gridColumn: 'span 2' }}>
+          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+            📖 JCERT Textbook ({filteredBooks.length} available):
+          </label>
+          <select
+            value={selectedBookId}
+            onChange={(e) => handleSelectBook(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '9px 12px',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.88rem',
+              fontWeight: 800,
+              color: '#c05621',
+              backgroundColor: '#f8fafc',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            {filteredBooks.map(b => (
+              <option key={b.id} value={b.id}>
+                {b.title_hin} ({b.title_sat}) — {b.subject} • {b.chapters.length} Chapters
+              </option>
             ))}
-          </div>
-        </div>
-
-        {/* Books Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
-          {filteredBooks.map(b => (
-            <button
-              key={b.id}
-              onClick={() => handleSelectBook(b.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '12px',
-                padding: '12px 14px',
-                borderRadius: '14px',
-                border: selectedBookId === b.id ? '2px solid #ed8936' : '1px solid #cbd5e1',
-                backgroundColor: selectedBookId === b.id ? '#fffaf0' : '#ffffff',
-                color: '#1e293b',
-                cursor: 'pointer',
-                textAlign: 'left',
-                boxShadow: selectedBookId === b.id ? '0 4px 14px rgba(237,137,54,0.18)' : '0 2px 4px rgba(0,0,0,0.03)'
-              }}
-            >
-              <div
-                style={{
-                  width: '42px',
-                  height: '52px',
-                  backgroundColor: b.cover_color,
-                  color: '#ffffff',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.4rem',
-                  flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-                }}
-              >
-                {b.icon}
-              </div>
-              <div style={{ flex: 1, overflow: 'hidden' }}>
-                <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
-                  {b.book_code} • {b.chapters.length} Chapters
-                </div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: selectedBookId === b.id ? '#c05621' : '#0f2744', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {b.title_hin}
-                </div>
-                <div style={{ fontSize: '0.76rem', color: '#d97706', fontFamily: 'Noto Sans Ol Chiki, sans-serif', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {b.title_sat}
-                </div>
-              </div>
-            </button>
-          ))}
+          </select>
         </div>
       </div>
 

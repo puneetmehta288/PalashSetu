@@ -475,137 +475,107 @@ const Flashcards: React.FC = () => {
         </p>
       </div>
 
-      {/* Grade tabs */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{ display: 'inline-flex', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '16px', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {GRADES.map(g => {
-            const isSelected = selectedGrade === g;
-            return (
-              <button
-                key={g}
-                onClick={() => handleGradeChange(g)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '12px',
-                  border: isSelected ? '2px solid #ed8936' : 'none',
-                  backgroundColor: isSelected ? '#0f2744' : 'transparent',
-                  color: isSelected ? '#fff' : '#334155',
-                  fontWeight: 700,
-                  fontSize: '0.86rem',
-                  cursor: 'pointer',
-                  opacity: 1,
-                  transition: 'all 0.15s',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: isSelected ? '0 2px 8px rgba(15,39,68,0.2)' : 'none',
-                }}
-              >
-                <span>{GRADE_LABELS[g]}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Tribal Language Selector Bar */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{ display: 'inline-flex', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '4px', borderRadius: '16px', gap: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button
-            type="button"
-            onClick={() => handleLanguageSelect('santali')}
+      {/* Compact Class & Deck Selection Box */}
+      <div
+        style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          padding: '1rem 1.25rem',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '12px',
+          alignItems: 'center',
+        }}
+      >
+        {/* Class Selection Box */}
+        <div>
+          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+            🏫 Class Level (कक्षा):
+          </label>
+          <select
+            value={selectedGrade}
+            onChange={(e) => handleGradeChange(e.target.value as Grade)}
             style={{
-              padding: '6px 14px',
-              borderRadius: '12px',
-              border: selectedLanguage === 'santali' ? '2px solid #16a34a' : '1px solid transparent',
-              backgroundColor: selectedLanguage === 'santali' ? '#f0fdf4' : 'transparent',
-              color: selectedLanguage === 'santali' ? '#15803d' : '#475569',
+              width: '100%',
+              padding: '9px 12px',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#f8fafc',
               fontWeight: 800,
-              fontSize: '0.8rem',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px'
+              fontSize: '0.88rem',
+              color: '#0f2744',
+              outline: 'none',
+              cursor: 'pointer'
             }}
           >
-            <span>🟢 Santali (Ol Chiki)</span>
-          </button>
+            {GRADES.map(g => (
+              <option key={g} value={g}>{GRADE_LABELS[g]}</option>
+            ))}
+          </select>
+        </div>
 
-          <button
-            type="button"
-            onClick={() => handleLanguageSelect('ho')}
+        {/* Content Deck Selection Dropdown */}
+        <div style={{ gridColumn: 'span 2' }}>
+          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+            🃏 Select Content Deck / Topic (सामग्री):
+          </label>
+          <select
+            value={activeDeck?.id || ''}
+            onChange={(e) => handleDeckChange(e.target.value)}
             style={{
-              padding: '6px 14px',
-              borderRadius: '12px',
-              border: selectedLanguage === 'ho' ? '2px solid #2563eb' : '1px solid transparent',
-              backgroundColor: selectedLanguage === 'ho' ? '#eff6ff' : 'transparent',
-              color: selectedLanguage === 'ho' ? '#1d4ed8' : '#475569',
+              width: '100%',
+              padding: '9px 12px',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#f8fafc',
               fontWeight: 800,
-              fontSize: '0.8rem',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px'
+              fontSize: '0.88rem',
+              color: '#c05621',
+              outline: 'none',
+              cursor: 'pointer'
             }}
           >
-            <span>🔵 Ho (Devanagari • हो • Pilot)</span>
-          </button>
+            {gradeDecks.map(deck => (
+              <option key={deck.id} value={deck.id}>
+                {deck.emoji} {deck.label} ({deck.cards.length} cards • {deck.domain})
+              </option>
+            ))}
+          </select>
+        </div>
 
-          <button
-            type="button"
-            onClick={() => handleLanguageSelect('mundari')}
+        {/* Domain Filter */}
+        <div>
+          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+            🎯 FLN Domain:
+          </label>
+          <select
+            value={domainFilter}
+            onChange={(e) => {
+              setDomainFilter(e.target.value as any);
+              setCurrentIndex(0);
+              setRevealed(false);
+            }}
             style={{
-              padding: '6px 14px',
-              borderRadius: '12px',
-              border: selectedLanguage === 'mundari' ? '2px solid #7c3aed' : '1px solid transparent',
-              backgroundColor: selectedLanguage === 'mundari' ? '#faf5ff' : 'transparent',
-              color: selectedLanguage === 'mundari' ? '#6d28d9' : '#475569',
-              fontWeight: 800,
-              fontSize: '0.8rem',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px'
+              width: '100%',
+              padding: '9px 12px',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#f8fafc',
+              fontWeight: 700,
+              fontSize: '0.88rem',
+              color: '#334155',
+              outline: 'none',
+              cursor: 'pointer'
             }}
           >
-            <span>🟣 Mundari (Devanagari • मुंडारी • Pilot)</span>
-          </button>
+            <option value="All">📦 All Domains</option>
+            <option value="Literacy">📖 Literacy</option>
+            <option value="Numeracy">🔢 Numeracy</option>
+          </select>
         </div>
       </div>
-
-      {/* NIPUN badge */}
-      <div style={{ backgroundColor: '#f0f9ff', borderRadius: '10px', padding: '8px 14px', border: '1px solid #bae6fd', fontSize: '0.8rem', color: '#0369a1', textAlign: 'center', fontWeight: 600 }}>
-        🎯 <strong>{selectedGrade}</strong> • {GRADE_NIPUN[selectedGrade]}
-      </div>
-
-      {/* Domain filter */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        {(['All', 'Literacy', 'Numeracy'] as const).map(d => (
-          <button key={d} onClick={() => { setDomainFilter(d); setCurrentIndex(0); setRevealed(false); }}
-            style={{ padding: '6px 14px', borderRadius: '20px', border: domainFilter === d ? '2px solid #0f2744' : '1px solid #cbd5e1', backgroundColor: domainFilter === d ? '#0f2744' : '#fff', color: domainFilter === d ? '#fff' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-            {d === 'All' ? '📦 All' : d === 'Literacy' ? '📖 Literacy' : '🔢 Numeracy'}
-          </button>
-        ))}
-      </div>
-
-      {/* Deck pills */}
-      {gradeDecks.length > 0 ? (
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '6px' }}>
-          {gradeDecks.map(deck => (
-            <button key={deck.id} onClick={() => handleDeckChange(deck.id)}
-              style={{ padding: '6px 12px', borderRadius: '20px', border: selectedDeckId === deck.id ? '2px solid #ed8936' : '1px solid #cbd5e1', backgroundColor: selectedDeckId === deck.id ? '#fffaf0' : '#fff', color: selectedDeckId === deck.id ? '#c05621' : '#475569', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              {deck.emoji} {deck.label}
-              <span style={{ fontSize: '0.68rem', backgroundColor: selectedDeckId === deck.id ? '#fed7aa' : '#f1f5f9', color: selectedDeckId === deck.id ? '#c05621' : '#64748b', padding: '1px 6px', borderRadius: '10px', fontWeight: 700 }}>
-                {deck.cards.length}
-              </span>
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div style={{ textAlign: 'center', color: '#64748b', padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1', fontSize: '0.85rem' }}>
-          No decks for this combination — try "All Decks"
-        </div>
-      )}
 
       {/* Deck info bar */}
       {activeDeck && (

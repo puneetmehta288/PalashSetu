@@ -136,49 +136,11 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTeacher }) => {
               {meta.subGreeting}
             </p>
           </div>
-
-          {/* Quick Language Toggle Pills on Hero Banner */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', backgroundColor: 'rgba(0,0,0,0.25)', padding: '6px 10px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.15)' }}>
-            {(['santali', 'ho', 'mundari'] as TribalLanguage[]).map(lang => {
-              const isSel = tribalLang === lang;
-              const label = lang === 'santali' ? '🟢 Santali (ᱚᱞ ᱪᱤᱠᱤ)' : lang === 'ho' ? '🔵 Ho (ᱦᱳ / Kolhan)' : '🟣 Mundari (मुंडारी)';
-              return (
-                <button
-                  key={lang}
-                  onClick={() => handleLanguageSelect(lang)}
-                  style={{
-                    backgroundColor: isSel ? '#ed8936' : 'transparent',
-                    color: '#ffffff',
-                    border: isSel ? '1px solid #fbd38d' : 'none',
-                    borderRadius: '8px',
-                    padding: '4px 10px',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
       {/* Main Feature Cards Grid */}
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
-              🚀 Classroom Pedagogy & Translation Suite
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
-              Select a module to conduct interactive classroom sessions or prepare bilingual curriculum in {tribalLang === 'ho' ? 'Ho (Kolhan Division)' : tribalLang === 'mundari' ? 'Mundari (Chotanagpur)' : 'Santali (Santhal Pargana)'}.
-            </p>
-          </div>
-        </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
           {dashboardActions.map((action) => (
             <Link

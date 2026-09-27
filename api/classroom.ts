@@ -111,7 +111,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const activeStudents = Object.values(room.students || {})
       .filter(s => (now - s.lastSeen) < 30000);
 
-    const newEvents = (room.events || []).filter(e => e.timestamp > since);
+    const newEvents = since > 0
+      ? (room.events || []).filter(e => e.timestamp > since)
+      : (room.events || []).slice(-10);
 
     return res.status(200).json({
       exists: true,
@@ -192,6 +194,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         const activeStudents = Object.values(room.students)
           .filter(s => (now - s.lastSeen) < 30000);
 
+        const activeEvents = (room.events || []);
+        const activeSpeechEvent = [...activeEvents].reverse().find(e => e.type === 'translation');
+
         return res.status(200).json({
           success: true,
           studentCount: activeStudents.length,
@@ -204,7 +209,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           teacherActive: (now - (room.lastActive || 0)) < 60000,
           teacherName: room.teacherName,
           schoolName: room.schoolName,
-          grade: room.grade
+          grade: room.grade,
+          recentEvents: activeEvents.slice(-5),
+          activeSpeech: activeSpeechEvent ? activeSpeechEvent.data : null
         });
       }
 
