@@ -1,7 +1,9 @@
 /**
- * Teacher Authentication & Profile Service for Shared School Tablets
+ * Teacher & Student Authentication & Profile Service
  * 100% Offline with local SHA-256 PIN Hashing
  */
+
+export type UserRole = 'teacher' | 'student';
 
 export interface TeacherProfile {
   id: string;
@@ -15,12 +17,21 @@ export interface TeacherProfile {
   createdAt: string;
 }
 
+export interface StudentProfile {
+  studentName: string;
+  grade: string;
+  roomCode: string;
+  avatarEmoji: string;
+  joinedAt: string;
+}
+
 const STORAGE_KEY_PROFILES = 'palashvani_teacher_profiles';
 const STORAGE_KEY_ACTIVE_SESSION = 'palashvani_active_teacher_id';
+const STORAGE_KEY_USER_ROLE = 'palashvani_user_role';
+const STORAGE_KEY_STUDENT_PROFILE = 'palashvani_student_profile';
 
 const AVATAR_COLORS = ['#1a365d', '#2b6cb0', '#2c7a7b', '#285e61', '#744210', '#6b46c1'];
 
-// Simple lightweight SHA-256 hasher using Web Crypto API or fast fallback
 export async function hashPin(pin: string): Promise<string> {
   if (window.crypto && window.crypto.subtle) {
     const msgBuffer = new TextEncoder().encode(pin);
@@ -28,7 +39,6 @@ export async function hashPin(pin: string): Promise<string> {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
-  // Fallback simple hash for compatibility
   let hash = 0;
   for (let i = 0; i < pin.length; i++) {
     const char = pin.charCodeAt(i);
@@ -39,11 +49,37 @@ export async function hashPin(pin: string): Promise<string> {
 }
 
 export const authService = {
+  getUserRole(): UserRole {
+    const role = sessionStorage.getItem(STORAGE_KEY_USER_ROLE);
+    return role === 'student' ? 'student' : 'teacher';
+  },
+
+  getStudentProfile(): StudentProfile | null {
+    try {
+      const data = sessionStorage.getItem(STORAGE_KEY_STUDENT_PROFILE);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  loginAsStudent(studentName: string, grade: string, roomCode: string, avatarEmoji?: string): StudentProfile {
+    const profile: StudentProfile = {
+      studentName: studentName.trim() || 'Class 1 Student',
+      grade: grade || 'Class 1',
+      roomCode: roomCode.trim().toUpperCase(),
+      avatarEmoji: avatarEmoji || '🎒',
+      joinedAt: new Date().toISOString()
+    };
+    sessionStorage.setItem(STORAGE_KEY_USER_ROLE, 'student');
+    sessionStorage.setItem(STORAGE_KEY_STUDENT_PROFILE, JSON.stringify(profile));
+    return profile;
+  },
+
   getProfiles(): TeacherProfile[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY_PROFILES) || localStorage.getItem('palashsetu_teacher_profiles');
       if (!data) {
-        // Seed default demo teacher profile for instant evaluation
         const defaultProfiles: TeacherProfile[] = [
           {
             id: 'teacher-1',
@@ -117,6 +153,7 @@ export const authService = {
   },
 
   getActiveProfile(): TeacherProfile | null {
+    if (this.getUserRole() === 'student') return null;
     const activeId = sessionStorage.getItem(STORAGE_KEY_ACTIVE_SESSION) || sessionStorage.getItem('palashsetu_active_teacher_id');
     if (!activeId) {
       return null;
@@ -126,7 +163,9 @@ export const authService = {
   },
 
   setActiveSession(teacherId: string) {
+    sessionStorage.setItem(STORAGE_KEY_USER_ROLE, 'teacher');
     sessionStorage.setItem(STORAGE_KEY_ACTIVE_SESSION, teacherId);
+    sessionStorage.removeItem(STORAGE_KEY_STUDENT_PROFILE);
     try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); localStorage.removeItem('palashsetu_active_teacher_id'); } catch {}
   },
 
@@ -141,6 +180,9 @@ export const authService = {
 
   logout() {
     sessionStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION);
+    sessionStorage.removeItem(STORAGE_KEY_USER_ROLE);
+    sessionStorage.removeItem(STORAGE_KEY_STUDENT_PROFILE);
+    sessionStorage.removeItem('palash_active_room');
     sessionStorage.removeItem('palashsetu_active_teacher_id');
     try { localStorage.removeItem(STORAGE_KEY_ACTIVE_SESSION); localStorage.removeItem('palashsetu_active_teacher_id'); } catch {}
   },

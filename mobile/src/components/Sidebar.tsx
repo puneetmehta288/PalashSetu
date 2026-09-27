@@ -2,6 +2,8 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { sfx } from '../utils/sfx';
 
+import { UserRole } from '../services/authService';
+
 interface NavItemConfig {
   to: string;
   icon: string;
@@ -9,9 +11,9 @@ interface NavItemConfig {
   badge?: string;
 }
 
-const NAV_ITEMS: NavItemConfig[] = [
+const TEACHER_NAV_ITEMS: NavItemConfig[] = [
   { to: '/', icon: '🏠', label: 'Dashboard' },
-  { to: '/translate', icon: '🎙️', label: 'Live Voice', badge: 'Offline' },
+  { to: '/translate', icon: '🎙️', label: 'Live Voice', badge: 'Broadcast' },
   { to: '/flashcards', icon: '🃏', label: 'Flashcards', badge: '16 Decks' },
   { to: '/lessons', icon: '📚', label: 'Lesson Studio', badge: 'NIPUN' },
   { to: '/worksheets', icon: '📝', label: 'Worksheets', badge: 'Dynamic' },
@@ -21,12 +23,21 @@ const NAV_ITEMS: NavItemConfig[] = [
   { to: '/report', icon: '🚩', label: 'Report Issue', badge: 'Offline' },
 ];
 
+const STUDENT_NAV_ITEMS: NavItemConfig[] = [
+  { to: '/', icon: '📡', label: 'Classroom Live', badge: 'Live' },
+  { to: '/worksheets', icon: '📝', label: 'Worksheets', badge: 'Practice' },
+  { to: '/flashcards', icon: '🃏', label: 'Flashcards', badge: 'Learn' },
+  { to: '/books', icon: '📖', label: 'JCERT Books', badge: 'Read' },
+];
+
 interface SidebarProps {
+  role?: UserRole;
   isOpen?: boolean;
   onClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ role = 'teacher', isOpen = false, onClose }) => {
+  const navItems = role === 'student' ? STUDENT_NAV_ITEMS : TEACHER_NAV_ITEMS;
   return (
     <>
       {/* Mobile Backdrop Overlay */}
@@ -113,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
 
           {/* Navigation Links */}
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

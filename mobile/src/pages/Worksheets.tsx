@@ -4,6 +4,8 @@ import { getActiveTribalLanguage } from '../services/tribalCurriculumAdapter';
 import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
 import { translateHindiToHo } from '../data/ho_dictionary';
 import { translateHindiToMundari } from '../data/mundari_dictionary';
+import { authService } from '../services/authService';
+import { classroomService } from '../services/classroomService';
 
 // ════════════════════════════════════════════════════════════════════════════
 // NIPUN Bharat Grade-Adaptive Worksheet Generator
@@ -552,6 +554,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
 // COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 const Worksheets: React.FC = () => {
+  const userRole = authService.getUserRole();
   const [tribalLang, setTribalLang] = useState<TribalLanguage>(getActiveTribalLanguage);
   const [grade, setGrade] = useState<string>('Class 1');
   const [domain, setDomain] = useState<string>('Foundational Numeracy');
@@ -667,6 +670,37 @@ const Worksheets: React.FC = () => {
         </div>
         {questions.length > 0 && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {userRole === 'teacher' && (
+              <button
+                onClick={() => {
+                  sfx.playSuccess();
+                  classroomService.broadcastWorksheet({
+                    worksheetId: `ws_${Date.now()}`,
+                    title: `${grade} ${domain}: ${selectedDrill?.label || 'Practice'}`,
+                    grade,
+                    topic: questionType,
+                    timestamp: Date.now()
+                  });
+                  alert('📡 अभ्यास पत्र कक्षा को लाइव सौंप दिया गया है! (Worksheet assigned to connected student screens!)');
+                }}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  backgroundColor: '#16a34a',
+                  color: '#fff',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(22,163,74,0.3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>📡 कक्षा को सौंपें (Assign Live)</span>
+              </button>
+            )}
             <button onClick={() => { sfx.playTap(); setShowHints(!showHints); }}
               style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showHints ? '#fef3c7' : '#fff', color: showHints ? '#92400e' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: showHints ? '0 0 8px rgba(234, 179, 8, 0.4)' : 'none' }}>
               💡 {showHints ? 'Hide Hints' : 'Show Hints'}

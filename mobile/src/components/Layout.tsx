@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { Header } from './Header';
-import { TeacherProfile } from '../services/authService';
+import { TeacherProfile, StudentProfile, UserRole } from '../services/authService';
 import { sfx } from '../utils/sfx';
 
 interface LayoutProps {
+  role?: UserRole;
   activeTeacher?: TeacherProfile | null;
-  onSwitchTeacher?: () => void;
+  activeStudent?: StudentProfile | null;
+  onLogout?: () => void;
 }
 
-const BOTTOM_NAV_ITEMS = [
+const TEACHER_BOTTOM_NAV_ITEMS = [
   { to: '/', icon: '🏠', label: 'Home' },
   { to: '/translate', icon: '🎙️', label: 'Voice' },
   { to: '/flashcards', icon: '🃏', label: 'Cards' },
@@ -19,13 +21,23 @@ const BOTTOM_NAV_ITEMS = [
   { to: '/books', icon: '📖', label: 'Books' },
 ];
 
-const Layout: React.FC<LayoutProps> = ({ activeTeacher, onSwitchTeacher }) => {
+const STUDENT_BOTTOM_NAV_ITEMS = [
+  { to: '/', icon: '📡', label: 'Classroom' },
+  { to: '/worksheets', icon: '📝', label: 'Worksheets' },
+  { to: '/flashcards', icon: '🃏', label: 'Cards' },
+  { to: '/books', icon: '📖', label: 'Books' },
+];
+
+const Layout: React.FC<LayoutProps> = ({ role = 'teacher', activeTeacher, activeStudent, onLogout }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  const bottomNavItems = role === 'student' ? STUDENT_BOTTOM_NAV_ITEMS : TEACHER_BOTTOM_NAV_ITEMS;
 
   return (
     <div className="app-container">
-      {/* Sidebar with slide-out mobile drawer */}
+      {/* Sidebar with role-based filtered items */}
       <Sidebar
+        role={role}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
       />
@@ -33,8 +45,10 @@ const Layout: React.FC<LayoutProps> = ({ activeTeacher, onSwitchTeacher }) => {
       <div className="main-content">
         <Header
           isOnline={true}
+          role={role}
           activeTeacher={activeTeacher}
-          onSwitchTeacher={onSwitchTeacher}
+          activeStudent={activeStudent}
+          onSwitchTeacher={onLogout}
           onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
 
@@ -44,7 +58,7 @@ const Layout: React.FC<LayoutProps> = ({ activeTeacher, onSwitchTeacher }) => {
 
         {/* Mobile Bottom Navigation Bar (Visible only on <= 768px screens) */}
         <nav className="mobile-bottom-nav">
-          {BOTTOM_NAV_ITEMS.map((item) => (
+          {bottomNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

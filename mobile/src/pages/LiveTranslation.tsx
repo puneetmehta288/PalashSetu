@@ -9,6 +9,9 @@ import { HO_CATEGORIZED_PHRASES, translateHindiToHo, translateHoToHindi, HO_META
 import { MUNDARI_CATEGORIZED_PHRASES, translateHindiToMundari, translateMundariToHindi, MUNDARI_METADATA } from '../data/mundari_dictionary';
 import { lookupSentence, lookupSentenceReverse, SENTENCE_BANK } from '../data/sentence_bank';
 import { telemetryService } from '../services/telemetryService';
+import { classroomService } from '../services/classroomService';
+import { ClassroomQRModal } from '../components/ClassroomQRModal';
+import { authService } from '../services/authService';
 
 // Comprehensive Client-side FLN Ol Chiki Dictionary for 100% offline edge translation
 const CLIENT_HINDI_TO_SANTALI: Record<string, string> = {
@@ -223,6 +226,29 @@ const LiveTranslation: React.FC = () => {
   const [phraseCategory, setPhraseCategory] = useState<'greetings' | 'commands' | 'numeracy' | 'responses'>('greetings');
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [conversation, setConversation] = useState<ConversationTurn[]>([]);
+
+  // 📡 Classroom Broadcast states
+  const [isBroadcasting, setIsBroadcasting] = useState(() => classroomService.isBroadcasting());
+  const [roomCode, setRoomCode] = useState<string | null>(() => classroomService.getActiveRoomCode());
+  const [studentCount, setStudentCount] = useState<number>(0);
+  const [showQRModal, setShowQRModal] = useState(false);
+
+  const handleToggleBroadcast = () => {
+    sfx.playTap();
+    if (isBroadcasting) {
+      classroomService.stopBroadcast();
+      setIsBroadcasting(false);
+      setRoomCode(null);
+      setStudentCount(0);
+    } else {
+      const teacherProfile = authService.getActiveProfile();
+      const code = classroomService.startBroadcast(teacherProfile?.name || 'Primary Teacher');
+      setRoomCode(code);
+      setIsBroadcasting(true);
+      setShowQRModal(true);
+      sfx.playSuccess();
+    }
+  };
 
   // Synchronize with Header language selector
   useEffect(() => {
@@ -621,6 +647,18 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         console.warn('[Telemetry] Log failed:', telErr);
       }
 
+      // 📡 Live Classroom Broadcast: stream to connected student tablets
+      if (classroomService.isBroadcasting() && clientTranslated) {
+        classroomService.broadcastTranslation({
+          sourceHindi: rawInput,
+          translatedSantali: clientTranslated,
+          phoneticHindi: phonetic,
+          dialect: selectedLanguage,
+          sourceConfidence: confidence || 'lexicon',
+          timestamp: Date.now(),
+        });
+      }
+
       // 🎙️ AUTOMATIC VOICE PLAYBACK: Speak translated voice out loud immediately
       if (clientTranslated) {
         setTimeout(() => {
@@ -707,6 +745,92 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         >
           <span>⚙️ Audio Setup</span>
         </button>
+      </div>
+
+      {/* 📡 Offline Classroom Broadcast Bar */}
+      <div
+        style={{
+          background: isBroadcasting ? 'linear-gradient(135deg, #14532d 0%, #15803d 100%)' : '#ffffff',
+          border: `2px solid ${isBroadcasting ? '#86efac' : '#e2e8f0'}`,
+          borderRadius: '16px',
+          padding: '0.85rem 1.25rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          color: isBroadcasting ? '#ffffff' : '#1e293b',
+          boxShadow: isBroadcasting ? '0 4px 16px rgba(22, 163, 74, 0.2)' : '0 2px 8px rgba(0,0,0,0.03)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '1.6rem' }}>{isBroadcasting ? '📡' : '📻'}</span>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>कक्षा प्रसारण (Classroom Broadcast)</span>
+              {isBroadcasting ? (
+                <span style={{ backgroundColor: '#22c55e', color: '#ffffff', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 800 }}>
+                  ● LIVE BROADCASTING
+                </span>
+              ) : (
+                <span style={{ backgroundColor: '#e2e8f0', color: '#475569', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                  Offline Standby
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: isBroadcasting ? '#bbf7d0' : '#64748b' }}>
+              {isBroadcasting
+                ? `कक्षा कोड: #${roomCode} • आपके बोलते ही संथाली अनुवाद छात्र स्क्रीन पर तुरंत दिखाई देगा`
+                : 'हॉटस्पॉट या वाई-फ़ाई पर छात्र टैबलेट या स्मार्ट टीवी पर अनुवाद सीधे भेजें'}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {isBroadcasting && (
+            <button
+              onClick={() => {
+                sfx.playTap();
+                setShowQRModal(true);
+              }}
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                border: '1px solid rgba(255,255,255,0.4)',
+                color: '#ffffff',
+                padding: '7px 12px',
+                borderRadius: '10px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>📷 QR कोड दिखाएं</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleToggleBroadcast}
+            style={{
+              backgroundColor: isBroadcasting ? '#dc2626' : '#0f2744',
+              color: '#ffffff',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            }}
+          >
+            <span>{isBroadcasting ? '⏹️ प्रसारण रोकें' : '📡 प्रसारण शुरू करें'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Tribal Language Selector Bar */}
@@ -1355,6 +1479,15 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
         isOpen={showOfflineModal}
         onClose={() => setShowOfflineModal(false)}
       />
+
+      {/* 📡 Classroom QR Code & PIN Modal */}
+      {showQRModal && roomCode && (
+        <ClassroomQRModal
+          roomCode={roomCode}
+          teacherName={authService.getActiveProfile()?.name || 'Primary Teacher'}
+          onClose={() => setShowQRModal(false)}
+        />
+      )}
     </div>
   );
 };

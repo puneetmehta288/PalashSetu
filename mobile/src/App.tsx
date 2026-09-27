@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import LiveTranslation from './pages/LiveTranslation';
@@ -12,42 +12,55 @@ import Attendance from './pages/Attendance';
 import ReportIssue from './pages/ReportIssue';
 import AuthLogin from './pages/AuthLogin';
 import AuthRegister from './pages/AuthRegister';
-import { authService, TeacherProfile } from './services/authService';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
-import { StatusBar, Style } from '@capacitor/status-bar';
+import StudentClassroom from './pages/StudentClassroom';
+import { authService, TeacherProfile, StudentProfile, UserRole } from './services/authService';
+import { ThemeProvider } from './context/ThemeContext';
+import { StatusBar } from '@capacitor/status-bar';
 
 const AppRoutes: React.FC = () => {
   const navigate = useNavigate();
-  // Shared school tablet requirement: Always start on Teacher Profile Selection
-  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
-  const { isDarkMode } = useTheme();
+  const [role, setRole] = useState<UserRole>(() => authService.getUserRole());
+  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(() => authService.getActiveProfile());
+  const [activeStudent, setActiveStudent] = useState<StudentProfile | null>(() => authService.getStudentProfile());
 
   useEffect(() => {
-    // Ensure the app opens directly to Teacher Profile Selection screen
-    if (!activeTeacher) {
+    // If neither session is active, navigate to login
+    if (role === 'student' && !activeStudent) {
+      navigate('/login', { replace: true });
+    } else if (role === 'teacher' && !activeTeacher) {
       navigate('/login', { replace: true });
     }
 
-    // Enable clean immersive fullscreen mode for tablets
     const configureStatusBar = async () => {
       try {
         await StatusBar.hide();
-      } catch (err) {
-        // Ignored on web/browser preview
-      }
+      } catch (_) {}
     };
     configureStatusBar();
-  }, []);
+  }, [role, activeTeacher, activeStudent, navigate]);
 
-  const handleLoginSuccess = (profile: TeacherProfile) => {
-    setActiveTeacher(profile);
+  const handleLoginSuccess = (profile: TeacherProfile | StudentProfile) => {
+    if ('teacherId' in profile) {
+      setRole('teacher');
+      setActiveTeacher(profile as TeacherProfile);
+      setActiveStudent(null);
+    } else {
+      setRole('student');
+      setActiveStudent(profile as StudentProfile);
+      setActiveTeacher(null);
+    }
+    navigate('/');
   };
 
-  const handleSwitchTeacher = () => {
+  const handleLogout = () => {
     authService.logout();
     setActiveTeacher(null);
+    setActiveStudent(null);
+    setRole('teacher');
     navigate('/login');
   };
+
+  const isLoggedIn = (role === 'teacher' && !!activeTeacher) || (role === 'student' && !!activeStudent);
 
   return (
     <Routes>
@@ -57,25 +70,64 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/"
         element={
-          activeTeacher ? (
+          isLoggedIn ? (
             <Layout
+              role={role}
               activeTeacher={activeTeacher}
-              onSwitchTeacher={handleSwitchTeacher}
+              activeStudent={activeStudent}
+              onLogout={handleLogout}
             />
           ) : (
             <AuthLogin onLoginSuccess={handleLoginSuccess} />
           )
         }
       >
-        <Route index element={<Dashboard activeTeacher={activeTeacher} />} />
-        <Route path="translate" element={<LiveTranslation />} />
+        {/* If student, homepage is StudentClassroom; if teacher, homepage is Dashboard */}
+        <Route
+          index
+          element={
+            role === 'student' ? (
+              <StudentClassroom />
+            ) : (
+              <Dashboard activeTeacher={activeTeacher} />
+            )
+          }
+        />
+
+        {/* Translation: Teachers get full copilot; students get live listener */}
+        <Route
+          path="translate"
+          element={
+            role === 'student' ? (
+              <StudentClassroom />
+            ) : (
+              <LiveTranslation />
+            )
+          }
+        />
+
+        {/* Learning Pages Accessible to Both */}
         <Route path="flashcards" element={<Flashcards />} />
-        <Route path="lessons" element={<Lessons />} />
         <Route path="worksheets" element={<Worksheets />} />
         <Route path="books" element={<JCERTTextbooks />} />
-        <Route path="attendance" element={<Attendance />} />
-        <Route path="settings" element={<Settings />} />
-        <Route path="report" element={<ReportIssue activeTeacher={activeTeacher} />} />
+
+        {/* Teacher Only Pages */}
+        <Route
+          path="lessons"
+          element={role === 'teacher' ? <Lessons /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="attendance"
+          element={role === 'teacher' ? <Attendance /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="settings"
+          element={role === 'teacher' ? <Settings /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="report"
+          element={role === 'teacher' ? <ReportIssue activeTeacher={activeTeacher} /> : <Navigate to="/" replace />}
+        />
       </Route>
     </Routes>
   );

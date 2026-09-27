@@ -1,15 +1,17 @@
 import React from 'react';
-import { TeacherProfile } from '../services/authService';
+import { TeacherProfile, StudentProfile, UserRole } from '../services/authService';
 import { useTheme } from '../context/ThemeContext';
 
 interface HeaderProps {
   isOnline?: boolean;
+  role?: UserRole;
   activeTeacher?: TeacherProfile | null;
+  activeStudent?: StudentProfile | null;
   onSwitchTeacher?: () => void;
   onToggleSidebar?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, onToggleSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({ role = 'teacher', activeTeacher, activeStudent, onSwitchTeacher, onToggleSidebar }) => {
   const { isDarkMode, toggleDarkMode, isSfxEnabled, toggleSfx } = useTheme();
 
   const [selectedLang, setSelectedLang] = React.useState<string>(() => {
@@ -140,7 +142,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, 
 
 
           {/* Active Teacher Badge & Switch Teacher */}
-          {activeTeacher && (
+          {role === 'teacher' && activeTeacher && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '4px' }}>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f2744' }}>
@@ -165,6 +167,36 @@ export const Header: React.FC<HeaderProps> = ({ activeTeacher, onSwitchTeacher, 
                 }}
               >
                 🔄 Switch
+              </button>
+            </div>
+          )}
+
+          {/* Active Student Badge & Leave Classroom */}
+          {role === 'student' && activeStudent && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '4px' }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f2744' }}>
+                  {activeStudent.avatarEmoji} {activeStudent.studentName}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#ed8936', fontWeight: 700 }}>
+                  {activeStudent.grade} • #{activeStudent.roomCode}
+                </div>
+              </div>
+
+              <button
+                onClick={onSwitchTeacher}
+                style={{
+                  backgroundColor: isDarkMode ? '#1e293b' : '#edf2f7',
+                  border: `1px solid ${isDarkMode ? '#334155' : '#cbd5e0'}`,
+                  padding: '5px 9px',
+                  borderRadius: '8px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: isDarkMode ? '#f8fafc' : '#334155',
+                  cursor: 'pointer',
+                }}
+              >
+                🚪 Leave
               </button>
             </div>
           )}
