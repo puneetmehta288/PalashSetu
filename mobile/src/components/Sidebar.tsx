@@ -58,7 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role = 'teacher', isOpen = false, onC
 
       {/* Sidebar Container */}
       <aside
-        className={`app-sidebar ${isOpen ? 'mobile-open' : ''}`}
+        className={`app-sidebar ${isOpen ? 'mobile-open sidebar-open' : ''}`}
         style={{
           width: '260px',
           backgroundColor: '#0f2744',
@@ -106,17 +106,30 @@ const Sidebar: React.FC<SidebarProps> = ({ role = 'teacher', isOpen = false, onC
               </div>
             </div>
 
-            {/* Mobile Close Button (X) */}
+            {/* Close Button (X) for mobile, tablet, and desktop */}
             <button
-              onClick={onClose}
-              className="mobile-close-btn"
+              onClick={() => {
+                sfx.playTap();
+                if (onClose) onClose();
+              }}
+              className="sidebar-close-btn mobile-close-btn"
+              aria-label="Close sidebar menu"
+              title="Close sidebar (✕)"
               style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: '#94a3b8',
-                fontSize: '1.4rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                width: '34px',
+                height: '34px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontSize: '1.15rem',
+                fontWeight: 700,
                 cursor: 'pointer',
-                padding: '4px',
+                padding: 0,
+                transition: 'all 0.15s ease',
               }}
             >
               ✕
@@ -131,7 +144,9 @@ const Sidebar: React.FC<SidebarProps> = ({ role = 'teacher', isOpen = false, onC
                 to={item.to}
                 onClick={() => {
                   sfx.playTap();
-                  if (onClose) onClose();
+                  if (typeof window !== 'undefined' && window.innerWidth <= 1200 && onClose) {
+                    onClose();
+                  }
                 }}
                 style={({ isActive }) => ({
                   display: 'flex',

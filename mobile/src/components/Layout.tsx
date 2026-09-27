@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { Header } from './Header';
@@ -30,7 +30,24 @@ const STUDENT_BOTTOM_NAV_ITEMS = [
 ];
 
 const Layout: React.FC<LayoutProps> = ({ role = 'teacher', activeTeacher, activeStudent, onLogout }) => {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  // On desktop (> 1200px), default open. On tablet and mobile (<= 1200px), default closed
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth > 1200;
+    }
+    return false;
+  });
+
+  // Listen for Escape key to close sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const bottomNavItems = role === 'student' ? STUDENT_BOTTOM_NAV_ITEMS : TEACHER_BOTTOM_NAV_ITEMS;
 
@@ -39,8 +56,8 @@ const Layout: React.FC<LayoutProps> = ({ role = 'teacher', activeTeacher, active
       {/* Sidebar with role-based filtered items */}
       <Sidebar
         role={role}
-        isOpen={isMobileSidebarOpen}
-        onClose={() => setIsMobileSidebarOpen(false)}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       <div className="main-content">
@@ -50,7 +67,7 @@ const Layout: React.FC<LayoutProps> = ({ role = 'teacher', activeTeacher, active
           activeTeacher={activeTeacher}
           activeStudent={activeStudent}
           onSwitchTeacher={onLogout}
-          onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         />
 
         <div className="content-area">

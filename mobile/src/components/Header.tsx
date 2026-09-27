@@ -59,22 +59,28 @@ export const Header: React.FC<HeaderProps> = ({ role = 'teacher', activeTeacher,
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         {/* Left: Mobile Hamburger + App Branding */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Hamburger button for mobile */}
+          {/* Hamburger button (3-line icon ☰) for mobile, tablet, and desktop */}
           <button
-            onClick={onToggleSidebar}
-            className="mobile-hamburger-btn"
+            onClick={() => {
+              sfx.playTap();
+              if (onToggleSidebar) onToggleSidebar();
+            }}
+            className="sidebar-toggle-btn mobile-hamburger-btn"
+            aria-label="Toggle navigation menu"
+            title="Toggle sidebar (☰)"
             style={{
               backgroundColor: isDarkMode ? '#1e293b' : '#f1f5f9',
               border: `1px solid ${isDarkMode ? '#334155' : '#cbd5e1'}`,
               borderRadius: '8px',
-              width: '36px',
-              height: '36px',
+              width: '38px',
+              height: '38px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.2rem',
+              fontSize: '1.25rem',
               cursor: 'pointer',
               color: isDarkMode ? '#f8fafc' : '#0f2744',
+              flexShrink: 0,
             }}
           >
             ☰

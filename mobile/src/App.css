@@ -86,13 +86,23 @@
   border: 2px solid #334155;
 }
 
-/* Desktop Defaults for Mobile Controls */
-.mobile-hamburger-btn {
-  display: none !important;
+/* Sidebar Controls: Hamburger (3-line) & Close (X) Buttons */
+.mobile-hamburger-btn,
+.sidebar-toggle-btn {
+  display: flex !important;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.mobile-close-btn {
-  display: none !important;
+.mobile-close-btn,
+.sidebar-close-btn {
+  display: flex !important;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-bottom-nav {
@@ -100,44 +110,60 @@
 }
 
 /* ==========================================================================
-   📱 Tablet & Desktop (> 768px)
+   📱 Mobile & Tablet Screens (<= 1200px) — Off-Canvas Slide Drawer
    ========================================================================== */
-@media (min-width: 769px) {
+@media (max-width: 1200px) {
+  /* Hamburger & Close Buttons ALWAYS visible on mobile & tablet */
+  .mobile-hamburger-btn,
+  .sidebar-toggle-btn {
+    display: flex !important;
+  }
+
+  .mobile-close-btn,
+  .sidebar-close-btn {
+    display: flex !important;
+  }
+
+  /* Slide-Over Drawer for Mobile & Tablet */
   .app-sidebar {
-    position: relative !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 250px !important;
-    flex-shrink: 0 !important;
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: -320px !important;
+    width: 280px !important;
+    max-width: 85vw !important;
     height: 100vh !important;
     height: 100dvh !important;
-    box-shadow: none !important;
+    z-index: 999 !important;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.45) !important;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .app-sidebar.mobile-open,
+  .app-sidebar.sidebar-open {
+    left: 0 !important;
+  }
+
+  /* Backdrop Overlay */
+  .mobile-backdrop {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    z-index: 998 !important;
   }
 
   .content-area {
-    padding: 1.5rem 2rem;
+    padding: 1.25rem 1.5rem;
     max-width: 100%;
-  }
-
-  .mobile-hamburger-btn {
-    display: none !important;
-  }
-
-  .mobile-close-btn {
-    display: none !important;
-  }
-
-  .mobile-bottom-nav {
-    display: none !important;
-  }
-
-  .mobile-backdrop {
-    display: none !important;
+    width: 100%;
   }
 }
 
 /* ==========================================================================
-   📱 Mobile Phones & Narrow Screens (<= 768px)
+   📱 Mobile Phones Only (<= 768px) — Add Bottom Nav
    ========================================================================== */
 @media (max-width: 768px) {
   .app-container {
@@ -148,37 +174,11 @@
     padding: 1rem 0.85rem calc(68px + env(safe-area-inset-bottom, 10px)) 0.85rem;
   }
 
-  /* Hamburger & Close Buttons */
-  .mobile-hamburger-btn {
-    display: flex !important;
-  }
-
-  .mobile-close-btn {
-    display: block !important;
-  }
-
-  /* Mobile Slide-Over Sidebar Drawer */
-  .app-sidebar {
-    position: fixed !important;
-    top: 0;
-    left: -300px;
-    width: 280px !important;
-    height: 100vh;
-    height: 100dvh;
-    z-index: 999;
-    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.4);
-    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  }
-
-  .app-sidebar.mobile-open {
-    left: 0 !important;
-  }
-
   .header-model-pill {
     display: none !important;
   }
 
-  /* Mobile Bottom Navigation Bar */
+  /* Mobile Bottom Navigation Bar (Phones only) */
   .mobile-bottom-nav {
     display: flex !important;
     position: fixed;
@@ -197,6 +197,58 @@
     padding-left: 4px;
     padding-right: 4px;
   }
+}
+
+/* ==========================================================================
+   🖥️ Wide Desktop Screens (> 1200px) — Collapsible Sidebar
+   ========================================================================== */
+@media (min-width: 1201px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+
+  .mobile-backdrop {
+    display: none !important;
+  }
+
+  .app-sidebar {
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 260px !important;
+    flex-shrink: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    box-shadow: none !important;
+    transition: width 0.25s ease, margin-left 0.25s ease, padding 0.25s ease !important;
+  }
+
+  /* When sidebar is collapsed on desktop */
+  .app-sidebar:not(.sidebar-open):not(.mobile-open) {
+    width: 0 !important;
+    margin-left: -260px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    overflow: hidden !important;
+    border-right: none !important;
+  }
+
+  .content-area {
+    padding: 1.5rem 2rem;
+    max-width: 100%;
+  }
+
+  /* Hamburger & Close Buttons remain available to collapse/expand */
+  .mobile-hamburger-btn,
+  .sidebar-toggle-btn {
+    display: flex !important;
+  }
+
+  .mobile-close-btn,
+  .sidebar-close-btn {
+    display: flex !important;
+  }
+}
 
   .bottom-nav-item {
     display: flex;
@@ -223,7 +275,6 @@
     font-size: 1.25rem;
     line-height: 1.1;
   }
-}
 
 /* Dark mode overrides for mobile bottom navigation */
 :root.dark-mode .mobile-bottom-nav,
