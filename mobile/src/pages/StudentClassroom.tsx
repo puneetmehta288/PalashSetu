@@ -145,6 +145,7 @@ const StudentClassroom: React.FC = () => {
       setIsAssignedDismissed(false);
     };
     const onClearWorksheet = () => {
+      try { localStorage.removeItem('palash_assigned_worksheets'); } catch (_) {}
       setAssignedWorksheet(null);
       setIsAssignedDismissed(false);
     };
@@ -190,104 +191,183 @@ const StudentClassroom: React.FC = () => {
     <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '2rem' }}>
       
       {/* ─── Classroom Info Header Card ─── */}
-      <div
-        style={{
-          background: isDarkMode ? '#1e293b' : 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)',
-          color: '#ffffff',
-          borderRadius: '20px',
-          padding: '1.2rem 1.4rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '14px',
-          boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div
-            style={{
-              width: '54px',
-              height: '54px',
-              borderRadius: '16px',
-              backgroundColor: 'rgba(255,255,255,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2rem',
-              boxShadow: 'inset 0 0 10px rgba(255,255,255,0.1)'
-            }}
-          >
-            {student?.avatarEmoji || '🎒'}
-          </div>
-          <div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f6ad55', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span>{classroomInfo?.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड'}</span>
-              <span style={{
-                fontSize: '0.75rem',
-                backgroundColor: connStatus.teacherActive ? '#16a34a' : '#d97706',
-                color: '#fff',
-                padding: '2px 10px',
-                borderRadius: '14px',
-                fontWeight: 800
-              }}>
-                {connStatus.teacherActive ? '● लाइव प्रसारण सक्रिय' : '● शिक्षक स्टैंडबाय'}
-              </span>
-            </div>
-            <div style={{ fontSize: '0.84rem', color: '#e2e8f0', marginTop: '3px' }}>
-              👩‍🏫 शिक्षिका: <strong>{classroomInfo?.teacherName || 'सुनीता मुर्मू'}</strong> • 🏷️ <strong>{classroomInfo?.grade || student?.grade || 'कक्षा 1'}</strong>
-            </div>
-            <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '2px' }}>
-              कमरा कोड: <strong style={{ color: '#fed7aa', letterSpacing: '1px' }}>{student?.roomCode ? `#${student.roomCode}` : 'कोई नहीं'}</strong> • छात्र: <strong>{student?.studentName}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.12)',
-              padding: '6px 14px',
-              borderRadius: '20px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              border: '1px solid rgba(255,255,255,0.2)'
-            }}
-          >
-            <span>👥</span>
-            <span>{Math.max(studentCount, 1)} छात्र जुड़े हैं</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => {
-                sfx.playTap();
-                setShowJoinModal(true);
-              }}
-              title="कक्षा में शामिल हों"
+      {!student?.roomCode ? (
+        /* ─── Self-Study / Not Connected to Class Banner ─── */
+        <div
+          style={{
+            background: isDarkMode ? '#1e293b' : 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)',
+            color: '#ffffff',
+            borderRadius: '20px',
+            padding: '1.4rem 1.6rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div
               style={{
-                background: 'rgba(237,137,54,0.2)',
-                border: '1px solid rgba(237,137,54,0.5)',
-                color: '#fed7aa',
-                borderRadius: '12px',
-                padding: '6px 12px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                cursor: 'pointer'
+                width: '56px',
+                height: '56px',
+                borderRadius: '16px',
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2.2rem',
+                boxShadow: 'inset 0 0 10px rgba(255,255,255,0.1)'
               }}
             >
-              {student?.roomCode ? '🔍 कक्षा बदलें' : '🔍 कक्षा में शामिल हों'}
-            </button>
-            {student?.roomCode && (
+              {student?.avatarEmoji || '🎒'}
+            </div>
+            <div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f6ad55', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span>{student?.studentName || 'विद्यार्थी'}</span>
+                <span style={{
+                  fontSize: '0.75rem',
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  color: '#e2e8f0',
+                  padding: '2px 10px',
+                  borderRadius: '14px',
+                  fontWeight: 700
+                }}>
+                  {student?.grade || 'Class 1'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#cbd5e1', marginTop: '4px' }}>
+                स्थिति: <strong>स्वतंत्र अध्ययन मोड (Offline / Self-Study)</strong>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px' }}>
+                शिक्षक के लाइव प्रसारण और कार्यपत्र प्राप्त करने के लिए कक्षा में शामिल हों
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              sfx.playTap();
+              setShowJoinModal(true);
+            }}
+            style={{
+              backgroundColor: '#ed8936',
+              color: '#ffffff',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '14px',
+              fontWeight: 800,
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 14px rgba(237, 137, 54, 0.4)'
+            }}
+          >
+            <span>🔍</span>
+            <span>कक्षा में शामिल हों (Join Class)</span>
+          </button>
+        </div>
+      ) : (
+        /* ─── Classroom Info Header Card (Connected to Room) ─── */
+        <div
+          style={{
+            background: isDarkMode ? '#1e293b' : 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)',
+            color: '#ffffff',
+            borderRadius: '20px',
+            padding: '1.2rem 1.4rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '14px',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div
+              style={{
+                width: '54px',
+                height: '54px',
+                borderRadius: '16px',
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                boxShadow: 'inset 0 0 10px rgba(255,255,255,0.1)'
+              }}
+            >
+              {student?.avatarEmoji || '🎒'}
+            </div>
+            <div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f6ad55', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span>{classroomInfo?.schoolName || 'कक्षा सत्र'}</span>
+                <span style={{
+                  fontSize: '0.75rem',
+                  backgroundColor: connStatus.teacherActive ? '#16a34a' : '#d97706',
+                  color: '#fff',
+                  padding: '2px 10px',
+                  borderRadius: '14px',
+                  fontWeight: 800
+                }}>
+                  {connStatus.teacherActive ? '● लाइव प्रसारण सक्रिय' : '● शिक्षक स्टैंडबाय'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.84rem', color: '#e2e8f0', marginTop: '3px' }}>
+                👩‍🏫 शिक्षिका: <strong>{classroomInfo?.teacherName || 'शिक्षिका'}</strong> • 🏷️ <strong>{classroomInfo?.grade || student?.grade || 'कक्षा 1'}</strong>
+              </div>
+              <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '2px' }}>
+                कमरा कोड: <strong style={{ color: '#fed7aa', letterSpacing: '1px' }}>#{student?.roomCode}</strong> • छात्र: <strong>{student?.studentName}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.12)',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}
+            >
+              <span>👥</span>
+              <span>{Math.max(studentCount, 1)} छात्र जुड़े हैं</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => {
+                  sfx.playTap();
+                  setShowJoinModal(true);
+                }}
+                title="कक्षा बदलें"
+                style={{
+                  background: 'rgba(237,137,54,0.2)',
+                  border: '1px solid rgba(237,137,54,0.5)',
+                  color: '#fed7aa',
+                  borderRadius: '12px',
+                  padding: '6px 12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                🔍 कक्षा बदलें
+              </button>
               <button
                 onClick={() => {
                   sfx.playTap();
                   classroomService.leaveClassroom();
                   authService.leaveSession();
-                  // Navigate to home but stay logged in
                   navigate('/', { replace: true });
                   window.location.reload();
                 }}
@@ -305,51 +385,8 @@ const StudentClassroom: React.FC = () => {
               >
                 📤 सत्र छोड़ें
               </button>
-            )}
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* ─── No Session: Student hasn't joined a class yet ─── */}
-      {!student?.roomCode && (
-        <div style={{
-          backgroundColor: isDarkMode ? '#1e293b' : '#f0f9ff',
-          border: '2px dashed #60a5fa',
-          borderRadius: '20px',
-          padding: '2rem 1.5rem',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '1rem'
-        }}>
-          <div style={{ fontSize: '3rem' }}>📡</div>
-          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: isDarkMode ? '#f8fafc' : '#0f2744' }}>
-            अभी कोई कक्षा नहीं जुड़ी है
-          </div>
-          <div style={{ fontSize: '0.85rem', color: '#64748b', maxWidth: '320px', lineHeight: 1.5 }}>
-            शिक्षक से 4-अंकों का कोड माँगें या QR कोड स्कैन करें — तब तक फ़्लैशकार्ड और पुस्तकें देख सकते हैं।
-          </div>
-          <button
-            onClick={() => { sfx.playTap(); setShowJoinModal(true); }}
-            style={{
-              backgroundColor: '#0f2744',
-              color: '#fff',
-              border: 'none',
-              padding: '12px 28px',
-              borderRadius: '14px',
-              fontWeight: 800,
-              fontSize: '1rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              boxShadow: '0 4px 16px rgba(15,39,68,0.25)'
-            }}
-          >
-            <span>🔍</span>
-            <span>कक्षा में शामिल हों (Join Class)</span>
-          </button>
         </div>
       )}
 

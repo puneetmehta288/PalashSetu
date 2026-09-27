@@ -1,5 +1,7 @@
 import React from 'react';
-import { TeacherProfile, StudentProfile, UserRole } from '../services/authService';
+import { authService, TeacherProfile, StudentProfile, UserRole } from '../services/authService';
+import { classroomService } from '../services/classroomService';
+import { sfx } from '../utils/sfx';
 import { useTheme } from '../context/ThemeContext';
 
 interface HeaderProps {
@@ -179,25 +181,33 @@ export const Header: React.FC<HeaderProps> = ({ role = 'teacher', activeTeacher,
                   {activeStudent.avatarEmoji} {activeStudent.studentName}
                 </div>
                 <div style={{ fontSize: '0.68rem', color: '#ed8936', fontWeight: 700 }}>
-                  {activeStudent.grade} • #{activeStudent.roomCode}
+                  {activeStudent.grade} {activeStudent.roomCode ? `• #${activeStudent.roomCode}` : '• स्वतंत्र'}
                 </div>
               </div>
 
-              <button
-                onClick={onSwitchTeacher}
-                style={{
-                  backgroundColor: isDarkMode ? '#1e293b' : '#edf2f7',
-                  border: `1px solid ${isDarkMode ? '#334155' : '#cbd5e0'}`,
-                  padding: '5px 9px',
-                  borderRadius: '8px',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  color: isDarkMode ? '#f8fafc' : '#334155',
-                  cursor: 'pointer',
-                }}
-              >
-                🚪 Leave
-              </button>
+              {activeStudent.roomCode ? (
+                <button
+                  onClick={() => {
+                    sfx.playTap();
+                    classroomService.leaveClassroom();
+                    authService.leaveSession();
+                    window.location.reload();
+                  }}
+                  title="सत्र छोड़ें (प्रोफ़ाइल बनी रहेगी)"
+                  style={{
+                    backgroundColor: isDarkMode ? '#1e293b' : '#fee2e2',
+                    border: `1px solid ${isDarkMode ? '#334155' : '#fca5a5'}`,
+                    padding: '5px 9px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    color: '#dc2626',
+                    cursor: 'pointer',
+                  }}
+                >
+                  📤 Leave
+                </button>
+              ) : null}
             </div>
           )}
         </div>
