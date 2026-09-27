@@ -100,42 +100,52 @@
 }
 
 /* ==========================================================================
-   📱 Tablet Landscape — Primary Target (768px – 1280px)
-   Government 10" tablets in landscape: 1024×600, 1280×800 etc.
+   📱 Tablet & Desktop (> 768px)
    ========================================================================== */
-@media (min-width: 601px) and (max-width: 1024px) {
-  .content-area {
-    padding: 1rem 1.25rem;
-    max-width: 100%;          /* fill the full width next to sidebar */
-  }
-
-  /* Sidebar always visible — never slide out on tablets */
+@media (min-width: 769px) {
   .app-sidebar {
     position: relative !important;
     left: 0 !important;
-    width: 220px !important;
+    top: 0 !important;
+    width: 250px !important;
+    flex-shrink: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    box-shadow: none !important;
   }
 
-  /* Hide hamburger — sidebar is permanently visible on tablets */
+  .content-area {
+    padding: 1.5rem 2rem;
+    max-width: 100%;
+  }
+
   .mobile-hamburger-btn {
     display: none !important;
   }
+
   .mobile-close-btn {
     display: none !important;
   }
 
-  /* Never show bottom nav on tablets */
   .mobile-bottom-nav {
+    display: none !important;
+  }
+
+  .mobile-backdrop {
     display: none !important;
   }
 }
 
 /* ==========================================================================
-   📱 Phone-only Responsive Breakpoints (<= 600px)
+   📱 Mobile Phones & Narrow Screens (<= 768px)
    ========================================================================== */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
   .content-area {
-    padding: 1rem 0.75rem 5rem 0.75rem; /* Extra bottom padding for bottom nav */
+    padding: 1rem 0.85rem calc(68px + env(safe-area-inset-bottom, 10px)) 0.85rem;
   }
 
   /* Hamburger & Close Buttons */
@@ -151,8 +161,10 @@
   .app-sidebar {
     position: fixed !important;
     top: 0;
-    left: -280px;
+    left: -300px;
+    width: 280px !important;
     height: 100vh;
+    height: 100dvh;
     z-index: 999;
     box-shadow: 4px 0 25px rgba(0, 0, 0, 0.4);
     transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -168,19 +180,22 @@
 
   /* Mobile Bottom Navigation Bar */
   .mobile-bottom-nav {
-    display: flex;
+    display: flex !important;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 62px;
+    height: 60px;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     background-color: #ffffff;
     border-top: 1px solid #e2e8f0;
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
     z-index: 90;
     justify-content: space-around;
     align-items: center;
-    padding: 0 4px;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 
   .bottom-nav-item {
@@ -192,7 +207,7 @@
     color: #64748b;
     font-size: 0.72rem;
     font-weight: 600;
-    padding: 6px 10px;
+    padding: 5px 6px;
     border-radius: 10px;
     transition: all 0.15s ease;
     flex: 1;
@@ -205,9 +220,28 @@
   }
 
   .bottom-nav-icon {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     line-height: 1.1;
   }
+}
+
+/* Dark mode overrides for mobile bottom navigation */
+:root.dark-mode .mobile-bottom-nav,
+body.dark-mode .mobile-bottom-nav {
+  background-color: #0f172a;
+  border-top-color: #1e293b;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+}
+
+:root.dark-mode .bottom-nav-item,
+body.dark-mode .bottom-nav-item {
+  color: #94a3b8;
+}
+
+:root.dark-mode .bottom-nav-item.active,
+body.dark-mode .bottom-nav-item.active {
+  color: #fbd38d;
+  background-color: rgba(237, 137, 54, 0.15);
 }
 
 /* ==========================================================================
