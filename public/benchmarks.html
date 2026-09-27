@@ -24,11 +24,13 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       line-height: 1.6;
+      width: 100%;
+      overflow-x: hidden;
       padding: 2rem 1rem;
     }
 
@@ -274,6 +276,94 @@
       padding-top: 1rem;
       border-top: 1px solid var(--border);
     }
+
+    /* ─── RESPONSIVE LAYOUT (PC vs MOBILE / TABLET) ─── */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem 0.65rem;
+      }
+      .container {
+        gap: 1.25rem;
+      }
+      .nav-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .brand-title {
+        font-size: 1.1rem;
+      }
+      .nav-actions {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        width: 100%;
+        gap: 8px;
+      }
+      .nav-actions::-webkit-scrollbar {
+        display: none;
+      }
+      .nav-actions .btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 6px 11px;
+        font-size: 0.78rem;
+      }
+
+      .hero-card {
+        padding: 1.25rem 1rem;
+        border-radius: 14px;
+      }
+      .hero-title {
+        font-size: 1.35rem;
+      }
+      .hero-sub {
+        font-size: 0.85rem;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .metric-card {
+        padding: 1rem;
+      }
+      .metric-val {
+        font-size: 1.45rem;
+      }
+
+      .section-card {
+        padding: 1.25rem 1rem;
+        border-radius: 14px;
+        gap: 1rem;
+      }
+      .section-title {
+        font-size: 1.05rem;
+      }
+
+      .evidence-gallery-grid,
+      .methodology-channels-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .terminal-box {
+        font-size: 0.74rem;
+        padding: 0.75rem 0.85rem;
+      }
+
+      table th, table td {
+        padding: 8px 10px;
+        font-size: 0.78rem;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -427,7 +517,7 @@
         <span class="badge badge-green">● EMPIRICALLY VERIFIED</span>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem;">
+      <div class="evidence-gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
         
         <!-- Evidence Card 1: Android Studio Profiler -->
         <div style="background: #090e1a; border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;">
@@ -871,7 +961,7 @@ Uptime: 925429880 Realtime: 1761079300
           Judges and evaluators can verify the sub-140 ms latency figures using three independent verification channels built directly into the repository and Android tablet binary:
         </p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 1rem;">
+        <div class="methodology-channels-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
           
           <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem;">
             <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px;">1. In-App Live Profiling Timer</div>

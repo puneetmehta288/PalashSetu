@@ -28,11 +28,13 @@
       --font-santali: "Noto Sans Ol Chiki", system-ui, sans-serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      width: 100%;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
     }
@@ -589,6 +591,206 @@
       border-radius: 14px;
       border: 1px dashed var(--border);
     }
+
+    /* ─── TABLE RESPONSIVE WRAPPER ─── */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 8px;
+    }
+    .vocab-table {
+      min-width: 580px;
+    }
+
+    /* ─── RESPONSIVE LAYOUT (PC vs MOBILE / TABLET) ─── */
+    .responsive-two-col-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .top-navbar {
+        padding: 0.75rem 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .brand-group {
+        justify-content: flex-start;
+        width: 100%;
+        gap: 10px;
+      }
+      .brand-emblem {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+      }
+      .brand-title-wrap h1 {
+        font-size: 1.12rem;
+        flex-wrap: wrap;
+      }
+      .brand-title-wrap h1 span.badge {
+        font-size: 0.62rem;
+        padding: 1px 6px;
+      }
+      .brand-subtitle {
+        font-size: 0.68rem;
+        line-height: 1.25;
+      }
+      .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        width: 100%;
+      }
+      .header-controls::-webkit-scrollbar {
+        display: none;
+      }
+      .header-controls .btn-outline,
+      .header-controls .btn-apk-download,
+      .header-controls .btn-action,
+      .header-controls .live-pulse {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 6px 11px;
+        font-size: 0.76rem;
+      }
+
+      .nav-tabs {
+        padding: 0 0.85rem;
+        scrollbar-width: none;
+      }
+      .nav-tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .tab-btn {
+        padding: 10px 14px;
+        font-size: 0.82rem;
+        gap: 6px;
+      }
+
+      .main-content {
+        margin: 1rem auto;
+        padding: 0 0.85rem;
+        max-width: 100%;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 1.25rem;
+      }
+      .metric-card {
+        padding: 0.95rem 1rem;
+        border-radius: 12px;
+      }
+      .metric-title {
+        font-size: 0.68rem;
+      }
+      .metric-value {
+        font-size: 1.45rem;
+        margin: 4px 0 1px;
+      }
+      .metric-sub {
+        font-size: 0.68rem;
+        line-height: 1.3;
+      }
+
+      .apk-banner-card {
+        padding: 16px 14px !important;
+      }
+      .apk-banner-wrap {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 14px !important;
+      }
+      .apk-banner-actions {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+      .apk-banner-actions .btn-apk-download {
+        grid-column: 1 / -1 !important;
+        justify-content: center !important;
+        padding: 11px 16px !important;
+        font-size: 0.9rem !important;
+        width: 100% !important;
+      }
+      .apk-banner-actions .btn-outline {
+        justify-content: center !important;
+        padding: 8px 10px !important;
+        font-size: 0.78rem !important;
+        width: 100% !important;
+        text-align: center !important;
+      }
+
+      .responsive-two-col-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+      }
+
+      #schools-directory-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .drilldown-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .toolbar-card {
+        padding: 0.85rem 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .search-input-wrap {
+        min-width: 100% !important;
+        width: 100% !important;
+      }
+      .filter-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .filter-select {
+        width: 100%;
+      }
+
+      .card {
+        padding: 1.15rem 1rem;
+        border-radius: 14px;
+        margin-bottom: 1.15rem;
+      }
+      .card-title {
+        font-size: 1.05rem;
+      }
+
+      .login-card {
+        padding: 1.75rem 1.25rem;
+        border-radius: 16px;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+      .apk-banner-actions {
+        grid-template-columns: 1fr !important;
+      }
+      .filter-group {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -708,13 +910,13 @@
       </div>
 
       <!-- APK Download & Tablet Distribution Card -->
-      <div class="card" style="background: linear-gradient(135deg, #0a1f38 0%, #133257 100%); color: #ffffff; margin-bottom: 1.5rem; border: 1px solid rgba(237, 137, 54, 0.4); position: relative; overflow: hidden; padding: 20px 24px;">
+      <div class="card apk-banner-card" style="background: linear-gradient(135deg, #0a1f38 0%, #133257 100%); color: #ffffff; margin-bottom: 1.5rem; border: 1px solid rgba(237, 137, 54, 0.4); position: relative; overflow: hidden; padding: 20px 24px;">
         <div style="position: absolute; right: -25px; bottom: -25px; opacity: 0.12; pointer-events: none;">
           <img src="/palash_logo.png" alt="Palash Logo" style="width: 220px; height: 220px;" />
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; position: relative; z-index: 1;">
+        <div class="apk-banner-wrap" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; position: relative; z-index: 1;">
           <div style="display: flex; align-items: center; gap: 16px;">
-            <img src="/palash_logo.png" alt="Palash Vani" style="width: 62px; height: 62px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.35); border: 2px solid rgba(255,255,255,0.25);" />
+            <img src="/palash_logo.png" alt="Palash Vani" style="width: 62px; height: 62px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.35); border: 2px solid rgba(255,255,255,0.25); flex-shrink: 0;" />
             <div>
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff;">Palash Vani Android Application (v1.0)</h3>
@@ -739,7 +941,7 @@
               </div>
             </div>
           </div>
-          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div class="apk-banner-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <a href="/PalashVani.apk" download="PalashVani-v1.0-debug.apk" class="btn-apk-download" style="padding: 11px 22px; font-size: 0.92rem; border-radius: 10px; box-shadow: 0 4px 14px rgba(5,150,105,0.45);">
               <span>⬇️ Download APK (4.86 MB)</span>
             </a>
@@ -757,7 +959,7 @@
       </div>
 
       <!-- District Distribution & High Frequency Classroom Words -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; margin-bottom: 1.5rem;">
+      <div class="responsive-two-col-grid">
         
         <!-- District Activity Card -->
         <div class="card">
@@ -809,7 +1011,7 @@
         <div style="font-size: 0.76rem; font-weight: 800; color: #c05621; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
           🏫 HIERARCHICAL DRILL-DOWN: SELECT SCHOOL ➔ SELECT TEACHER
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; align-items: flex-end;">
+        <div class="drilldown-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; align-items: flex-end;">
           <!-- Step 1: School Selector -->
           <div>
             <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
@@ -907,22 +1109,24 @@
           </div>
         </div>
 
-        <table class="vocab-table">
-          <thead>
-            <tr>
-              <th>Hindi Spoken Word</th>
-              <th>Classroom Frequency</th>
-              <th>Sample Sentence Context</th>
-              <th>Linguist Ol Chiki / Tribal Entry</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="vocab-mining-table-body">
-            <tr>
-              <td colspan="5" class="empty-placeholder">Scanning harvested classroom telemetry for new vocabulary...</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-wrap">
+          <table class="vocab-table">
+            <thead>
+              <tr>
+                <th>Hindi Spoken Word</th>
+                <th>Classroom Frequency</th>
+                <th>Sample Sentence Context</th>
+                <th>Linguist Ol Chiki / Tribal Entry</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="vocab-mining-table-body">
+              <tr>
+                <td colspan="5" class="empty-placeholder">Scanning harvested classroom telemetry for new vocabulary...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Staged Vocabulary for Next OTA Release -->
