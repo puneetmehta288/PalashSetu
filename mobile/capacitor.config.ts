@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Palash Vani',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'http',
+    cleartext: true
   },
   plugins: {
     SplashScreen: {

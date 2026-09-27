@@ -127,11 +127,15 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
     if (!raw) return null;
     const clean = raw.trim();
 
-    // 1. If it's a full URL e.g. https://.../?room=4819
+    // 1. If it's a full URL e.g. https://.../?room=4819&ip=192.168.43.1
     try {
       if (clean.includes('room=')) {
         const url = new URL(clean.startsWith('http') ? clean : `https://${clean}`);
         const code = url.searchParams.get('room');
+        const ip = url.searchParams.get('ip');
+        if (ip) {
+          try { localStorage.setItem('palash_teacher_ip', ip); } catch (_) {}
+        }
         if (code && code.length >= 4) return code.trim().toUpperCase();
       }
     } catch (_) {}

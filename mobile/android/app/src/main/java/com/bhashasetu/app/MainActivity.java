@@ -127,6 +127,9 @@ public class MainActivity extends BridgeActivity {
             webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
             webSettings.setAllowFileAccess(true);
             webSettings.setAllowContentAccess(true);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                webSettings.setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            }
 
             this.bridge.getWebView().setWebChromeClient(new WebChromeClient() {
                 @Override
@@ -247,6 +250,97 @@ public class MainActivity extends BridgeActivity {
                         } catch (Exception ignored) {}
                     }
                 }
+
+                @android.webkit.JavascriptInterface
+                public String getGatewayIp() {
+                    try {
+                        android.net.wifi.WifiManager wm = (android.net.wifi.WifiManager) getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
+                        if (wm != null) {
+                            android.net.DhcpInfo dhcp = wm.getDhcpInfo();
+                            if (dhcp != null && dhcp.gateway != 0) {
+                                int ip = dhcp.gateway;
+                                return String.format(java.util.Locale.US, "%d.%d.%d.%d",
+                                    (ip & 0xff), (ip >> 8 & 0xff), (ip >> 16 & 0xff), (ip >> 24 & 0xff));
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                    try {
+                        android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+                        if (cm != null) {
+                            android.net.Network net = cm.getActiveNetwork();
+                            if (net != null) {
+                                android.net.LinkProperties lp = cm.getLinkProperties(net);
+                                if (lp != null) {
+                                    for (android.net.RouteInfo route : lp.getRoutes()) {
+                                        if (route.isDefaultRoute() && route.getGateway() != null) {
+                                            String host = route.getGateway().getHostAddress();
+                                            if (host != null && !host.isEmpty()) return host;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                    return "";
+                }
+
+                @android.webkit.JavascriptInterface
+                public String getLocalIp() {
+                    try {
+                        java.util.Enumeration<java.net.NetworkInterface> en = java.net.NetworkInterface.getNetworkInterfaces();
+                        while (en.hasMoreElements()) {
+                            java.net.NetworkInterface intf = en.nextElement();
+                            java.util.Enumeration<java.net.InetAddress> enumIpAddr = intf.getInetAddresses();
+                            while (enumIpAddr.hasMoreElements()) {
+                                java.net.InetAddress inetAddress = enumIpAddr.nextElement();
+                                if (!inetAddress.isLoopbackAddress() && inetAddress instanceof java.net.Inet4Address) {
+                                    return inetAddress.getHostAddress();
+                                }
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                    return "";
+                }
+
+                @android.webkit.JavascriptInterface
+                public String nativeRelayRequest(String urlStr, String method, String postData, int timeoutMs) {
+                    java.net.HttpURLConnection conn = null;
+                    try {
+                        java.net.URL url = new java.net.URL(urlStr);
+                        conn = (java.net.HttpURLConnection) url.openConnection();
+                        int t = timeoutMs > 0 ? timeoutMs : 1500;
+                        conn.setConnectTimeout(t);
+                        conn.setReadTimeout(t);
+                        conn.setRequestMethod(method != null ? method.toUpperCase() : "GET");
+                        conn.setDoInput(true);
+                        conn.setUseCaches(false);
+                        if ("POST".equalsIgnoreCase(method) && postData != null) {
+                            conn.setDoOutput(true);
+                            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                            byte[] out = postData.getBytes("UTF-8");
+                            conn.setFixedLengthStreamingMode(out.length);
+                            java.io.OutputStream os = conn.getOutputStream();
+                            os.write(out);
+                            os.flush();
+                            os.close();
+                        }
+                        int code = conn.getResponseCode();
+                        java.io.InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
+                        if (is == null) return "{\"error\":\"No response stream\"}";
+                        java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(is, "UTF-8"));
+                        StringBuilder sb = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line);
+                        }
+                        reader.close();
+                        return sb.toString();
+                    } catch (Exception e) {
+                        return "{\"error\":\"" + e.getMessage() + "\"}";
+                    } finally {
+                        if (conn != null) conn.disconnect();
+                    }
+                }
             }, "AndroidVoiceBridge");
         }
     }
@@ -319,6 +413,7 @@ public class MainActivity extends BridgeActivity {
         String schoolName = "उत्क्रमित प्राथमिक विद्यालय";
         String grade = "कक्षा 1";
         long lastActive = System.currentTimeMillis();
+        long teacherLastActive = 0;
         List<JSONObject> events = Collections.synchronizedList(new ArrayList<>());
         Map<String, JSONObject> students = new ConcurrentHashMap<>();
         Map<String, JSONObject> submissions = new ConcurrentHashMap<>();
@@ -366,16 +461,35 @@ public class MainActivity extends BridgeActivity {
         private void handleClient(Socket socket) {
             try {
                 socket.setSoTimeout(5000);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+                java.io.InputStream rawIn = socket.getInputStream();
                 OutputStream out = socket.getOutputStream();
 
-                String line = in.readLine();
-                if (line == null) {
+                // Read HTTP headers byte-by-byte to avoid mixing char/byte streams
+                java.io.ByteArrayOutputStream headerBuf = new java.io.ByteArrayOutputStream();
+                int prev = -1, prevPrev = -1, prevPrevPrev = -1;
+                int b;
+                while ((b = rawIn.read()) != -1) {
+                    headerBuf.write(b);
+                    if (prevPrevPrev == '\r' && prevPrev == '\n' && prev == '\r' && b == '\n') break;
+                    if (prev == '\n' && b == '\n') break;
+                    prevPrevPrev = prevPrev;
+                    prevPrev = prev;
+                    prev = b;
+                }
+
+                String headerStr = headerBuf.toString("US-ASCII");
+                if (headerStr.isEmpty()) {
                     socket.close();
                     return;
                 }
 
-                String[] parts = line.split(" ");
+                String[] lines = headerStr.split("\r?\n");
+                if (lines.length == 0) {
+                    socket.close();
+                    return;
+                }
+
+                String[] parts = lines[0].split(" ");
                 if (parts.length < 2) {
                     socket.close();
                     return;
@@ -384,13 +498,11 @@ public class MainActivity extends BridgeActivity {
                 String method = parts[0].toUpperCase();
                 String fullPath = parts[1];
 
-                // Read headers
                 int contentLength = 0;
-                String header;
-                while ((header = in.readLine()) != null && !header.isEmpty()) {
-                    if (header.toLowerCase().startsWith("content-length:")) {
+                for (String h : lines) {
+                    if (h.toLowerCase().startsWith("content-length:")) {
                         try {
-                            contentLength = Integer.parseInt(header.substring(15).trim());
+                            contentLength = Integer.parseInt(h.substring(15).trim());
                         } catch (Exception ignored) {}
                     }
                 }
@@ -405,14 +517,14 @@ public class MainActivity extends BridgeActivity {
                 // Handle /api/classroom
                 if (fullPath.startsWith("/api/classroom")) {
                     if ("POST".equals(method)) {
-                        char[] buf = new char[contentLength];
-                        int read = 0;
-                        while (read < contentLength) {
-                            int r = in.read(buf, read, contentLength - read);
+                        byte[] bodyBytes = new byte[contentLength];
+                        int totalRead = 0;
+                        while (totalRead < contentLength) {
+                            int r = rawIn.read(bodyBytes, totalRead, contentLength - totalRead);
                             if (r == -1) break;
-                            read += r;
+                            totalRead += r;
                         }
-                        String bodyStr = new String(buf, 0, read);
+                        String bodyStr = new String(bodyBytes, 0, totalRead, "UTF-8");
                         JSONObject body = new JSONObject(bodyStr.isEmpty() ? "{}" : bodyStr);
                         JSONObject resp = handlePost(body);
                         sendResponse(out, 200, "OK", "application/json; charset=utf-8", resp.toString());
@@ -457,6 +569,7 @@ public class MainActivity extends BridgeActivity {
                 rd.lastActive = System.currentTimeMillis();
 
                 if ("publish".equals(action)) {
+                    rd.teacherLastActive = System.currentTimeMillis();
                     if (body.has("teacherName")) rd.teacherName = body.optString("teacherName");
                     if (body.has("schoolName")) rd.schoolName = body.optString("schoolName");
                     if (body.has("grade")) rd.grade = body.optString("grade");
@@ -471,6 +584,7 @@ public class MainActivity extends BridgeActivity {
                     }
                     res.put("success", true);
                 } else if ("teacher_ping".equals(action)) {
+                    rd.teacherLastActive = System.currentTimeMillis();
                     if (body.has("teacherName")) rd.teacherName = body.optString("teacherName");
                     if (body.has("schoolName")) rd.schoolName = body.optString("schoolName");
                     if (body.has("grade")) rd.grade = body.optString("grade");
@@ -486,7 +600,7 @@ public class MainActivity extends BridgeActivity {
                     rd.students.put(stdId, std);
 
                     res.put("success", true);
-                    res.put("teacherActive", (System.currentTimeMillis() - rd.lastActive) < 120000);
+                    res.put("teacherActive", rd.teacherLastActive > 0 && (System.currentTimeMillis() - rd.teacherLastActive) < 120000);
                     res.put("teacherName", rd.teacherName);
                     res.put("schoolName", rd.schoolName);
                     res.put("grade", rd.grade);
@@ -529,7 +643,7 @@ public class MainActivity extends BridgeActivity {
                 }
                 RoomData rd = rooms.get(room.trim().toUpperCase());
                 res.put("exists", true);
-                res.put("teacherActive", (System.currentTimeMillis() - rd.lastActive) < 120000);
+                res.put("teacherActive", rd.teacherLastActive > 0 && (System.currentTimeMillis() - rd.teacherLastActive) < 120000);
                 res.put("teacherName", rd.teacherName);
                 res.put("schoolName", rd.schoolName);
                 res.put("grade", rd.grade);

@@ -9,14 +9,18 @@ interface ClassroomQRModalProps {
 
 export const ClassroomQRModal: React.FC<ClassroomQRModalProps> = ({ roomCode, teacherName, onClose }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [teacherIp, setTeacherIp] = useState<string>('');
 
   useEffect(() => {
+    const localIp = (typeof window !== 'undefined' && (window as any).AndroidVoiceBridge?.getLocalIp?.()) || '';
+    if (localIp) setTeacherIp(localIp);
+
     // Determine target URL for student device scanning
-    let joinUrl = `https://palashsetu-xi.vercel.app/login?room=${roomCode}&role=student`;
+    let joinUrl = `https://palashsetu-xi.vercel.app/login?room=${roomCode}&role=student${localIp ? `&ip=${localIp}` : ''}`;
     if (typeof window !== 'undefined' && window.location) {
       const origin = window.location.origin;
       if (!origin.includes('localhost') && !origin.includes('capacitor://')) {
-        joinUrl = `${origin}/login?room=${roomCode}&role=student`;
+        joinUrl = `${origin}/login?room=${roomCode}&role=student${localIp ? `&ip=${localIp}` : ''}`;
       }
     }
 
@@ -123,6 +127,11 @@ export const ClassroomQRModal: React.FC<ClassroomQRModalProps> = ({ roomCode, te
           <div style={{ fontSize: '2.4rem', fontWeight: 900, color: '#b45309', letterSpacing: '6px', marginTop: '2px' }}>
             {roomCode}
           </div>
+          {teacherIp && (
+            <div style={{ fontSize: '0.72rem', color: '#78350f', fontWeight: 700, marginTop: '4px' }}>
+              📶 हॉटस्पॉट IP: {teacherIp}
+            </div>
+          )}
         </div>
 
         <button
