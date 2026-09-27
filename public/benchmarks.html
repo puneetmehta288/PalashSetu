@@ -406,8 +406,8 @@
     <section class="metrics-grid">
       <div class="metric-card" style="border-top: 3px solid #10b981;">
         <span class="metric-label">Memory &mdash; Two Tests Compared</span>
-        <div class="metric-val" style="color: #34d399;">224.9 MB</div>
-        <p class="metric-desc"><strong>Test A (Android Studio Profiler):</strong> 224.9 MB total. &nbsp;<strong>Test B (Live Continuous ADB dumpsys):</strong> 210.3 MB baseline, 353.7 MB peak stress (with hotspot relay &amp; JCERT textbooks), &gt; 116 MB dynamic GC recovery. Strictly within &lt; 500 MB budget.</p>
+        <div class="metric-val" style="color: #34d399;">324.7 MB</div>
+        <p class="metric-desc"><strong>Test A (Android Studio Profiler):</strong> 324.7 MB total on vivo V2545 (Java: 18.4 MB, Native: 100 MB, Graphics: 75.3 MB). &nbsp;<strong>Test B (Live Continuous ADB dumpsys):</strong> 210.3 MB baseline, 353.7 MB peak stress (with hotspot relay &amp; JCERT textbooks), &gt; 116 MB dynamic GC recovery. Strictly within &lt; 500 MB budget.</p>
       </div>
 
       <div class="metric-card" style="border-top: 3px solid #38bdf8;">
@@ -529,10 +529,10 @@
                 <div style="font-size: 0.72rem; color: var(--text-muted);">Allocation Tracking: Full (Java/Kotlin Allocations)</div>
               </div>
             </div>
-            <span class="badge badge-blue">TEST A — PROFILER: 224.9 MB</span>
+            <span class="badge badge-blue">TEST A — PROFILER: 324.7 MB</span>
           </div>
 
-          <div style="position: relative; cursor: pointer; overflow: hidden; background: #000;" onclick="openLightbox('/android-studio-profiler.png', 'Android Studio Profiler — Live Java/Kotlin Memory Allocations (Total: 224.9 MB, Flatline Stability)')">
+          <div style="position: relative; cursor: pointer; overflow: hidden; background: #000;" onclick="openLightbox('/android-studio-profiler.png', 'Android Studio Profiler — Live Java/Kotlin Memory Allocations on vivo V2545 (Total: 324.7 MB, Java: 18.4 MB, Native: 100 MB)')">
             <img src="/android-studio-profiler.png" alt="Android Studio Profiler Trace" style="width: 100%; height: 260px; object-fit: cover; object-position: top; display: block; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" />
             <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.75); color: #fff; font-size: 0.72rem; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px);">
               🔍 Click to Enlarge
@@ -542,16 +542,17 @@
           <div style="padding: 1.2rem; display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
             <div style="display: flex; flex-wrap: wrap; gap: 6px;">
               <span style="background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Java: 18.4 MB</span>
-              <span style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Native: 79.6 MB</span>
-              <span style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fde68a; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Graphics: 23.5 MB</span>
-              <span style="background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3); color: #d8b4fe; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Code: 26.7 MB</span>
-              <span style="background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.3); color: #cbd5e1; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Others: 74.9 MB</span>
+              <span style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Native: 100 MB</span>
+              <span style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fde68a; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Graphics: 75.3 MB</span>
+              <span style="background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3); color: #d8b4fe; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Code: 22.8 MB</span>
+              <span style="background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.3); color: #cbd5e1; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Stack: 2.2 MB</span>
+              <span style="background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.3); color: #cbd5e1; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Others: 105.9 MB</span>
             </div>
             <p style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.45; margin: 0;">
-              <strong>Test A Finding (Android Studio Profiler):</strong> Across 4+ minutes of intensive continuous translation and lesson generation, total memory flatlines at <strong>224.9 MB</strong>. Active App Heap shallow size is only <strong>5.88 MB</strong> across 176,912 live objects, strictly bounding Dalvik GC activity.
+              <strong>Test A Finding (Android Studio Profiler on vivo V2545):</strong> Profiled across active classroom operations with offline hotspot relay and JCERT dual textbooks. Total memory is <strong>324.7 MB</strong>, with Java Heap restricted to <strong>18.4 MB</strong> (415,549 live allocations). Flame chart confirms active threads: <code>Thread JavaBridge</code> (handling <code>nativeRelayRequest</code>) and <code>Thread pool-8-thread-3</code> (handling <code>LocalClassroomServer</code> client sockets).
             </p>
             <p style="font-size: 0.76rem; color: #64748b; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 10px; line-height: 1.45; margin: 0;">
-              <strong style="color: #94a3b8;">📐 Metric note:</strong> Android Studio Profiler shows <em>Java: 18.4 MB / Native: 79.6 MB</em> — these are allocation-tracking totals covering heap + stack + metaspace regions. The ADB <code>dumpsys meminfo</code> table below reports <em>Dalvik Java Heap: 9.4–12.3 MB / Native Heap: 35.9–38.0 MB</em> — these are the <code>Private Dirty</code> PSS fields for heap segments only. Both measurements describe the same process; the difference in values is due to the different accounting scopes of the two profiling tools.
+              <strong style="color: #94a3b8;">📐 Metric note:</strong> Android Studio Profiler captures full allocation tracking (Heap + Stack + Metaspace + Graphics Compositor = 324.7 MB). Live ADB <code>dumpsys meminfo</code> PSS measurements range between 210.3 MB (idle) and 353.7 MB (peak stress). Both independent tests prove that Palash Vani easily stays under the &lt; 500 MB budget ceiling on 2 GB RAM hardware.
             </p>
           </div>
         </div>
@@ -887,7 +888,7 @@ Uptime: 925429880 Realtime: 1761079300
             </tr>
             <tr>
               <td><strong>RAM Footprint</strong></td>
-              <td style="color:#34d399;font-weight:700;">224.9 MB (Profiler) / 266 MB (ADB PSS)</td>
+              <td style="color:#34d399;font-weight:700;">324.7 MB (Profiler) / 210–353 MB (ADB PSS)</td>
               <td style="color:#f87171;font-weight:700;">~1.2 GB+ → Android LMK kills it</td>
               <td style="color:#fbbf24;font-weight:700;">Minimal app RAM, but requires internet</td>
             </tr>
@@ -899,7 +900,7 @@ Uptime: 925429880 Realtime: 1761079300
             </tr>
             <tr>
               <td><strong>Works on 2GB RAM Tablet</strong></td>
-              <td style="color:#34d399;font-weight:700;">✅ Comfortably (~266 MB)</td>
+              <td style="color:#34d399;font-weight:700;">✅ Comfortably (&lt; 354 MB peak)</td>
               <td style="color:#f87171;font-weight:700;">❌ OOM crash — model alone needs &gt;800 MB</td>
               <td style="color:#fbbf24;font-weight:700;">✅ App runs; fails when no signal</td>
             </tr>

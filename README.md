@@ -436,7 +436,7 @@ PalashSetu/
 │   ├── architecture.html          # Interactive runtime architecture diagram
 │   ├── PalashVani.apk             # APK direct download from Vercel portal (31.5 MB)
 │   ├── palash_logo.png            # Official Palash Vani app icon
-│   ├── android-studio-profiler.png # Android Studio Profiler screenshot (224.9 MB evidence)
+│   ├── android-studio-profiler.png # Android Studio Profiler screenshot (324.7 MB live allocation evidence)
 │   └── offline-engine-test-terminal.png  # Test suite terminal screenshot (0.0040 ms)
 ├── mobile/                        # React + TypeScript + Capacitor mobile application
 │   ├── android/                   # Native Android Studio project
