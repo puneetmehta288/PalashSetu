@@ -1,0 +1,357 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Palash Vani — Standalone Edge & Offline Classroom Mesh Architecture",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "live-translation",
+        "label": "Primary Live Classroom Path",
+        "focus": ["teacher", "teacher_app", "offline_engine", "linguistic_engine", "acoustic_compiler"],
+        "note": "Teacher Hindi voice → Web Speech ASR → 4-Tier Linguistic Engine (7,503 entries, 0.004 ms) → Acoustic Compiler → 0.85x native Santali TTS."
+      },
+      {
+        "id": "classroom-mesh",
+        "label": "Zero-Internet Hotspot Mesh (< 1s Relay)",
+        "focus": ["teacher_app", "hotspot_server", "student_app", "student_companion"],
+        "note": "Teacher device acts as Wi-Fi Access Point running embedded LocalClassroomServer (Port 8888). Real-time translation events and active lesson slides broadcast to student companion tablets in < 1 second without SIM or internet."
+      },
+      {
+        "id": "student-learning",
+        "label": "Autonomous Student Learning",
+        "focus": ["student_companion", "student_app", "student_learning", "content_store"],
+        "note": "Students interact with 16 NIPUN FLN bilingual decks (96 cards), 8 full JCERT textbooks, and interactive practice worksheets with instant audio feedback."
+      },
+      {
+        "id": "offline-auth",
+        "label": "Multi-Teacher Scoped PIN Storage & Attendance",
+        "focus": ["teacher", "teacher_app", "local_db"],
+        "note": "Local SHA-256 hashed 4-digit PIN authentication with multi-teacher scoped attendance registers and session storage entirely on-device."
+      },
+      {
+        "id": "cloud-sync",
+        "label": "Store-and-Forward Telemetry & Portal",
+        "focus": ["teacher_app", "telemetry_svc", "vercel_hub"],
+        "note": "Pedagogical usage and attendance logs are buffered in offline local storage; automatically batched and synced via HTTPS POST whenever intermittent network is detected."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "teacher",
+      "type": "external",
+      "label": "Teacher (Educator)",
+      "sublabel": "Primary educator · Touch & Voice",
+      "pos": [30, 200],
+      "size": [130, 56]
+    },
+    {
+      "id": "teacher_app",
+      "type": "frontend",
+      "label": "Teacher Station App",
+      "sublabel": "Capacitor APK · React 18 + TS",
+      "brand": "react",
+      "pos": [210, 200],
+      "size": [160, 56]
+    },
+    {
+      "id": "offline_engine",
+      "type": "backend",
+      "label": "Edge Voice Ingestion",
+      "sublabel": "Web Speech API / Offline Hook",
+      "pos": [430, 95],
+      "size": [170, 56]
+    },
+    {
+      "id": "linguistic_engine",
+      "type": "backend",
+      "label": "4-Tier Linguistic Engine",
+      "sublabel": "7,503 entries · ~2,500 lemmas",
+      "pos": [650, 95],
+      "size": [170, 56]
+    },
+    {
+      "id": "acoustic_compiler",
+      "type": "backend",
+      "label": "Acoustic Compiler (TTS)",
+      "sublabel": "santaliSpeech · 0.85x Native TTS",
+      "pos": [870, 95],
+      "size": [170, 56]
+    },
+    {
+      "id": "local_db",
+      "type": "database",
+      "label": "Scoped Local DB & Auth",
+      "sublabel": "Offline SHA-256 PINs · Attendance",
+      "pos": [430, 200],
+      "size": [170, 56]
+    },
+    {
+      "id": "content_store",
+      "type": "backend",
+      "label": "Bundled Knowledge Store",
+      "sublabel": "8 JCERT Books · 16 FLN Decks",
+      "pos": [650, 200],
+      "size": [170, 56]
+    },
+    {
+      "id": "hotspot_server",
+      "type": "backend",
+      "label": "Local Mesh Server",
+      "sublabel": "Embedded Java Daemon · Port 8888",
+      "pos": [210, 335],
+      "size": [160, 56]
+    },
+    {
+      "id": "curriculum_adapter",
+      "type": "backend",
+      "label": "Curriculum Adapter",
+      "sublabel": "Santali / Ho / Mundari MTB-MLE",
+      "pos": [430, 335],
+      "size": [170, 56]
+    },
+    {
+      "id": "telemetry_svc",
+      "type": "security",
+      "label": "Telemetry & Sync Queue",
+      "sublabel": "Store-and-forward audit buffer",
+      "pos": [650, 335],
+      "size": [170, 56]
+    },
+    {
+      "id": "student_companion",
+      "type": "external",
+      "label": "Student Companion",
+      "sublabel": "Rural learners · 1:1 or 1:many",
+      "pos": [30, 565],
+      "size": [130, 56]
+    },
+    {
+      "id": "student_app",
+      "type": "frontend",
+      "label": "Student Client App",
+      "sublabel": "Zero-QR Join · Live Receiver",
+      "pos": [210, 565],
+      "size": [160, 56]
+    },
+    {
+      "id": "student_learning",
+      "type": "frontend",
+      "label": "Autonomous Learning",
+      "sublabel": "FLN Decks · Worksheets · JCERT",
+      "pos": [430, 565],
+      "size": [170, 56]
+    },
+    {
+      "id": "fastapi",
+      "type": "backend",
+      "label": "FastAPI Content Packager",
+      "sublabel": "JCERT dataset & bundle compiler",
+      "pos": [880, 210],
+      "size": [160, 56]
+    },
+    {
+      "id": "sqlite",
+      "type": "database",
+      "label": "Master Curriculum DB",
+      "sublabel": "aiosqlite · Master FLN schemas",
+      "pos": [880, 335],
+      "size": [160, 56]
+    },
+    {
+      "id": "vercel_hub",
+      "type": "cloud",
+      "label": "PalashCentralHub",
+      "sublabel": "Vercel Portal · Telemetry Sink",
+      "brand": "vercel",
+      "pos": [880, 565],
+      "size": [160, 56]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "Teacher Station Runtime (100% Offline Edge APK)",
+      "wraps": ["teacher_app", "offline_engine", "linguistic_engine", "acoustic_compiler", "local_db", "content_store", "hotspot_server", "curriculum_adapter", "telemetry_svc"],
+      "pad": 16
+    },
+    {
+      "kind": "region",
+      "label": "Student Companion Domain (Zero-Internet Hotspot Mesh Clients)",
+      "wraps": ["student_companion", "student_app", "student_learning"],
+      "pad": 14
+    },
+    {
+      "kind": "region",
+      "label": "DIET / District Content Packaging Node (Admin & Authoring)",
+      "wraps": ["fastapi", "sqlite"],
+      "pad": 14
+    },
+    {
+      "kind": "region",
+      "label": "PalashCentralHub Cloud (Internet Optional Telemetry & Portal)",
+      "wraps": ["vercel_hub"],
+      "pad": 14
+    }
+  ],
+  "connections": [
+    {
+      "id": "teacher-voice",
+      "from": "teacher",
+      "to": "teacher_app",
+      "label": "voice + touch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "mic-pcm",
+      "from": "teacher_app",
+      "to": "offline_engine",
+      "label": "microphone PCM",
+      "variant": "emphasis"
+    },
+    {
+      "id": "asr-tokens",
+      "from": "offline_engine",
+      "to": "linguistic_engine",
+      "label": "Hindi ASR tokens",
+      "variant": "emphasis"
+    },
+    {
+      "id": "olchiki-tokens",
+      "from": "linguistic_engine",
+      "to": "acoustic_compiler",
+      "label": "Santali Ol Chiki",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tts-audio",
+      "from": "acoustic_compiler",
+      "to": "teacher",
+      "label": "0.85x tribal audio TTS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "local-auth",
+      "from": "teacher_app",
+      "to": "local_db",
+      "label": "scoped PIN & register",
+      "variant": "default"
+    },
+    {
+      "id": "broadcast-payload",
+      "from": "teacher_app",
+      "to": "hotspot_server",
+      "label": "broadcast payload",
+      "variant": "emphasis"
+    },
+    {
+      "id": "mesh-relay",
+      "from": "hotspot_server",
+      "to": "student_app",
+      "label": "Hotspot Mesh (Port 8888) · < 1s relay",
+      "variant": "emphasis"
+    },
+    {
+      "id": "student-input",
+      "from": "student_companion",
+      "to": "student_app",
+      "label": "touch & PIN join",
+      "variant": "emphasis"
+    },
+    {
+      "id": "student-practice",
+      "from": "student_app",
+      "to": "student_learning",
+      "label": "interactive FLN & worksheets",
+      "variant": "default"
+    },
+    {
+      "id": "student-reader",
+      "from": "student_learning",
+      "to": "content_store",
+      "label": "bundled offline reader",
+      "variant": "dashed"
+    },
+    {
+      "id": "select-lesson",
+      "from": "teacher_app",
+      "to": "curriculum_adapter",
+      "label": "select lesson",
+      "variant": "dashed"
+    },
+    {
+      "id": "query-corpus",
+      "from": "curriculum_adapter",
+      "to": "content_store",
+      "label": "query 8 JCERT / 16 FLN",
+      "variant": "dashed"
+    },
+    {
+      "id": "enqueue-audit",
+      "from": "teacher_app",
+      "to": "telemetry_svc",
+      "label": "enqueue audit event",
+      "variant": "default"
+    },
+    {
+      "id": "offline-batch-post",
+      "from": "telemetry_svc",
+      "to": "vercel_hub",
+      "label": "offline batch POST (TLS 1.3)",
+      "variant": "security"
+    },
+    {
+      "id": "compile-bundles",
+      "from": "fastapi",
+      "to": "content_store",
+      "label": "compile static bundles",
+      "variant": "dashed"
+    },
+    {
+      "id": "orm-queries",
+      "from": "fastapi",
+      "to": "sqlite",
+      "label": "ORM queries",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "4-Tier Pure Edge Linguistic Engine",
+      "items": [
+        "7,503 dictionary entries across ~2,500 core Hindi roots with inflections",
+        "Deterministic multi-tier inference: 0.004 ms dictionary lookup time",
+        "Zero PyTorch/TensorFlow dependencies: 0 MB OOM risk on 2GB RAM tablets"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Zero-Internet Hotspot Classroom Mesh (Port 8888)",
+      "items": [
+        "Embedded Java LocalClassroomServer running inside Teacher APK",
+        "Real-time broadcast of translations, active lesson cards, and quiz prompts",
+        "< 1 second physical mesh relay latency to student companion screens"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Dual-Role Edge Architecture & Autonomous Learning",
+      "items": [
+        "Teacher Station: Speech translation, lesson broadcasting, and scoped attendance",
+        "Student Companion: Zero-QR join, live listener, and independent practice drills",
+        "Bundled: 16 NIPUN FLN Decks (96 cards), 8 Full JCERT bilingual textbooks"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Hardware Verified: 324.7 MB Profiler Profile",
+      "items": [
+        "Android Studio Profiler on vivo V2545: 324.7 MB total application memory",
+        "Real-world ADB PSS: 210–354 MB under active stress test (< 500 MB budget)",
+        "~594 MB safe headroom on 2GB rural tablets; 31.5 MB release standalone APK"
+      ]
+    }
+  ]
+}
