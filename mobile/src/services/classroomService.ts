@@ -512,16 +512,16 @@ class ClassroomService {
 
   // ─── Internal Polling Helpers ───
   private async postToRelay(body: any): Promise<any> {
-    const endpoints = [
-      LOCAL_HOTSPOT_ENDPOINT,
-      LOCALHOST_ENDPOINT,
-      RELAY_ENDPOINT
-    ];
+    const isOnline = typeof navigator === 'undefined' || navigator.onLine;
+    const endpoints = isOnline
+      ? [RELAY_ENDPOINT, LOCALHOST_ENDPOINT, LOCAL_HOTSPOT_ENDPOINT]
+      : [LOCALHOST_ENDPOINT, LOCAL_HOTSPOT_ENDPOINT, RELAY_ENDPOINT];
 
     for (const ep of endpoints) {
       try {
+        const timeoutMs = ep.includes('192.168.43.1') ? 500 : (ep.includes('127.0.0.1') ? 600 : 2500);
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        const timeoutId = controller ? setTimeout(() => controller.abort(), 1200) : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
         const res = await fetch(ep, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -559,7 +559,12 @@ class ClassroomService {
 
   private startTeacherPolling(roomCode: string): void {
     if (this.pollInterval) clearInterval(this.pollInterval);
+    let isTeacherPolling = false;
+
     this.pollInterval = setInterval(async () => {
+      if (isTeacherPolling) return;
+      isTeacherPolling = true;
+
       try {
         // 1. Broadcast local teacher_ack over BroadcastChannel (LOCAL OFFLINE BUS)
         try {
@@ -586,17 +591,26 @@ class ClassroomService {
         });
 
         // 3. Poll submissions and students across local and cloud endpoints
-        const endpoints = [
-          `${LOCAL_HOTSPOT_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
-          `${LOCALHOST_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
-          `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
-          `/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`
-        ];
+        const isOnline = typeof navigator === 'undefined' || navigator.onLine;
+        const endpoints = isOnline
+          ? [
+              `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `${LOCALHOST_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `${LOCAL_HOTSPOT_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`
+            ]
+          : [
+              `${LOCALHOST_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `${LOCAL_HOTSPOT_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`
+            ];
 
         for (const ep of endpoints) {
           try {
+            const timeoutMs = ep.includes('192.168.43.1') ? 500 : (ep.includes('127.0.0.1') ? 600 : 2500);
             const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-            const timeoutId = controller ? setTimeout(() => controller.abort(), 1200) : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
             const res = await fetch(ep, { signal: controller?.signal }).catch(() => null);
             if (timeoutId) clearTimeout(timeoutId);
 
@@ -645,7 +659,10 @@ class ClassroomService {
             }
           } catch (_) {}
         }
-      } catch (_) {}
+      } catch (_) {
+      } finally {
+        isTeacherPolling = false;
+      }
     }, 2500);
   }
 
@@ -659,6 +676,7 @@ class ClassroomService {
     if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
     let consecutiveFailures = 0;
+    let isPolling = false;
 
     const sendPing = async () => {
       try {
@@ -728,7 +746,7 @@ class ClassroomService {
           }
         } else {
           // If local offline bus is alive, DO NOT mark disconnected
-          const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 20000;
+          const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 30000;
           if (isLocalActive) {
             consecutiveFailures = 0;
             if (onConnectionStatus) {
@@ -739,7 +757,7 @@ class ClassroomService {
             }
           } else {
             consecutiveFailures++;
-            if (consecutiveFailures >= 6 && onConnectionStatus) {
+            if (consecutiveFailures >= 8 && onConnectionStatus) {
               onConnectionStatus({
                 connected: false,
                 teacherActive: false,
@@ -749,7 +767,7 @@ class ClassroomService {
           }
         }
       } catch (_) {
-        const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 20000;
+        const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 30000;
         if (isLocalActive) {
           consecutiveFailures = 0;
           if (onConnectionStatus) {
@@ -760,7 +778,7 @@ class ClassroomService {
           }
         } else {
           consecutiveFailures++;
-          if (consecutiveFailures >= 6 && onConnectionStatus) {
+          if (consecutiveFailures >= 8 && onConnectionStatus) {
             onConnectionStatus({
               connected: false,
               teacherActive: false,
@@ -778,101 +796,118 @@ class ClassroomService {
     this.heartbeatInterval = setInterval(sendPing, 5000);
 
     const pollEvents = async () => {
-      const endpoints = [
-        `${LOCAL_HOTSPOT_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
-        `${LOCALHOST_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
-        `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
-        `/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`
-      ];
+      if (isPolling) return;
+      isPolling = true;
 
-      for (const ep of endpoints) {
-        try {
-          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-          const timeoutId = controller ? setTimeout(() => controller.abort(), 1200) : null;
-          const res = await fetch(ep, { signal: controller?.signal }).catch(() => null);
-          if (timeoutId) clearTimeout(timeoutId);
+      try {
+        const isOnline = typeof navigator === 'undefined' || navigator.onLine;
+        const endpoints = isOnline
+          ? [
+              `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `${LOCALHOST_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `${LOCAL_HOTSPOT_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`
+            ]
+          : [
+              `${LOCALHOST_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `${LOCAL_HOTSPOT_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+              `/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`
+            ];
 
-          if (res && res.ok) {
-            const data = await res.json().catch(() => null);
-            if (data && data.exists) {
-              this.lastLocalActivityTimestamp = Date.now();
-              if (onConnectionStatus) {
-                onConnectionStatus({
-                  connected: true,
-                  teacherActive: !!data.teacherActive
-                });
-              }
-              if (onClassroomInfo && data.teacherName) {
-                onClassroomInfo({
-                  roomCode,
-                  teacherName: data.teacherName,
-                  schoolName: data.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड',
-                  grade: data.grade || student.grade || 'कक्षा 1',
-                  teacherActive: !!data.teacherActive,
-                  studentCount: data.studentCount || 1
-                });
-              }
+        for (const ep of endpoints) {
+          try {
+            const timeoutMs = ep.includes('192.168.43.1') ? 500 : (ep.includes('127.0.0.1') ? 600 : 2500);
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+            const res = await fetch(ep, { signal: controller?.signal }).catch(() => null);
+            if (timeoutId) clearTimeout(timeoutId);
 
-              if (Array.isArray(data.events)) {
-                data.events.forEach((ev: any) => {
-                  if (ev.timestamp > this.lastEventTimestamp) {
-                    this.lastEventTimestamp = ev.timestamp;
-                    if (ev.type === 'classroom_reset') {
-                      try {
-                        localStorage.removeItem('palash_assigned_worksheets');
-                        if (typeof window !== 'undefined') {
-                          window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
-                        }
-                      } catch (_) {}
-                      this.listeners.forEach((fn) => fn({ type: 'classroom_reset' }));
-                    } else if (ev.type === 'worksheet_assigned' && ev.data) {
-                      try {
-                        const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
-                        const updated = [ev.data, ...stored.filter((w: any) => w.worksheetId !== ev.data.worksheetId)];
-                        localStorage.setItem('palash_assigned_worksheets', JSON.stringify(updated.slice(0, 10)));
-                        if (typeof window !== 'undefined') {
-                          window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: ev.data }));
-                        }
-                      } catch (_) {}
-                      const mappedEvent: ClassroomEvent = {
-                        type: ev.type,
-                        data: ev.data
-                      };
-                      this.listeners.forEach((fn) => fn(mappedEvent));
-                    } else {
-                      const mappedEvent: ClassroomEvent = {
-                        type: ev.type,
-                        data: ev.data
-                      };
-                      this.listeners.forEach((fn) => fn(mappedEvent));
+            if (res && res.ok) {
+              const data = await res.json().catch(() => null);
+              if (data && data.exists) {
+                consecutiveFailures = 0;
+                this.lastLocalActivityTimestamp = Date.now();
+                if (onConnectionStatus) {
+                  onConnectionStatus({
+                    connected: true,
+                    teacherActive: !!data.teacherActive
+                  });
+                }
+                if (onClassroomInfo && data.teacherName) {
+                  onClassroomInfo({
+                    roomCode,
+                    teacherName: data.teacherName,
+                    schoolName: data.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड',
+                    grade: data.grade || student.grade || 'कक्षा 1',
+                    teacherActive: !!data.teacherActive,
+                    studentCount: data.studentCount || 1
+                  });
+                }
+
+                if (Array.isArray(data.events)) {
+                  data.events.forEach((ev: any) => {
+                    if (ev.timestamp > this.lastEventTimestamp) {
+                      this.lastEventTimestamp = ev.timestamp;
+                      if (ev.type === 'classroom_reset') {
+                        try {
+                          localStorage.removeItem('palash_assigned_worksheets');
+                          if (typeof window !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
+                          }
+                        } catch (_) {}
+                        this.listeners.forEach((fn) => fn({ type: 'classroom_reset' }));
+                      } else if (ev.type === 'worksheet_assigned' && ev.data) {
+                        try {
+                          const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+                          const updated = [ev.data, ...stored.filter((w: any) => w.worksheetId !== ev.data.worksheetId)];
+                          localStorage.setItem('palash_assigned_worksheets', JSON.stringify(updated.slice(0, 10)));
+                          if (typeof window !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: ev.data }));
+                          }
+                        } catch (_) {}
+                        const mappedEvent: ClassroomEvent = {
+                          type: ev.type,
+                          data: ev.data
+                        };
+                        this.listeners.forEach((fn) => fn(mappedEvent));
+                      } else {
+                        const mappedEvent: ClassroomEvent = {
+                          type: ev.type,
+                          data: ev.data
+                        };
+                        this.listeners.forEach((fn) => fn(mappedEvent));
+                      }
                     }
-                  }
-                });
+                  });
+                }
+                if (typeof data.studentCount === 'number') {
+                  this.notifyCount(data.studentCount);
+                }
+                return; // Successfully polled endpoint
               }
-              if (typeof data.studentCount === 'number') {
-                this.notifyCount(data.studentCount);
-              }
-              return; // Successfully polled endpoint
             }
-          }
-        } catch (_) {}
-      }
+          } catch (_) {}
+        }
 
-      // If all network endpoints failed, check local channel
-      const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 20000;
-      if (isLocalActive && onConnectionStatus) {
-        onConnectionStatus({
-          connected: true,
-          teacherActive: true
-        });
+        // If all network endpoints failed, check local channel
+        const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 30000;
+        if (isLocalActive && onConnectionStatus) {
+          onConnectionStatus({
+            connected: true,
+            teacherActive: true
+          });
+        }
+      } finally {
+        isPolling = false;
       }
     };
 
     // Immediate initial poll
     pollEvents();
 
-    // Fast poll every 1200ms
-    this.pollInterval = setInterval(pollEvents, 1200);
+    // Fast poll every 2000ms
+    this.pollInterval = setInterval(pollEvents, 2000);
   }
 
   private notifyCount(count: number): void {
