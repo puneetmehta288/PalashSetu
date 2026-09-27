@@ -276,7 +276,12 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
               })}
 
               <div
-                onClick={() => navigate('/register')}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  sfx.playTap();
+                  navigate('/register');
+                }}
                 style={{
                   padding: '10px 8px',
                   borderRadius: '12px',
@@ -288,6 +293,7 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onLoginSuccess }) => {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  userSelect: 'none',
                 }}
               >
                 <div style={{ fontSize: '1.4rem', color: '#ed8936', marginBottom: '2px' }}>➕</div>

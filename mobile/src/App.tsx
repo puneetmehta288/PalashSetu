@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Component } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import LiveTranslation from './pages/LiveTranslation';
@@ -68,6 +68,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, EBState> {
 
 const AppRoutes: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [role, setRole] = useState<UserRole>(() => authService.getUserRole());
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(() => authService.getActiveProfile());
   const [activeStudent, setActiveStudent] = useState<StudentProfile | null>(() => authService.getStudentProfile());
@@ -86,11 +87,14 @@ const AppRoutes: React.FC = () => {
         });
     }
 
-    // If neither session is active, navigate to login
-    if (role === 'student' && !activeStudent) {
-      navigate('/login', { replace: true });
-    } else if (role === 'teacher' && !activeTeacher) {
-      navigate('/login', { replace: true });
+    // If neither session is active and not on an auth route, navigate to login
+    const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
+    if (!isAuthRoute) {
+      if (role === 'student' && !activeStudent) {
+        navigate('/login', { replace: true });
+      } else if (role === 'teacher' && !activeTeacher) {
+        navigate('/login', { replace: true });
+      }
     }
 
     const configureStatusBar = async () => {
@@ -99,7 +103,7 @@ const AppRoutes: React.FC = () => {
       } catch (_) {}
     };
     configureStatusBar();
-  }, [role, activeTeacher, activeStudent, navigate]);
+  }, [role, activeTeacher, activeStudent, navigate, location.pathname]);
 
   const handleLoginSuccess = (profile: TeacherProfile | StudentProfile) => {
     if ('teacherId' in profile) {
