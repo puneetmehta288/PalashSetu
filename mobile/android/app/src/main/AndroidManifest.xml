@@ -9,6 +9,7 @@
         android:supportsRtl="true"
         android:largeHeap="true"
         android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
 
         <activity
@@ -43,6 +44,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <!-- Camera hardware features (optional so devices without autofocus can still install) -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />

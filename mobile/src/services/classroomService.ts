@@ -76,6 +76,8 @@ export interface ConnectionStatus {
 }
 
 // Fallback cloud endpoint if deployed
+const LOCAL_HOTSPOT_ENDPOINT = 'http://192.168.43.1:8888/api/classroom';
+const LOCALHOST_ENDPOINT = 'http://127.0.0.1:8888/api/classroom';
 const RELAY_ENDPOINT = 'https://palashsetu-xi.vercel.app/api/classroom';
 
 class ClassroomService {
@@ -87,6 +89,8 @@ class ClassroomService {
   private broadcastChannel: BroadcastChannel | null = null;
   private pollInterval: any = null;
   private heartbeatInterval: any = null;
+  private localPingInterval: any = null;
+  private lastLocalActivityTimestamp: number = 0;
   private lastEventTimestamp: number = 0;
   private studentId: string = 'std_' + Math.random().toString(36).slice(2, 7);
   private listeners: ((event: ClassroomEvent) => void)[] = [];
@@ -427,6 +431,9 @@ class ClassroomService {
         this.broadcastChannel = new BroadcastChannel(`palash_classroom_${formattedCode}`);
         this.broadcastChannel.onmessage = (msg) => {
           if (msg.data) {
+            this.lastLocalActivityTimestamp = Date.now();
+            if (onConnectionStatus) onConnectionStatus({ connected: true, teacherActive: true });
+
             if (msg.data.type === 'classroom_reset' || msg.data.type === 'clear_worksheet') {
               try {
                 localStorage.removeItem('palash_assigned_worksheets');
@@ -448,18 +455,25 @@ class ClassroomService {
               }
               onEvent(msg.data);
             }
-            if (msg.data.type === 'teacher_ack' && msg.data.info) {
+            if ((msg.data.type === 'teacher_ack' || msg.data.type === 'teacher_heartbeat') && msg.data.info) {
               if (onClassroomInfo) onClassroomInfo(msg.data.info);
               if (onConnectionStatus) onConnectionStatus({ connected: true, teacherActive: true });
             }
           }
         };
 
-        // Ping teacher on BroadcastChannel
-        this.broadcastChannel.postMessage({
-          type: 'student_ping',
-          student: studentObj
-        });
+        // Continual local ping on BroadcastChannel (offline peer bus)
+        const sendLocalPing = () => {
+          try {
+            this.broadcastChannel?.postMessage({
+              type: 'student_ping',
+              student: studentObj
+            });
+          } catch (_) {}
+        };
+        sendLocalPing();
+        if (this.localPingInterval) clearInterval(this.localPingInterval);
+        this.localPingInterval = setInterval(sendLocalPing, 2000);
       }
     } catch (_) {}
 
@@ -475,6 +489,9 @@ class ClassroomService {
   public leaveClassroom(): void {
     if (this.pollInterval) clearInterval(this.pollInterval);
     if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    if (this.localPingInterval) clearInterval(this.localPingInterval);
+    this.localPingInterval = null;
+    this.lastLocalActivityTimestamp = 0;
     try {
       this.broadcastChannel?.close();
     } catch (_) {}
@@ -495,34 +512,71 @@ class ClassroomService {
 
   // ─── Internal Polling Helpers ───
   private async postToRelay(body: any): Promise<any> {
-    try {
-      let res = await fetch(RELAY_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      }).catch(() => null);
+    const endpoints = [
+      LOCAL_HOTSPOT_ENDPOINT,
+      LOCALHOST_ENDPOINT,
+      RELAY_ENDPOINT
+    ];
 
-      if (!res || !res.ok) {
-        // Fallback relative path on web
-        if (typeof window !== 'undefined') {
-          res = await fetch('/api/classroom', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-          }).catch(() => null);
+    for (const ep of endpoints) {
+      try {
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), 1200) : null;
+        const res = await fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: controller?.signal
+        }).catch(() => null);
+        if (timeoutId) clearTimeout(timeoutId);
+
+        if (res && res.ok) {
+          const json = await res.json().catch(() => null);
+          if (json) {
+            this.lastLocalActivityTimestamp = Date.now();
+            return json;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Fallback relative path on web
+    try {
+      if (typeof window !== 'undefined') {
+        const res = await fetch('/api/classroom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }).catch(() => null);
+        if (res && res.ok) {
+          return await res.json().catch(() => null);
         }
       }
-      return res?.json();
-    } catch (_) {
-      return null;
-    }
+    } catch (_) {}
+
+    return null;
   }
 
   private startTeacherPolling(roomCode: string): void {
     if (this.pollInterval) clearInterval(this.pollInterval);
     this.pollInterval = setInterval(async () => {
       try {
-        // 1. Send teacher heartbeat ping to keep classroom alive on relay
+        // 1. Broadcast local teacher_ack over BroadcastChannel (LOCAL OFFLINE BUS)
+        try {
+          this.broadcastChannel?.postMessage({
+            type: 'teacher_ack',
+            info: {
+              roomCode: roomCode,
+              teacherName: this.teacherName,
+              schoolName: this.schoolName,
+              grade: this.teacherGrade,
+              teacherActive: true,
+              studentCount: this.connectedStudentsMap.size
+            }
+          });
+        } catch (_) {}
+
+        // 2. Send teacher heartbeat ping to keep classroom alive on local hotspot & relay
         this.postToRelay({
           action: 'teacher_ping',
           room: roomCode,
@@ -531,52 +585,65 @@ class ClassroomService {
           grade: this.teacherGrade
         });
 
-        // 2. Poll submissions and students
-        let url = `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`;
-        let res = await fetch(url).catch(() => null);
-        if (!res || !res.ok) {
-          res = await fetch(`/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`).catch(() => null);
-        }
-        if (res && res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data.students)) {
-            // Update connected students
-            data.students.forEach((st: ConnectedStudent) => {
-              this.connectedStudentsMap.set(st.id, {
-                ...st,
-                joinedAt: this.connectedStudentsMap.get(st.id)?.joinedAt || Date.now()
-              });
-            });
-            this.notifyStudents();
-          }
-          if (data && Array.isArray(data.submissions)) {
-            data.submissions.forEach((sub: any) => {
-              const answersList = Array.isArray(sub.answers) ? sub.answers : (Array.isArray(sub.responses) ? sub.responses.map((r: any) => ({
-                question_id: r.questionId ?? r.question_id,
-                question_text: r.questionHin ?? r.question_text ?? '',
-                selected_answer: r.selectedAnswer ?? r.selected_answer ?? '',
-                correct_answer: r.correctAnswer ?? r.correct_answer ?? '',
-                is_correct: !!(r.isCorrect ?? r.is_correct)
-              })) : []);
+        // 3. Poll submissions and students across local and cloud endpoints
+        const endpoints = [
+          `${LOCAL_HOTSPOT_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+          `${LOCALHOST_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+          `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+          `/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`
+        ];
 
-              const normalizedSub: WorksheetSubmission = {
-                student_id: sub.student_id || sub.studentId || 'std_' + Math.random().toString(36).slice(2, 6),
-                student_name: sub.student_name || sub.studentName || 'विद्यार्थी',
-                worksheet_id: sub.worksheet_id || sub.worksheetId || 'ws_default',
-                worksheet_title: sub.worksheet_title || sub.worksheetTitle || 'कक्षा अभ्यास पत्र',
-                score: typeof sub.score === 'number' ? sub.score : 0,
-                total_questions: typeof sub.total_questions === 'number' ? sub.total_questions : (typeof sub.totalQuestions === 'number' ? sub.totalQuestions : answersList.length || 5),
-                percentage: typeof sub.percentage === 'number' ? sub.percentage : 0,
-                timestamp: sub.timestamp || sub.submittedAt || Date.now(),
-                answers: answersList
-              };
-              this.submissionsMap.set(`${normalizedSub.worksheet_id}_${normalizedSub.student_id}`, normalizedSub);
-            });
-            this.notifySubmissions();
-          }
-          if (data && typeof data.studentCount === 'number') {
-            this.notifyCount(data.studentCount);
-          }
+        for (const ep of endpoints) {
+          try {
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 1200) : null;
+            const res = await fetch(ep, { signal: controller?.signal }).catch(() => null);
+            if (timeoutId) clearTimeout(timeoutId);
+
+            if (res && res.ok) {
+              const data = await res.json().catch(() => null);
+              if (data) {
+                if (Array.isArray(data.students)) {
+                  data.students.forEach((st: ConnectedStudent) => {
+                    this.connectedStudentsMap.set(st.id, {
+                      ...st,
+                      joinedAt: this.connectedStudentsMap.get(st.id)?.joinedAt || Date.now()
+                    });
+                  });
+                  this.notifyStudents();
+                }
+                if (Array.isArray(data.submissions)) {
+                  data.submissions.forEach((sub: any) => {
+                    const answersList = Array.isArray(sub.answers) ? sub.answers : (Array.isArray(sub.responses) ? sub.responses.map((r: any) => ({
+                      question_id: r.questionId ?? r.question_id,
+                      question_text: r.questionHin ?? r.question_text ?? '',
+                      selected_answer: r.selectedAnswer ?? r.selected_answer ?? '',
+                      correct_answer: r.correctAnswer ?? r.correct_answer ?? '',
+                      is_correct: !!(r.isCorrect ?? r.is_correct)
+                    })) : []);
+
+                    const normalizedSub: WorksheetSubmission = {
+                      student_id: sub.student_id || sub.studentId || 'std_' + Math.random().toString(36).slice(2, 6),
+                      student_name: sub.student_name || sub.studentName || 'विद्यार्थी',
+                      worksheet_id: sub.worksheet_id || sub.worksheetId || 'ws_default',
+                      worksheet_title: sub.worksheet_title || sub.worksheetTitle || 'कक्षा अभ्यास पत्र',
+                      score: typeof sub.score === 'number' ? sub.score : 0,
+                      total_questions: typeof sub.total_questions === 'number' ? sub.total_questions : (typeof sub.totalQuestions === 'number' ? sub.totalQuestions : answersList.length || 5),
+                      percentage: typeof sub.percentage === 'number' ? sub.percentage : 0,
+                      timestamp: sub.timestamp || sub.submittedAt || Date.now(),
+                      answers: answersList
+                    };
+                    this.submissionsMap.set(`${normalizedSub.worksheet_id}_${normalizedSub.student_id}`, normalizedSub);
+                  });
+                  this.notifySubmissions();
+                }
+                if (typeof data.studentCount === 'number') {
+                  this.notifyCount(data.studentCount);
+                }
+                break;
+              }
+            }
+          } catch (_) {}
         }
       } catch (_) {}
     }, 2500);
@@ -606,6 +673,7 @@ class ClassroomService {
 
         if (res && res.success) {
           consecutiveFailures = 0;
+          this.lastLocalActivityTimestamp = Date.now();
           if (onConnectionStatus) {
             onConnectionStatus({
               connected: true,
@@ -659,23 +727,46 @@ class ClassroomService {
             });
           }
         } else {
-          consecutiveFailures++;
-          if (consecutiveFailures >= 5 && onConnectionStatus) {
-            onConnectionStatus({
-              connected: false,
-              teacherActive: false,
-              errorReason: 'शिक्षक से संपर्क नहीं हो पा रहा है। कृपया सुनिश्चित करें कि आप शिक्षक के हॉटस्पॉट या उसी वाई-फ़ाई से जुड़े हैं।'
-            });
+          // If local offline bus is alive, DO NOT mark disconnected
+          const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 20000;
+          if (isLocalActive) {
+            consecutiveFailures = 0;
+            if (onConnectionStatus) {
+              onConnectionStatus({
+                connected: true,
+                teacherActive: true
+              });
+            }
+          } else {
+            consecutiveFailures++;
+            if (consecutiveFailures >= 6 && onConnectionStatus) {
+              onConnectionStatus({
+                connected: false,
+                teacherActive: false,
+                errorReason: 'शिक्षक से संपर्क नहीं हो पा रहा है।'
+              });
+            }
           }
         }
       } catch (_) {
-        consecutiveFailures++;
-        if (consecutiveFailures >= 5 && onConnectionStatus) {
-          onConnectionStatus({
-            connected: false,
-            teacherActive: false,
-            errorReason: 'नेटवर्क संपर्क त्रुटि। कृपया शिक्षक के हॉटस्पॉट से कनेक्ट करें।'
-          });
+        const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 20000;
+        if (isLocalActive) {
+          consecutiveFailures = 0;
+          if (onConnectionStatus) {
+            onConnectionStatus({
+              connected: true,
+              teacherActive: true
+            });
+          }
+        } else {
+          consecutiveFailures++;
+          if (consecutiveFailures >= 6 && onConnectionStatus) {
+            onConnectionStatus({
+              connected: false,
+              teacherActive: false,
+              errorReason: 'शिक्षक से संपर्क नहीं हो पा रहा है।'
+            });
+          }
         }
       }
     };
@@ -683,93 +774,105 @@ class ClassroomService {
     // Initial ping
     sendPing();
 
-    // Heartbeat every 7s
-    this.heartbeatInterval = setInterval(sendPing, 7000);
+    // Heartbeat every 5s
+    this.heartbeatInterval = setInterval(sendPing, 5000);
 
     const pollEvents = async () => {
-      try {
-        let url = `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`;
-        let res = await fetch(url).catch(() => null);
-        if (!res || !res.ok) {
-          res = await fetch(`/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`).catch(() => null);
-        }
-        if (res && res.ok) {
-          const data = await res.json();
-          if (data && data.exists) {
-            if (onConnectionStatus) {
-              onConnectionStatus({
-                connected: true,
-                teacherActive: !!data.teacherActive
-              });
-            }
-            if (onClassroomInfo && data.teacherName) {
-              onClassroomInfo({
-                roomCode,
-                teacherName: data.teacherName,
-                schoolName: data.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड',
-                grade: data.grade || student.grade || 'कक्षा 1',
-                teacherActive: !!data.teacherActive,
-                studentCount: data.studentCount || 1
-              });
-            }
-          } else if (data && !data.exists) {
-            if (onConnectionStatus) {
-              onConnectionStatus({
-                connected: false,
-                teacherActive: false,
-                errorReason: 'यह कमरा सक्रिय नहीं है या बंद हो चुका है।'
-              });
-            }
-          }
+      const endpoints = [
+        `${LOCAL_HOTSPOT_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+        `${LOCALHOST_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+        `${RELAY_ENDPOINT}?room=${roomCode}&since=${this.lastEventTimestamp}`,
+        `/api/classroom?room=${roomCode}&since=${this.lastEventTimestamp}`
+      ];
 
-          if (data && Array.isArray(data.events)) {
-            data.events.forEach((ev: any) => {
-              if (ev.timestamp > this.lastEventTimestamp) {
-                this.lastEventTimestamp = ev.timestamp;
-                if (ev.type === 'classroom_reset') {
-                  try {
-                    localStorage.removeItem('palash_assigned_worksheets');
-                    if (typeof window !== 'undefined') {
-                      window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
-                    }
-                  } catch (_) {}
-                  this.listeners.forEach((fn) => fn({ type: 'classroom_reset' }));
-                } else if (ev.type === 'worksheet_assigned' && ev.data) {
-                  try {
-                    const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
-                    const updated = [ev.data, ...stored.filter((w: any) => w.worksheetId !== ev.data.worksheetId)];
-                    localStorage.setItem('palash_assigned_worksheets', JSON.stringify(updated.slice(0, 10)));
-                    if (typeof window !== 'undefined') {
-                      window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: ev.data }));
-                    }
-                  } catch (_) {}
-                  const mappedEvent: ClassroomEvent = {
-                    type: ev.type,
-                    data: ev.data
-                  };
-                  this.listeners.forEach((fn) => fn(mappedEvent));
-                } else {
-                  const mappedEvent: ClassroomEvent = {
-                    type: ev.type,
-                    data: ev.data
-                  };
-                  this.listeners.forEach((fn) => fn(mappedEvent));
-                }
+      for (const ep of endpoints) {
+        try {
+          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+          const timeoutId = controller ? setTimeout(() => controller.abort(), 1200) : null;
+          const res = await fetch(ep, { signal: controller?.signal }).catch(() => null);
+          if (timeoutId) clearTimeout(timeoutId);
+
+          if (res && res.ok) {
+            const data = await res.json().catch(() => null);
+            if (data && data.exists) {
+              this.lastLocalActivityTimestamp = Date.now();
+              if (onConnectionStatus) {
+                onConnectionStatus({
+                  connected: true,
+                  teacherActive: !!data.teacherActive
+                });
               }
-            });
+              if (onClassroomInfo && data.teacherName) {
+                onClassroomInfo({
+                  roomCode,
+                  teacherName: data.teacherName,
+                  schoolName: data.schoolName || 'उत्क्रमित प्राथमिक विद्यालय, काठीकुंड',
+                  grade: data.grade || student.grade || 'कक्षा 1',
+                  teacherActive: !!data.teacherActive,
+                  studentCount: data.studentCount || 1
+                });
+              }
+
+              if (Array.isArray(data.events)) {
+                data.events.forEach((ev: any) => {
+                  if (ev.timestamp > this.lastEventTimestamp) {
+                    this.lastEventTimestamp = ev.timestamp;
+                    if (ev.type === 'classroom_reset') {
+                      try {
+                        localStorage.removeItem('palash_assigned_worksheets');
+                        if (typeof window !== 'undefined') {
+                          window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
+                        }
+                      } catch (_) {}
+                      this.listeners.forEach((fn) => fn({ type: 'classroom_reset' }));
+                    } else if (ev.type === 'worksheet_assigned' && ev.data) {
+                      try {
+                        const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
+                        const updated = [ev.data, ...stored.filter((w: any) => w.worksheetId !== ev.data.worksheetId)];
+                        localStorage.setItem('palash_assigned_worksheets', JSON.stringify(updated.slice(0, 10)));
+                        if (typeof window !== 'undefined') {
+                          window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: ev.data }));
+                        }
+                      } catch (_) {}
+                      const mappedEvent: ClassroomEvent = {
+                        type: ev.type,
+                        data: ev.data
+                      };
+                      this.listeners.forEach((fn) => fn(mappedEvent));
+                    } else {
+                      const mappedEvent: ClassroomEvent = {
+                        type: ev.type,
+                        data: ev.data
+                      };
+                      this.listeners.forEach((fn) => fn(mappedEvent));
+                    }
+                  }
+                });
+              }
+              if (typeof data.studentCount === 'number') {
+                this.notifyCount(data.studentCount);
+              }
+              return; // Successfully polled endpoint
+            }
           }
-          if (data && typeof data.studentCount === 'number') {
-            this.notifyCount(data.studentCount);
-          }
-        }
-      } catch (_) {}
+        } catch (_) {}
+      }
+
+      // If all network endpoints failed, check local channel
+      const isLocalActive = (Date.now() - this.lastLocalActivityTimestamp) < 20000;
+      if (isLocalActive && onConnectionStatus) {
+        onConnectionStatus({
+          connected: true,
+          teacherActive: true
+        });
+      }
     };
 
-    // Immediate initial poll (0ms) so student gets events right away without waiting
+    // Immediate initial poll
     pollEvents();
 
-    // Fast poll every 800ms
-    this.pollInterval = setInterval(pollEvents, 800);
+    // Fast poll every 1200ms
+    this.pollInterval = setInterval(pollEvents, 1200);
   }
 
   private notifyCount(count: number): void {
