@@ -18,6 +18,7 @@ export interface TeacherProfile {
 }
 
 export interface StudentProfile {
+  studentId?: string;
   studentName: string;
   grade: string;
   roomCode: string;

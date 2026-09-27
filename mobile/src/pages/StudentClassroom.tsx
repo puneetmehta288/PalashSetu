@@ -55,6 +55,8 @@ const StudentClassroom: React.FC = () => {
             id: event.data.worksheetId,
             title: event.data.title,
           });
+        } else if (event.type === 'classroom_reset') {
+          setAssignedWorksheet(null);
         }
       },
       (count: number) => {
@@ -90,7 +92,12 @@ const StudentClassroom: React.FC = () => {
         });
       }
     };
+    const onClassroomReset = () => {
+      setAssignedWorksheet(null);
+    };
+
     window.addEventListener('palash_worksheet_assigned', onWorksheetAssigned);
+    window.addEventListener('palash_classroom_reset', onClassroomReset);
 
     // Timeout check after 4s: if still no teacher ack, show hotspot guidance
     const timer = setTimeout(() => {
@@ -100,6 +107,7 @@ const StudentClassroom: React.FC = () => {
     return () => {
       unsubscribe();
       window.removeEventListener('palash_worksheet_assigned', onWorksheetAssigned);
+      window.removeEventListener('palash_classroom_reset', onClassroomReset);
       clearTimeout(timer);
     };
   }, [navigate]);
@@ -520,7 +528,7 @@ const StudentClassroom: React.FC = () => {
         <div
           onClick={() => {
             sfx.playTap();
-            navigate('/jcert');
+            navigate('/books');
           }}
           style={{
             backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',

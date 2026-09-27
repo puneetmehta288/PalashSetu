@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { speakText, transliterateOlChikiToPhonetic, isOlChiki, convertDigitsToOlChiki, convertOlChikiToDigits, numberToSantaliWords, transliterateDevanagariToOlChiki } from '../utils/santaliSpeech';
 import { sfx } from '../utils/sfx';
@@ -209,6 +210,7 @@ interface ConversationTurn {
 }
 
 const LiveTranslation: React.FC = () => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'teacher' | 'student'>('teacher');
   const [selectedLanguage, setSelectedLanguage] = useState<TribalLanguage>(() => {
     const saved = localStorage.getItem('palash_selected_language');
@@ -854,27 +856,51 @@ const translateClientSide = (text: string, currentMode: 'teacher' | 'student'): 
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {isBroadcasting && (
-            <button
-              onClick={() => {
-                sfx.playTap();
-                setShowQRModal(true);
-              }}
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                border: '1px solid rgba(255,255,255,0.4)',
-                color: '#ffffff',
-                padding: '7px 12px',
-                borderRadius: '10px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <span>📷 QR कोड दिखाएं</span>
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  sfx.playTap();
+                  setShowQRModal(true);
+                }}
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.4)',
+                  color: '#ffffff',
+                  padding: '7px 12px',
+                  borderRadius: '10px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>📷 QR कोड</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  sfx.playTap();
+                  navigate('/worksheets');
+                }}
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.25)',
+                  border: '1px solid rgba(255,255,255,0.5)',
+                  color: '#ffffff',
+                  padding: '7px 12px',
+                  borderRadius: '10px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>📝 कार्यपत्र एवं मूल्यांकन</span>
+              </button>
+            </>
           )}
 
           <button

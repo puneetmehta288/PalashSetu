@@ -23,9 +23,31 @@ export interface ClassroomWorksheetEvent {
   questions?: any[];
 }
 
+export interface StudentAnswerItem {
+  question_id: number;
+  question_text: string;
+  selected_answer: string;
+  correct_answer: string;
+  is_correct: boolean;
+}
+
+export interface WorksheetSubmission {
+  worksheet_id: string;
+  worksheet_title: string;
+  student_id: string;
+  student_name: string;
+  total_questions: number;
+  score: number;
+  percentage: number;
+  timestamp: number;
+  answers: StudentAnswerItem[];
+}
+
 export type ClassroomEvent = 
   | { type: 'translation'; data: ClassroomTranslationEvent }
-  | { type: 'worksheet_assigned'; data: ClassroomWorksheetEvent };
+  | { type: 'worksheet_assigned'; data: ClassroomWorksheetEvent }
+  | { type: 'worksheet_submission'; data: WorksheetSubmission }
+  | { type: 'classroom_reset'; data?: any };
 
 export interface ConnectedStudent {
   id: string;
@@ -68,9 +90,14 @@ class ClassroomService {
   private countListeners: ((count: number) => void)[] = [];
   private studentsListeners: ((students: ConnectedStudent[]) => void)[] = [];
   private connectedStudentsMap: Map<string, ConnectedStudent> = new Map();
+  private submissionsMap: Map<string, WorksheetSubmission> = new Map();
+  private submissionsListeners: ((submissions: WorksheetSubmission[]) => void)[] = [];
 
   // ─── TEACHER: Start Broadcasting ───
   public startBroadcast(teacherName: string, schoolName?: string, grade?: string): string {
+    // Reset previous broadcast session data cleanly
+    this.resetClassroom();
+
     // Generate 4-digit easy-to-read room code
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     this.activeRoomCode = code;
@@ -80,6 +107,7 @@ class ClassroomService {
     if (grade) this.teacherGrade = grade;
     this.lastEventTimestamp = Date.now();
     this.connectedStudentsMap.clear();
+    this.submissionsMap.clear();
 
     // 1. Setup local BroadcastChannel
     try {
@@ -105,6 +133,10 @@ class ClassroomService {
                 studentCount: this.connectedStudentsMap.size
               }
             });
+          } else if (msg.data?.type === 'worksheet_submission' && msg.data.data) {
+            const sub: WorksheetSubmission = msg.data.data;
+            this.submissionsMap.set(`${sub.worksheet_id}_${sub.student_id}`, sub);
+            this.notifySubmissions();
           }
         };
       }
@@ -196,6 +228,7 @@ class ClassroomService {
 
   // ─── TEACHER: Stop Broadcasting ───
   public stopBroadcast(): void {
+    this.resetClassroom();
     if (this.activeRoomCode) {
       this.postToRelay({ action: 'close', room: this.activeRoomCode });
       try {
@@ -207,6 +240,78 @@ class ClassroomService {
     this.connectedStudentsMap.clear();
     sessionStorage.removeItem('palash_active_room');
     if (this.pollInterval) clearInterval(this.pollInterval);
+  }
+
+  // ─── RESET CLASSROOM ───
+  public resetClassroom(): void {
+    const room = this.activeRoomCode || (typeof window !== 'undefined' ? sessionStorage.getItem('palash_active_room') : null);
+    try {
+      localStorage.removeItem('palash_assigned_worksheets');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
+      }
+    } catch (_) {}
+
+    this.submissionsMap.clear();
+    this.notifySubmissions();
+
+    try {
+      this.broadcastChannel?.postMessage({ type: 'classroom_reset' });
+    } catch (_) {}
+
+    if (room) {
+      this.postToRelay({
+        action: 'reset_classroom',
+        room: room
+      });
+    }
+  }
+
+  // ─── SUBMISSION TRACKING ───
+  public onSubmissionsUpdate(callback: (subs: WorksheetSubmission[]) => void): () => void {
+    this.submissionsListeners.push(callback);
+    callback(Array.from(this.submissionsMap.values()));
+    return () => {
+      this.submissionsListeners = this.submissionsListeners.filter(cb => cb !== callback);
+    };
+  }
+
+  public getSubmissions(): WorksheetSubmission[] {
+    return Array.from(this.submissionsMap.values());
+  }
+
+  public async submitWorksheetResult(submission: WorksheetSubmission): Promise<any> {
+    const room = this.activeRoomCode || (typeof window !== 'undefined' ? sessionStorage.getItem('palash_active_room') : null);
+
+    // Save locally on student tablet
+    try {
+      const stored = JSON.parse(localStorage.getItem('palash_student_my_submissions') || '[]');
+      const updated = [submission, ...stored.filter((s: any) => s.worksheet_id !== submission.worksheet_id)];
+      localStorage.setItem('palash_student_my_submissions', JSON.stringify(updated.slice(0, 15)));
+    } catch (_) {}
+
+    // 1. Post to local BroadcastChannel (peer-to-peer / offline)
+    try {
+      this.broadcastChannel?.postMessage({
+        type: 'worksheet_submission',
+        data: submission
+      });
+    } catch (_) {}
+
+    // 2. Post to Relay
+    if (room) {
+      return this.postToRelay({
+        action: 'submit_worksheet',
+        room: room,
+        submission: submission
+      });
+    }
+    return { success: true };
+  }
+
+  private notifySubmissions(): void {
+    const list = Array.from(this.submissionsMap.values());
+    this.submissionsListeners.forEach(fn => fn(list));
   }
 
   // ─── TEACHER: Subscribe to student updates ───
@@ -251,7 +356,15 @@ class ClassroomService {
         this.broadcastChannel = new BroadcastChannel(`palash_classroom_${formattedCode}`);
         this.broadcastChannel.onmessage = (msg) => {
           if (msg.data) {
-            if (msg.data.type === 'translation' || msg.data.type === 'worksheet_assigned') {
+            if (msg.data.type === 'classroom_reset') {
+              try {
+                localStorage.removeItem('palash_assigned_worksheets');
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
+                }
+              } catch (_) {}
+              onEvent({ type: 'classroom_reset' });
+            } else if (msg.data.type === 'translation' || msg.data.type === 'worksheet_assigned') {
               if (msg.data.type === 'worksheet_assigned' && msg.data.data) {
                 try {
                   const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
@@ -356,6 +469,12 @@ class ClassroomService {
             });
             this.notifyStudents();
           }
+          if (data && Array.isArray(data.submissions)) {
+            data.submissions.forEach((sub: WorksheetSubmission) => {
+              this.submissionsMap.set(`${sub.worksheet_id}_${sub.student_id}`, sub);
+            });
+            this.notifySubmissions();
+          }
           if (data && typeof data.studentCount === 'number') {
             this.notifyCount(data.studentCount);
           }
@@ -416,7 +535,15 @@ class ClassroomService {
             res.recentEvents.forEach((ev: any) => {
               if (ev && ev.timestamp > this.lastEventTimestamp) {
                 this.lastEventTimestamp = ev.timestamp;
-                if (ev.type === 'worksheet_assigned' && ev.data) {
+                if (ev.type === 'classroom_reset') {
+                  try {
+                    localStorage.removeItem('palash_assigned_worksheets');
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
+                    }
+                  } catch (_) {}
+                  this.listeners.forEach(fn => fn({ type: 'classroom_reset' }));
+                } else if (ev.type === 'worksheet_assigned' && ev.data) {
                   try {
                     const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
                     const updated = [ev.data, ...stored.filter((w: any) => w.worksheetId !== ev.data.worksheetId)];
@@ -425,8 +552,10 @@ class ClassroomService {
                       window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: ev.data }));
                     }
                   } catch (_) {}
+                  this.listeners.forEach(fn => fn({ type: ev.type, data: ev.data }));
+                } else {
+                  this.listeners.forEach(fn => fn({ type: ev.type, data: ev.data }));
                 }
-                this.listeners.forEach(fn => fn({ type: ev.type, data: ev.data }));
               }
             });
           }
@@ -498,7 +627,15 @@ class ClassroomService {
             data.events.forEach((ev: any) => {
               if (ev.timestamp > this.lastEventTimestamp) {
                 this.lastEventTimestamp = ev.timestamp;
-                if (ev.type === 'worksheet_assigned' && ev.data) {
+                if (ev.type === 'classroom_reset') {
+                  try {
+                    localStorage.removeItem('palash_assigned_worksheets');
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('palash_classroom_reset'));
+                    }
+                  } catch (_) {}
+                  this.listeners.forEach((fn) => fn({ type: 'classroom_reset' }));
+                } else if (ev.type === 'worksheet_assigned' && ev.data) {
                   try {
                     const stored = JSON.parse(localStorage.getItem('palash_assigned_worksheets') || '[]');
                     const updated = [ev.data, ...stored.filter((w: any) => w.worksheetId !== ev.data.worksheetId)];
@@ -507,12 +644,18 @@ class ClassroomService {
                       window.dispatchEvent(new CustomEvent('palash_worksheet_assigned', { detail: ev.data }));
                     }
                   } catch (_) {}
+                  const mappedEvent: ClassroomEvent = {
+                    type: ev.type,
+                    data: ev.data
+                  };
+                  this.listeners.forEach((fn) => fn(mappedEvent));
+                } else {
+                  const mappedEvent: ClassroomEvent = {
+                    type: ev.type,
+                    data: ev.data
+                  };
+                  this.listeners.forEach((fn) => fn(mappedEvent));
                 }
-                const mappedEvent: ClassroomEvent = {
-                  type: ev.type,
-                  data: ev.data
-                };
-                this.listeners.forEach((fn) => fn(mappedEvent));
               }
             });
           }

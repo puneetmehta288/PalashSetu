@@ -36,6 +36,26 @@ interface StudentInfo {
   lastSeen: number;
 }
 
+interface WorksheetSubmission {
+  studentId: string;
+  studentName: string;
+  studentGrade?: string;
+  studentAvatar?: string;
+  worksheetId: string;
+  worksheetTitle: string;
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  submittedAt: number;
+  responses: Array<{
+    questionId: number;
+    questionHin: string;
+    selectedAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+  }>;
+}
+
 interface RoomData {
   roomCode: string;
   teacherName?: string;
@@ -44,6 +64,7 @@ interface RoomData {
   lastActive: number;
   students: Record<string, StudentInfo>;
   events: RoomEvent[];
+  submissions?: WorksheetSubmission[];
 }
 
 const TMP_FILE = path.join(os.tmpdir(), 'palash_classroom_rooms.json');
@@ -129,7 +150,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         grade: s.grade,
         avatar: s.avatar
       })),
-      events: newEvents
+      events: newEvents,
+      submissions: room.submissions || []
     });
   }
 
@@ -215,7 +237,52 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         });
       }
 
-      // Action 3: Teacher closing the room
+      // Action 3: Student submitting worksheet answers
+      if (body.action === 'submit_worksheet') {
+        if (!room.submissions) room.submissions = [];
+        const submission: WorksheetSubmission = {
+          studentId: String(body.studentId || 'std_' + Math.random().toString(36).slice(2, 6)),
+          studentName: String(body.studentName || 'विद्यार्थी'),
+          studentGrade: String(body.studentGrade || room.grade || 'कक्षा 1'),
+          studentAvatar: String(body.studentAvatar || '🎒'),
+          worksheetId: String(body.worksheetId || 'ws_default'),
+          worksheetTitle: String(body.worksheetTitle || 'कक्षा अभ्यास पत्र'),
+          score: typeof body.score === 'number' ? body.score : 0,
+          totalQuestions: typeof body.totalQuestions === 'number' ? body.totalQuestions : 5,
+          percentage: typeof body.percentage === 'number' ? body.percentage : 0,
+          submittedAt: now,
+          responses: Array.isArray(body.responses) ? body.responses : []
+        };
+
+        const existingIdx = room.submissions.findIndex(s => s.studentId === submission.studentId && s.worksheetId === submission.worksheetId);
+        if (existingIdx >= 0) {
+          room.submissions[existingIdx] = submission;
+        } else {
+          room.submissions.push(submission);
+        }
+
+        const submissionEvent: RoomEvent = {
+          id: `sub_${now}_${submission.studentId}`,
+          type: 'worksheet_submission' as any,
+          timestamp: now,
+          data: submission
+        };
+        room.events.push(submissionEvent);
+        if (room.events.length > 40) room.events.shift();
+
+        saveRooms(rooms);
+        return res.status(200).json({ success: true, submissionId: submission.studentId });
+      }
+
+      // Action 4: Teacher resetting classroom (new session / clear previous worksheet)
+      if (body.action === 'reset_classroom') {
+        room.events = [];
+        room.submissions = [];
+        saveRooms(rooms);
+        return res.status(200).json({ success: true, reset: true });
+      }
+
+      // Action 5: Teacher closing the room
       if (body.action === 'close') {
         delete rooms[roomCode];
         saveRooms(rooms);

@@ -69,11 +69,23 @@ public class MainActivity extends BridgeActivity {
             }
         });
 
-        // Request runtime RECORD_AUDIO permission if not yet granted
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+        // Request runtime RECORD_AUDIO and CAMERA permissions if not yet granted
+        java.util.List<String> permissionsNeeded = new java.util.ArrayList<>();
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.MODIFY_AUDIO_SETTINGS},
+            permissionsNeeded.add(Manifest.permission.RECORD_AUDIO);
+        }
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.CAMERA);
+        }
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this, Manifest.permission.MODIFY_AUDIO_SETTINGS)
+                != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.MODIFY_AUDIO_SETTINGS);
+        }
+        if (!permissionsNeeded.isEmpty()) {
+            androidx.core.app.ActivityCompat.requestPermissions(this,
+                    permissionsNeeded.toArray(new String[0]),
                     101);
         }
 

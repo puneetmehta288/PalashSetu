@@ -24,6 +24,19 @@ const AppRoutes: React.FC = () => {
   const [activeStudent, setActiveStudent] = useState<StudentProfile | null>(() => authService.getStudentProfile());
 
   useEffect(() => {
+    // Proactively request camera and microphone permissions on app launch
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        .then((stream) => {
+          stream.getTracks().forEach((t) => t.stop());
+        })
+        .catch(() => {
+          navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => stream.getTracks().forEach((t) => t.stop()))
+            .catch(() => {});
+        });
+    }
+
     // If neither session is active, navigate to login
     if (role === 'student' && !activeStudent) {
       navigate('/login', { replace: true });
@@ -110,6 +123,7 @@ const AppRoutes: React.FC = () => {
         <Route path="flashcards" element={<Flashcards />} />
         <Route path="worksheets" element={<Worksheets />} />
         <Route path="books" element={<JCERTTextbooks />} />
+        <Route path="jcert" element={<JCERTTextbooks />} />
 
         {/* Teacher Only Pages */}
         <Route

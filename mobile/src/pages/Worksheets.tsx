@@ -6,7 +6,7 @@ import { TribalLanguage, TRIBAL_LANGUAGES } from '../types';
 import { translateHindiToHo } from '../data/ho_dictionary';
 import { translateHindiToMundari } from '../data/mundari_dictionary';
 import { authService } from '../services/authService';
-import { classroomService } from '../services/classroomService';
+import { classroomService, WorksheetSubmission, StudentAnswerItem } from '../services/classroomService';
 
 // ════════════════════════════════════════════════════════════════════════════
 // NIPUN Bharat Grade-Adaptive Worksheet Generator
@@ -173,11 +173,15 @@ function generateQuestions(questionType: string, numQuestions: number): Question
       const count = Math.ceil((i % 5) + 1 > 5 ? 5 : (i % 5) + 1);
       const emojis = ['🐮', '🐐', '🍎', '🌸', '⭐', '🍌'];
       const em = emojis[i % emojis.length];
+      const opt1 = `${count} = ${OL_DIGITS[count]}`;
+      const opt2 = `${(count % 5) + 1} = ${OL_DIGITS[(count % 5) + 1]}`;
+      const opt3 = `${count > 1 ? count - 1 : count + 2} = ${OL_DIGITS[count > 1 ? count - 1 : count + 2]}`;
       generated.push({
         id: i, type: questionType,
         question_hin: `गिनो और Ol Chiki में लिखो: ${Array(count).fill(em).join(' ')} = ___`,
         question_sat: `ᱞᱮᱠᱷᱟᱭ ᱟᱨ ᱚᱞ ᱪᱤᱠᱤ ᱛᱮ ᱞᱮᱠᱷᱮ: ${Array(count).fill(em).join(' ')} = ___`,
-        correct_answer: `${count} = ${OL_DIGITS[count]}`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `Santali: ${SANTALI_NUMS[count - 1]}`,
       });
     }
@@ -212,7 +216,7 @@ function generateQuestions(questionType: string, numQuestions: number): Question
         id: i, type: questionType,
         question_hin: `इनमें कौन बड़ा / ज़्यादा है? ${p.a} या ${p.b}`,
         question_sat: `ᱱᱚᱣᱟ ᱠᱤᱱ ᱨᱮ ᱚᱠᱚᱭ ᱢᱟᱨᱟᱝ/ᱰᱷᱮᱨ? ${p.a_sat} ᱠᱟ ${p.b_sat}`,
-        options: [p.a, p.b],
+        options: [p.bigger, p.b + ' (ᱦᱩᱰᱤᱧ)'],
         correct_answer: p.bigger,
       });
     }
@@ -265,11 +269,16 @@ function generateQuestions(questionType: string, numQuestions: number): Question
     else if (questionType === 'c1_addition') {
       const a = Math.floor(Math.random() * 8) + 1;
       const b = Math.floor(Math.random() * 8) + 1;
+      const sum = a + b;
+      const opt1 = `${sum}  (${OL_DIGITS[sum] || sum})`;
+      const opt2 = `${sum + 1}  (${OL_DIGITS[sum + 1] || sum + 1})`;
+      const opt3 = `${Math.max(1, sum - 1)}  (${OL_DIGITS[Math.max(1, sum - 1)]})`;
       generated.push({
         id: i, type: questionType,
         question_hin: `${a} + ${b} = ___  (उत्तर Ol Chiki में भी लिखो)`,
         question_sat: `${OL_DIGITS[a]} + ${OL_DIGITS[b]} = ___ (ᱚᱞ ᱪᱤᱠᱤ ᱛᱮ ᱞᱮᱠᱷᱮ)`,
-        correct_answer: `${a + b}  (Santali: ${SANTALI_NUMS[a + b - 1] || (a + b)})`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `गिनती करें: ${a} से आगे ${b} कदम गिनें (${SANTALI_NUMS[a-1]} ᱟᱨ ${SANTALI_NUMS[b-1]} = ${SANTALI_NUMS[a+b-1] || a+b})`,
       });
     }
@@ -277,11 +286,16 @@ function generateQuestions(questionType: string, numQuestions: number): Question
     else if (questionType === 'c1_subtraction') {
       const a = Math.floor(Math.random() * 5) + 4;
       const b = Math.floor(Math.random() * 3) + 1;
+      const diff = a - b;
+      const opt1 = `${diff}  (${OL_DIGITS[diff] || diff})`;
+      const opt2 = `${diff + 1}  (${OL_DIGITS[diff + 1] || diff + 1})`;
+      const opt3 = `${Math.max(0, diff - 1)}  (${OL_DIGITS[Math.max(0, diff - 1)]})`;
       generated.push({
         id: i, type: questionType,
         question_hin: `${a} - ${b} = ___`,
         question_sat: `${OL_DIGITS[a]} - ${OL_DIGITS[b]} = ___`,
-        correct_answer: `${a - b}  (${SANTALI_NUMS[a - b - 1] || (a - b)})`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `उलटी गिनती करें: ${a} में से ${b} घटाएँ (${SANTALI_NUMS[a-1]} ᱠᱷᱚᱱ ${SANTALI_NUMS[b-1]} ᱜᱷᱟᱴᱟᱣ)`,
       });
     }
@@ -303,11 +317,16 @@ function generateQuestions(questionType: string, numQuestions: number): Question
 
     else if (questionType === 'c1_sequence') {
       const start = Math.floor(Math.random() * 7) + 1;
+      const missing = start + 2;
+      const opt1 = `${missing}  (${OL_DIGITS[missing] || missing})`;
+      const opt2 = `${start + 1}  (${OL_DIGITS[start + 1]})`;
+      const opt3 = `${start + 4}  (${OL_DIGITS[start + 4] || start + 4})`;
       generated.push({
         id: i, type: questionType,
         question_hin: `खाली स्थान भरो: ${start}, ${start + 1}, ___, ${start + 3}`,
         question_sat: `ᱯᱮᱨᱮᱡᱽ ᱢᱮ: ${OL_DIGITS[start]}, ${OL_DIGITS[start + 1]}, ___, ${OL_DIGITS[start + 3]}`,
-        correct_answer: `${start + 2}  (${SANTALI_NUMS[start + 1]})`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: 'Count forward by 1 each time',
       });
     }
@@ -321,11 +340,15 @@ function generateQuestions(questionType: string, numQuestions: number): Question
         { q: '5, 10, 15, 20, ___', ans: '25', hint: 'Skip count by 5' },
       ];
       const p = patterns[i % patterns.length];
+      const opt1 = p.ans;
+      const opt2 = String(parseInt(p.ans, 10) + 2 || 12);
+      const opt3 = String(Math.max(1, parseInt(p.ans, 10) - 2) || 4);
       generated.push({
         id: i, type: questionType,
         question_hin: `पैटर्न पहचानो और अगला बताओ: ${p.q}`,
         question_sat: `ᱯᱮᱴᱟᱨᱱ ᱜᱟ ᱱᱚᱣᱟ ᱟᱜᱩ ᱞᱮᱠᱷᱟ ᱢᱮᱱᱟᱜ: ${p.q}`,
-        correct_answer: p.ans,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: p.hint,
       });
     }
@@ -361,11 +384,17 @@ function generateQuestions(questionType: string, numQuestions: number): Question
     else if (questionType === 'c2_addition') {
       const a = Math.floor(Math.random() * 40) + 10;
       const b = Math.floor(Math.random() * 40) + 10;
+      const sum = a + b;
+      const opt1 = `${sum}`;
+      const opt2 = `${sum + 10}`;
+      const opt3 = `${Math.max(1, sum - 10)}`;
+      const opt4 = `${sum + 2}`;
       generated.push({
         id: i, type: questionType,
         question_hin: `${a} + ${b} = ___  (कॉलम में हल करो)`,
         question_sat: `${a} + ${b} = ___  (ᱠᱳᱞᱚᱢ ᱛᱮ ᱦᱟᱹᱞ ᱠᱟᱹᱢᱤ)`,
-        correct_answer: `${a + b}`,
+        options: [opt1, opt2, opt3, opt4].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: 'Add ones first, then tens',
       });
     }
@@ -373,11 +402,17 @@ function generateQuestions(questionType: string, numQuestions: number): Question
     else if (questionType === 'c2_subtraction') {
       const a = Math.floor(Math.random() * 40) + 50;
       const b = Math.floor(Math.random() * 30) + 10;
+      const diff = a - b;
+      const opt1 = `${diff}`;
+      const opt2 = `${diff + 10}`;
+      const opt3 = `${Math.max(1, diff - 5)}`;
+      const opt4 = `${diff + 2}`;
       generated.push({
         id: i, type: questionType,
         question_hin: `${a} - ${b} = ___`,
         question_sat: `${a} - ${b} = ___`,
-        correct_answer: `${a - b}`,
+        options: [opt1, opt2, opt3, opt4].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: 'Subtract ones first, then tens',
       });
     }
@@ -386,11 +421,15 @@ function generateQuestions(questionType: string, numQuestions: number): Question
       const num = Math.floor(Math.random() * 80) + 15;
       const tens = Math.floor(num / 10);
       const ones = num % 10;
+      const opt1 = `${tens} ᱜᱮᱞ (Tens) + ${ones} ᱢᱤᱫ (Ones)`;
+      const opt2 = `${ones} ᱜᱮᱞ (Tens) + ${tens} ᱢᱤᱫ (Ones)`;
+      const opt3 = `${tens + 1} ᱜᱮᱞ (Tens) + ${ones} ᱢᱤᱫ (Ones)`;
       generated.push({
         id: i, type: questionType,
         question_hin: `${num} में ᱜᱮᱞ (दहाई) और ᱢᱤᱫ (इकाई) बताओ:`,
         question_sat: `${num} ᱨᱮ ᱜᱮᱞ ᱟᱨ ᱢᱤᱫ ᱞᱟᱹᱭ ᱢᱮ:`,
-        correct_answer: `${tens} ᱜᱮᱞ (Tens) + ${ones} ᱢᱤᱫ (Ones)`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `${num} = ${tens}×10 + ${ones}`,
       });
     }
@@ -399,11 +438,16 @@ function generateQuestions(questionType: string, numQuestions: number): Question
       const num = Math.floor(Math.random() * 4) + 2;
       const times = Math.floor(Math.random() * 3) + 2;
       const sumStr = Array(times).fill(num).join(' + ');
+      const prod = num * times;
+      const opt1 = `${num} × ${times} = ${prod}`;
+      const opt2 = `${num} × ${times + 1} = ${num * (times + 1)}`;
+      const opt3 = `${num} × ${Math.max(1, times - 1)} = ${num * Math.max(1, times - 1)}`;
       generated.push({
         id: i, type: questionType,
         question_hin: `बार-बार जोड़ को गुणा में बदलो: ${sumStr} = ${num} × ___ = ___`,
         question_sat: `ᱫᱚᱦᱲᱟ ᱡᱚᱲᱟᱣ ᱜᱩᱱᱟᱭ: ${sumStr} = ${num} × ___ = ___`,
-        correct_answer: `${num} × ${times} = ${num * times}`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `Count the groups of ${num}`,
       });
     }
@@ -412,11 +456,16 @@ function generateQuestions(questionType: string, numQuestions: number): Question
       const coins = [5, 10, 20];
       const coin = coins[i % coins.length];
       const count = Math.floor(Math.random() * 3) + 2;
+      const totalMoney = coin * count;
+      const opt1 = `₹${totalMoney}`;
+      const opt2 = `₹${coin * (count + 1)}`;
+      const opt3 = `₹${coin * Math.max(1, count - 1)}`;
       generated.push({
         id: i, type: questionType,
         question_hin: `₹${coin} के ${count} सिक्के/नोट हों तो कुल ᱴᱟᱠᱟ (रुपये) कितने?`,
         question_sat: `₹${coin} ᱨᱮᱱᱟᱜ ${count} ᱴᱟᱠᱟ ᱢᱮᱱᱟᱜᱼᱟ, ᱛᱚᱵᱮ ᱡᱚᱛᱚ ᱴᱟᱠᱟ ᱛᱤᱱᱟᱹᱜ?`,
-        correct_answer: `₹${coin * count}  (${coin} × ${count} = ${coin * count})`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `Multiply: ${coin} × ${count}`,
       });
     }
@@ -436,11 +485,15 @@ function generateQuestions(questionType: string, numQuestions: number): Question
 
     else if (questionType === 'c2_reading_comp') {
       const story = CLASS3_STORIES[i % CLASS3_STORIES.length];
+      const opt1 = story.answer;
+      const opt2 = '6 गाय = ᱛᱩᱨᱩᱭ ᱜᱟᱹᱭ';
+      const opt3 = '2 गाय = ᱵᱟᱨ ᱜᱟᱹᱭ';
       generated.push({
         id: i, type: questionType,
         question_hin: `📖 पढ़ो और उत्तर दो:\n"${story.story_hin}"\n❓ ${story.q_hin}`,
         question_sat: `📖 ᱯᱟᱲᱦᱟᱭ ᱟᱨ ᱛᱮᱞᱟ ᱫᱮ:\n"${story.story_sat}"\n❓ ${story.q_sat}`,
-        correct_answer: story.answer,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `Read the story carefully — answer is ${story.type} problem`,
       });
     }
@@ -452,11 +505,17 @@ function generateQuestions(questionType: string, numQuestions: number): Question
       const op = i % 2 === 0 ? '+' : '-';
       const bigger = Math.max(a, b);
       const smaller = Math.min(a, b);
+      const ansVal = op === '+' ? a + b : bigger - smaller;
+      const opt1 = `${ansVal}`;
+      const opt2 = `${ansVal + 10}`;
+      const opt3 = `${Math.max(10, ansVal - 10)}`;
+      const opt4 = `${ansVal + 100}`;
       generated.push({
         id: i, type: questionType,
         question_hin: `कॉलम विधि से हल करो: ${op === '+' ? `${a} + ${b}` : `${bigger} - ${smaller}`} = ___`,
         question_sat: `ᱠᱳᱞᱚᱢ ᱵᱤᱫᱷᱤ ᱛᱮ: ${op === '+' ? `${a} + ${b}` : `${bigger} - ${smaller}`} = ___`,
-        correct_answer: op === '+' ? `${a + b}` : `${bigger - smaller}`,
+        options: [opt1, opt2, opt3, opt4].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `Align ones/tens/hundreds in columns, then solve step by step`,
       });
     }
@@ -464,11 +523,17 @@ function generateQuestions(questionType: string, numQuestions: number): Question
     else if (questionType === 'c3_tables') {
       const tableNum = (i % 9) + 2;
       const mul = Math.floor(Math.random() * 9) + 1;
+      const prod = tableNum * mul;
+      const opt1 = `${prod}`;
+      const opt2 = `${prod + tableNum}`;
+      const opt3 = `${Math.max(1, prod - tableNum)}`;
+      const opt4 = `${prod + 2}`;
       generated.push({
         id: i, type: questionType,
         question_hin: `${OL_DIGITS[tableNum]} × ${OL_DIGITS[mul]} = ___  (${tableNum} × ${mul})`,
         question_sat: `${OL_DIGITS[tableNum]} × ${OL_DIGITS[mul]} = ___ (ᱜᱩᱬᱟᱹᱣ)`,
-        correct_answer: `${tableNum * mul}`,
+        options: [opt1, opt2, opt3, opt4].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `Table of ${tableNum}: think ${tableNum} + ${tableNum} + ... (${mul} times)`,
       });
     }
@@ -477,11 +542,15 @@ function generateQuestions(questionType: string, numQuestions: number): Question
       const divisor = Math.floor(Math.random() * 4) + 2;
       const quotient = Math.floor(Math.random() * 6) + 2;
       const dividend = divisor * quotient;
+      const opt1 = `${quotient} आम (ᱟᱢ)`;
+      const opt2 = `${quotient + 1} आम (ᱟᱢ)`;
+      const opt3 = `${Math.max(1, quotient - 1)} आम (ᱟᱢ)`;
       generated.push({
         id: i, type: questionType,
         question_hin: `${dividend} आम को ${divisor} बच्चों में बराबर बाँटो। हर बच्चे को कितने? (${dividend} ÷ ${divisor})`,
         question_sat: `${dividend} ᱟᱢ ${divisor} ᱜᱤᱫᱽᱨᱟᱹ ᱨᱮ ᱵᱟᱨᱟᱵᱟᱹᱨᱤ ᱦᱟᱹᱴᱤᱧᱟ᱾ ᱡᱚᱱᱚ ᱜᱤᱫᱽᱨᱟᱹᱠᱚ ᱛᱤᱱᱟᱹ ᱧᱟᱢᱚᱜᱼᱟ?`,
-        correct_answer: `${quotient} आम (ᱟᱢ) प्रत्येक को`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `${dividend} ÷ ${divisor} = ?  Think: ${divisor} × ? = ${dividend}`,
       });
     }
@@ -500,11 +569,16 @@ function generateQuestions(questionType: string, numQuestions: number): Question
     else if (questionType === 'c3_word_problems') {
       const a = Math.floor(Math.random() * 20) + 10;
       const b = Math.floor(Math.random() * 15) + 5;
+      const diff = a - b;
+      const opt1 = `${diff} आम (ᱟᱢ)`;
+      const opt2 = `${diff + 2} आम (ᱟᱢ)`;
+      const opt3 = `${Math.max(1, diff - 2)} आम (ᱟᱢ)`;
       generated.push({
         id: i, type: questionType,
         question_hin: `सुनीता के पास ${a} आम थे। उसने अपनी दोस्त को ${b} आम दिए। कितने बचे?`,
         question_sat: `ᱥᱩᱱᱤᱛᱟ ᱴᱷᱮᱱ ${a} ᱟᱢ ᱛᱟᱦᱮᱸᱠᱟᱱᱟᱭ᱾ ᱟᱡ ᱫᱚᱥᱛᱩᱭ ᱫᱚ ${b} ᱟᱢ ᱮᱢᱟᱫᱮᱭᱟ᱾ ᱛᱤᱱᱟᱹᱜ ᱥᱟᱨᱮᱲᱚᱜᱼᱟ?`,
-        correct_answer: `${a - b} आम (ᱟᱢ)`,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: `Subtraction: ${a} - ${b} = ?`,
       });
     }
@@ -512,11 +586,15 @@ function generateQuestions(questionType: string, numQuestions: number): Question
     // ── CLASS 3 LITERACY ─────────────────────────────────────────────
     else if (questionType === 'c3_comprehension') {
       const story = CLASS3_STORIES[i % CLASS3_STORIES.length];
+      const opt1 = story.answer;
+      const opt2 = '10 = ᱜᱮᱞ';
+      const opt3 = '2 = ᱵᱟᱨ';
       generated.push({
         id: i, type: questionType,
         question_hin: `📖 NIPUN ORF Practice — पढ़ो और उत्तर दो (60 WPM लक्ष्य):\n"${story.story_hin}"\n❓ ${story.q_hin}`,
         question_sat: `📖 NIPUN ᱯᱟᱲᱦᱟᱣ — ᱯᱟᱲᱦᱟᱭ ᱟᱨ ᱛᱮᱞᱟ ᱫᱮ:\n"${story.story_sat}"\n❓ ${story.q_sat}`,
-        correct_answer: story.answer,
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: 'Read the full passage first, then answer from it',
       });
     }
@@ -528,11 +606,15 @@ function generateQuestions(questionType: string, numQuestions: number): Question
         { hin: 'अपने पसंदीदा त्योहार के बारे में लिखो।', sat: 'ᱟᱯᱱᱟᱜ ᱠᱩᱞᱤ ᱯᱟᱨᱟᱵᱽ ᱵᱟᱵᱚᱛ ᱞᱮᱠᱷᱮ᱾' },
       ];
       const t = topics[i % topics.length];
+      const opt1 = 'ᱥᱮᱨᱢᱟ ᱨᱮ ᱤᱧᱟᱜ ᱚᱲᱟᱜ ᱢᱮᱱᱟᱜᱼᱟ (गाँव में मेरा घर है)';
+      const opt2 = 'ᱟᱞᱮ ᱫᱚ ᱟᱥᱲᱟ ᱵᱚᱱ ᱪᱟᱞᱟᱜᱼᱟ (हम सब स्कूल जाते हैं)';
+      const opt3 = 'ᱢᱟᱪᱮᱛ ᱫᱚ ᱵᱮᱥ ᱮ ᱯᱟᱲᱦᱟᱣ ᱮᱫ ᱵᱚᱱᱟ (शिक्षक अच्छा पढ़ाते हैं)';
       generated.push({
         id: i, type: questionType,
         question_hin: `✍️ रचनात्मक लेखन: ${t.hin}`,
         question_sat: `✍️ ᱧᱤᱫᱼᱟᱱ ᱞᱮᱠᱷᱟ: ${t.sat}`,
-        correct_answer: '(Open-ended — Teacher evaluates for content, clarity, and Ol Chiki usage)',
+        options: [opt1, opt2, opt3].sort(() => Math.random() - 0.5),
+        correct_answer: opt1,
         hint: 'Write full sentences. Use Ol Chiki script for Santali words.',
       });
     }
@@ -543,13 +625,54 @@ function generateQuestions(questionType: string, numQuestions: number): Question
         id: i, type: questionType,
         question_hin: `प्रश्न ${i}: इस प्रकार के सवाल पर काम करो।`,
         question_sat: `ᱠᱩᱠᱞᱤ ${i}: ᱱᱚᱣᱟ ᱵᱟᱵᱚᱛ ᱠᱟᱹᱢᱤ ᱠᱟᱹᱢᱤ᱾`,
-        correct_answer: 'See teacher',
+        options: ['विकल्प A (ᱥᱟᱹᱨᱤ)', 'विकल्प B (ᱮᱲᱮ)', 'विकल्प C (ᱮᱴᱟᱜᱟᱜ)'],
+        correct_answer: 'विकल्प A (ᱥᱟᱹᱨᱤ)',
       });
     }
   }
 
   return generated;
 }
+
+// ─────────────────────────────────────────────
+// GUARANTEED FALLBACK OPTION SYNTHESIZER
+// ─────────────────────────────────────────────
+export function ensureQuestionOptions(q: Question): string[] {
+  if (q.options && q.options.length > 0) return q.options;
+
+  const ans = q.correct_answer.trim();
+  const numMatch = ans.match(/\d+/);
+  if (numMatch) {
+    const base = parseInt(numMatch[0], 10);
+    const step = base <= 5 ? 1 : Math.max(1, Math.round(base * 0.25));
+    const opt1 = ans;
+    const opt2 = ans.replace(numMatch[0], String(base + step));
+    const opt3 = ans.replace(numMatch[0], String(Math.max(1, base - step)));
+    return [opt1, opt2, opt3].sort(() => 0.5 - Math.random());
+  }
+
+  return [ans, 'ᱵᱟᱝ ᱠᱟᱱᱟ (गलत)', 'ᱮᱴᱟᱜ ᱩᱛᱛᱚᱨ (अन्य)'];
+}
+
+// ─────────────────────────────────────────────
+// SMART EVALUATION CHECKER
+// ─────────────────────────────────────────────
+export const checkIsCorrect = (q: Question, selected: string | undefined): boolean => {
+  if (!selected) return false;
+  const s = selected.trim().toLowerCase();
+  const c = q.correct_answer.trim().toLowerCase();
+  if (s === c) return true;
+
+  // Extract pure numbers
+  const sNum = s.match(/\d+/)?.[0];
+  const cNum = c.match(/\d+/)?.[0];
+  if (sNum && cNum && sNum === cNum) return true;
+
+  // Substring inclusion
+  if (c.includes(s) || s.includes(c)) return true;
+
+  return false;
+};
 
 // ════════════════════════════════════════════════════════════════════════════
 // COMPONENT
@@ -575,6 +698,32 @@ const Worksheets: React.FC = () => {
   const [selectedAssignedTitle, setSelectedAssignedTitle] = useState<string>('');
   const [studentSelections, setStudentSelections] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [submissionResult, setSubmissionResult] = useState<WorksheetSubmission | null>(null);
+  const [teacherSubmissions, setTeacherSubmissions] = useState<WorksheetSubmission[]>([]);
+  const [showTeacherReportsModal, setShowTeacherReportsModal] = useState<boolean>(false);
+  const [selectedReportStudent, setSelectedReportStudent] = useState<WorksheetSubmission | null>(null);
+
+  useEffect(() => {
+    const unsub = classroomService.onSubmissionsUpdate((subs) => {
+      setTeacherSubmissions(subs);
+    });
+
+    const onClassroomReset = () => {
+      setAssignedList([]);
+      if (userRole === 'student') {
+        setQuestions([]);
+        setIsSubmitted(false);
+        setSubmissionResult(null);
+        setStudentSelections({});
+      }
+    };
+    window.addEventListener('palash_classroom_reset', onClassroomReset);
+
+    return () => {
+      unsub();
+      window.removeEventListener('palash_classroom_reset', onClassroomReset);
+    };
+  }, [userRole]);
 
   useEffect(() => {
     const onLangChanged = (e: any) => {
@@ -660,6 +809,7 @@ const Worksheets: React.FC = () => {
         }
         setStudentSelections({});
         setIsSubmitted(false);
+        setSubmissionResult(null);
         sfx.playSuccess();
       }
     };
@@ -700,6 +850,46 @@ const Worksheets: React.FC = () => {
     }
     setStudentSelections({});
     setIsSubmitted(false);
+    setSubmissionResult(null);
+  };
+
+  const handleSubmitStudentWorksheet = () => {
+    sfx.playSuccess();
+    const student = authService.getStudentProfile();
+
+    const answersList: StudentAnswerItem[] = questions.map((q) => {
+      const selected = studentSelections[q.id] || '';
+      const isCorrect = checkIsCorrect(q, selected);
+      return {
+        question_id: q.id,
+        question_text: q.question_hin,
+        selected_answer: selected,
+        correct_answer: q.correct_answer,
+        is_correct: isCorrect,
+      };
+    });
+
+    const correctCount = answersList.filter((a) => a.is_correct).length;
+    const total = questions.length;
+    const pct = Math.round((correctCount / total) * 100);
+
+    const submission: WorksheetSubmission = {
+      worksheet_id: (assignedList[0]?.worksheetId) || `ws_${Date.now()}`,
+      worksheet_title: selectedAssignedTitle || selectedDrill?.label || 'कक्षा अभ्यास कार्यपत्र',
+      student_id: student?.studentId || 'std_' + Math.random().toString(36).slice(2, 6),
+      student_name: student?.studentName || 'विद्यार्थी',
+      total_questions: total,
+      score: correctCount,
+      percentage: pct,
+      timestamp: Date.now(),
+      answers: answersList,
+    };
+
+    setSubmissionResult(submission);
+    setIsSubmitted(true);
+    setShowAnswers(true);
+
+    classroomService.submitWorksheetResult(submission);
   };
 
   const handlePrint = () => {
@@ -750,36 +940,63 @@ const Worksheets: React.FC = () => {
         {questions.length > 0 && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {userRole === 'teacher' && (
-              <button
-                onClick={() => {
-                  sfx.playSuccess();
-                  classroomService.broadcastWorksheet({
-                    worksheetId: `ws_${Date.now()}`,
-                    title: `${grade} ${domain}: ${selectedDrill?.label || 'Practice'}`,
-                    grade,
-                    topic: questionType,
-                    questions: questions,
-                    timestamp: Date.now()
-                  });
-                  alert('📡 अभ्यास पत्र कक्षा को लाइव सौंप दिया गया है! (Worksheet assigned to connected student screens!)');
-                }}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  backgroundColor: '#16a34a',
-                  color: '#fff',
-                  fontWeight: 800,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(22,163,74,0.3)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <span>📡 कक्षा को सौंपें (Assign Live)</span>
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    sfx.playSuccess();
+                    classroomService.broadcastWorksheet({
+                      worksheetId: `ws_${Date.now()}`,
+                      title: `${grade} ${domain}: ${selectedDrill?.label || 'Practice'}`,
+                      grade,
+                      topic: questionType,
+                      questions: questions,
+                      timestamp: Date.now()
+                    });
+                    alert('📡 अभ्यास पत्र कक्षा को लाइव सौंप दिया गया है! (Worksheet assigned to connected student screens!)');
+                  }}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    backgroundColor: '#16a34a',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(22,163,74,0.3)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>📡 कक्षा को सौंपें (Assign Live)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    sfx.playTap();
+                    setShowTeacherReportsModal(true);
+                    if (teacherSubmissions.length > 0) {
+                      setSelectedReportStudent(teacherSubmissions[0]);
+                    }
+                  }}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #3b82f6',
+                    backgroundColor: '#eff6ff',
+                    color: '#1d4ed8',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>📊 छात्र मूल्यांकन रिपोर्ट ({teacherSubmissions.length})</span>
+                </button>
+              </>
             )}
             <button onClick={() => { sfx.playTap(); setShowHints(!showHints); }}
               style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', backgroundColor: showHints ? '#fef3c7' : '#fff', color: showHints ? '#92400e' : '#475569', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: showHints ? '0 0 8px rgba(234, 179, 8, 0.4)' : 'none' }}>
@@ -945,7 +1162,7 @@ const Worksheets: React.FC = () => {
             <button
               onClick={() => {
                 sfx.playTap();
-                navigate('/jcert');
+                navigate('/books');
               }}
               style={{
                 padding: '10px 20px',
@@ -1008,61 +1225,102 @@ const Worksheets: React.FC = () => {
                 <div style={{ fontSize: '0.98rem', fontWeight: 700, color: '#0f2744', marginBottom: '4px', whiteSpace: 'pre-wrap' }}>
                   {q.question_hin}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: '#c05621', fontWeight: 600, fontFamily: tribalLang === 'santali' ? 'serif' : 'inherit', marginBottom: q.options ? '10px' : '0', whiteSpace: 'pre-wrap' }}>
+                <div style={{ fontSize: '0.9rem', color: '#c05621', fontWeight: 600, fontFamily: tribalLang === 'santali' ? 'serif' : 'inherit', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>
                   {getQuestionTribalText(q)}
                 </div>
 
-                {q.options && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '6px' }}>
-                    {q.options.map((opt, oi) => {
-                      const displayOpt = tribalLang === 'santali'
-                        ? opt
-                        : tribalLang === 'ho'
-                        ? (translateHindiToHo(opt).translation || opt)
-                        : (translateHindiToMundari(opt).translation || opt);
-                      return (
-                        <div
-                          key={oi}
-                          onClick={() => {
-                            if (userRole === 'student') {
-                              sfx.playTap();
-                              setStudentSelections(prev => ({ ...prev, [q.id]: opt }));
-                            }
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            fontSize: '0.9rem',
-                            cursor: userRole === 'student' ? 'pointer' : 'default',
-                            padding: userRole === 'student' ? '6px 12px' : '0',
-                            borderRadius: '10px',
-                            backgroundColor: studentSelections[q.id] === opt ? '#dcfce7' : 'transparent',
-                            border: studentSelections[q.id] === opt ? '1.5px solid #22c55e' : 'none',
-                            fontWeight: studentSelections[q.id] === opt ? 800 : 500
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: '18px',
-                              height: '18px',
-                              borderRadius: '50%',
-                              border: studentSelections[q.id] === opt ? '2px solid #16a34a' : '1.5px solid #94a3b8',
-                              backgroundColor: studentSelections[q.id] === opt ? '#22c55e' : 'transparent',
-                              display: 'inline-block',
-                              flexShrink: 0
-                            }}
-                          />
-                          <span>{displayOpt}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                {/* Guaranteed Interactive MCQ Options */}
+                {(() => {
+                  const cardOptions = ensureQuestionOptions(q);
+                  return (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '6px' }}>
+                      {cardOptions.map((opt, oi) => {
+                        const displayOpt = tribalLang === 'santali'
+                          ? opt
+                          : tribalLang === 'ho'
+                          ? (translateHindiToHo(opt).translation || opt)
+                          : (translateHindiToMundari(opt).translation || opt);
+                        const isSelected = studentSelections[q.id] === opt;
+                        const isRightChoice = checkIsCorrect(q, opt);
 
-                {!q.options && (
-                  <div style={{ marginTop: '8px', borderTop: '1px dashed #cbd5e1', paddingTop: '6px', fontSize: '0.82rem', color: '#94a3b8' }}>
-                    Answer: _______________________________________________
+                        let bgColor = isSelected ? '#dcfce7' : '#ffffff';
+                        let borderColor = isSelected ? '#22c55e' : '#cbd5e1';
+                        if (isSubmitted) {
+                          if (isSelected && isRightChoice) {
+                            bgColor = '#dcfce7';
+                            borderColor = '#16a34a';
+                          } else if (isSelected && !isRightChoice) {
+                            bgColor = '#fee2e2';
+                            borderColor = '#ef4444';
+                          } else if (!isSelected && isRightChoice) {
+                            bgColor = '#f0fdf4';
+                            borderColor = '#86efac';
+                          }
+                        }
+
+                        return (
+                          <div
+                            key={oi}
+                            onClick={() => {
+                              if (userRole === 'student' && !isSubmitted) {
+                                sfx.playTap();
+                                setStudentSelections(prev => ({ ...prev, [q.id]: opt }));
+                              }
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              fontSize: '0.9rem',
+                              cursor: (userRole === 'student' && !isSubmitted) ? 'pointer' : 'default',
+                              padding: '8px 14px',
+                              borderRadius: '12px',
+                              backgroundColor: bgColor,
+                              border: `1.5px solid ${borderColor}`,
+                              fontWeight: isSelected ? 800 : 500,
+                              boxShadow: isSelected ? '0 2px 6px rgba(34,197,94,0.2)' : 'none',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: '18px',
+                                height: '18px',
+                                borderRadius: '50%',
+                                border: isSelected ? '2px solid #16a34a' : '1.5px solid #94a3b8',
+                                backgroundColor: isSelected ? '#22c55e' : 'transparent',
+                                display: 'inline-block',
+                                flexShrink: 0
+                              }}
+                            />
+                            <span>{displayOpt}</span>
+                            {isSubmitted && isSelected && isRightChoice && <span>✅</span>}
+                            {isSubmitted && isSelected && !isRightChoice && <span>❌</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {/* Question Feedback when submitted */}
+                {isSubmitted && (
+                  <div style={{ marginTop: '12px', borderTop: '1px dashed #e2e8f0', paddingTop: '10px' }}>
+                    {checkIsCorrect(q, studentSelections[q.id]) ? (
+                      <div style={{ backgroundColor: '#dcfce7', border: '1.5px solid #22c55e', color: '#15803d', padding: '8px 14px', borderRadius: '10px', fontWeight: 800, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>✅ शाबाश! आपका उत्तर बिल्कुल सही है! (+1 अंक)</span>
+                      </div>
+                    ) : (
+                      <div style={{ backgroundColor: '#fef2f2', border: '1.5px solid #f87171', color: '#991b1b', padding: '10px 14px', borderRadius: '10px', fontSize: '0.88rem' }}>
+                        <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>❌ गलत उत्तर!</span>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 500 }}>(आपका चयन: {studentSelections[q.id] || 'कोई उत्तर नहीं चुना'})</span>
+                        </div>
+                        <div style={{ marginTop: '6px', color: '#166534', backgroundColor: '#dcfce7', padding: '6px 12px', borderRadius: '8px', fontWeight: 700 }}>
+                          🎯 सही उत्तर: <strong>{getQuestionAnswerText(q)}</strong>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1075,34 +1333,42 @@ const Worksheets: React.FC = () => {
             ))}
           </div>
 
-          {/* Submit Answers Button for Student Mode */}
+          {/* Submit Answers Button & Live Score Banner for Student Mode */}
           {userRole === 'student' && (
             <div style={{ marginTop: '2rem', textAlign: 'center', borderTop: '2px dashed #e2e8f0', paddingTop: '1.5rem' }}>
               {isSubmitted ? (
-                <div style={{ backgroundColor: '#dcfce7', border: '2px solid #22c55e', borderRadius: '16px', padding: '1.5rem', color: '#166534', maxWidth: '440px', margin: '0 auto' }}>
-                  <div style={{ fontSize: '2.5rem', marginBottom: '6px' }}>🎉</div>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 800 }}>शाबाश! कार्यपत्र जमा हो गया है!</h3>
-                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#15803d' }}>आपके उत्तर शिक्षिका/शिक्षक को भेज दिए गए हैं।</p>
+                <div style={{ backgroundColor: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '18px', padding: '1.75rem', color: '#166534', maxWidth: '520px', margin: '0 auto', boxShadow: '0 6px 20px rgba(34,197,94,0.15)' }}>
+                  <div style={{ fontSize: '2.8rem', marginBottom: '8px' }}>
+                    {submissionResult && submissionResult.percentage >= 80 ? '🌟' : '🎉'}
+                  </div>
+                  <h3 style={{ margin: '0 0 6px 0', fontSize: '1.4rem', fontWeight: 800, color: '#0f2744' }}>
+                    {submissionResult
+                      ? `परिणाम: ${submissionResult.score} / ${submissionResult.total_questions} (${submissionResult.percentage}% सही)`
+                      : 'शाबाश! कार्यपत्र जमा हो गया है!'}
+                  </h3>
+                  <p style={{ margin: '0 0 12px', fontSize: '0.92rem', color: '#15803d' }}>
+                    आपके उत्तर शिक्षिका/शिक्षक के पास सफलतापूर्वक जमा हो चुके हैं। ऊपर प्रत्येक प्रश्न की विस्तृत जाँच देखें!
+                  </p>
+                  <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center', backgroundColor: '#ffffff', padding: '6px 16px', borderRadius: '20px', border: '1px solid #86efac', fontWeight: 700, fontSize: '0.85rem' }}>
+                    <span>✅ शिक्षिका के टैबलेट पर भेजा गया</span>
+                  </div>
                 </div>
               ) : (
                 <button
-                  onClick={() => {
-                    sfx.playSuccess();
-                    setIsSubmitted(true);
-                  }}
+                  onClick={handleSubmitStudentWorksheet}
                   style={{
                     backgroundColor: '#16a34a',
                     color: '#ffffff',
                     border: 'none',
-                    padding: '14px 32px',
+                    padding: '14px 34px',
                     borderRadius: '16px',
                     fontSize: '1.05rem',
                     fontWeight: 800,
                     cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(22,163,74,0.3)',
+                    boxShadow: '0 4px 16px rgba(22,163,74,0.35)',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '10px'
                   }}
                 >
                   <span>✅ शिक्षक को उत्तर जमा करें (Submit Answers)</span>
@@ -1120,6 +1386,212 @@ const Worksheets: React.FC = () => {
           <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f2744', marginBottom: '6px' }}>Select Grade, Domain & Drill Type</div>
           <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
             Then click <strong>Generate Worksheet</strong> to create a printable bilingual NIPUN practice sheet.
+          </div>
+        </div>
+      )}
+
+      {/* ─── TEACHER: STUDENT ASSESSMENT REPORTS MODAL ─── */}
+      {showTeacherReportsModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000,
+          padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            width: '100%',
+            maxWidth: '920px',
+            maxHeight: '88vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: '#0f2744',
+              color: '#ffffff'
+            }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>📊 छात्र मूल्यांकन रिपोर्ट (Student Assessment Reports)</span>
+                  <span style={{ fontSize: '0.78rem', backgroundColor: '#16a34a', color: '#fff', padding: '2px 10px', borderRadius: '12px' }}>
+                    {teacherSubmissions.length} छात्र जमा
+                  </span>
+                </h3>
+                <div style={{ fontSize: '0.82rem', color: '#cbd5e1', marginTop: '3px' }}>
+                  कक्षा में छात्रों द्वारा सबमिट किए गए कार्यपत्र के अंक एवं विस्तृत उत्तर
+                </div>
+              </div>
+              <button
+                onClick={() => setShowTeacherReportsModal(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  border: 'none',
+                  color: '#fff',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
+              {teacherSubmissions.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>⏳</div>
+                  <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: '#0f2744', fontWeight: 800 }}>
+                    अभी तक किसी छात्र ने उत्तर सबमिट नहीं किए हैं
+                  </h4>
+                  <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>
+                    जैसे ही छात्र अपने फोन या टैबलेट पर कार्यपत्र हल करके सबमिट करेंगे, उनके अंक और उत्तर यहाँ तुरंत प्रदर्शित होंगे।
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 2fr', gap: '1.25rem' }}>
+                  {/* Students Roster List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      छात्र सूची ({teacherSubmissions.length})
+                    </div>
+                    {teacherSubmissions.map((sub, sidx) => {
+                      const isSelected = selectedReportStudent?.student_id === sub.student_id;
+                      return (
+                        <div
+                          key={sidx}
+                          onClick={() => {
+                            sfx.playTap();
+                            setSelectedReportStudent(sub);
+                          }}
+                          style={{
+                            padding: '12px 14px',
+                            borderRadius: '14px',
+                            backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                            border: isSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 800, color: '#0f2744', fontSize: '0.95rem' }}>
+                              🎒 {sub.student_name}
+                            </div>
+                            <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '2px' }}>
+                              {new Date(sub.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+                          <div style={{
+                            backgroundColor: sub.percentage >= 60 ? '#dcfce7' : '#fee2e2',
+                            color: sub.percentage >= 60 ? '#15803d' : '#b91c1c',
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            fontWeight: 800,
+                            fontSize: '0.82rem'
+                          }}>
+                            {sub.score} / {sub.total_questions} ({sub.percentage}%)
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Selected Student Answer Sheet */}
+                  {selectedReportStudent ? (
+                    <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '1.25rem 1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '14px' }}>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f2744' }}>
+                            👤 {selectedReportStudent.student_name} की उत्तर पुस्तिका
+                          </h4>
+                          <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                            कार्यपत्र: {selectedReportStudent.worksheet_title}
+                          </div>
+                        </div>
+                        <div style={{
+                          backgroundColor: selectedReportStudent.percentage >= 60 ? '#16a34a' : '#d97706',
+                          color: '#ffffff',
+                          padding: '6px 14px',
+                          borderRadius: '14px',
+                          fontWeight: 800,
+                          fontSize: '0.95rem'
+                        }}>
+                          अंक: {selectedReportStudent.score} / {selectedReportStudent.total_questions} ({selectedReportStudent.percentage}%)
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {selectedReportStudent.answers.map((ans, aidx) => (
+                          <div
+                            key={aidx}
+                            style={{
+                              padding: '12px',
+                              borderRadius: '12px',
+                              border: `1.5px solid ${ans.is_correct ? '#86efac' : '#fca5a5'}`,
+                              backgroundColor: ans.is_correct ? '#f0fdf4' : '#fff5f5'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                              <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f2744' }}>
+                                प्रश्न {aidx + 1}: {ans.question_text}
+                              </span>
+                              <span style={{
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                                color: ans.is_correct ? '#166534' : '#991b1b',
+                                backgroundColor: ans.is_correct ? '#dcfce7' : '#fee2e2',
+                                padding: '2px 8px',
+                                borderRadius: '10px'
+                              }}>
+                                {ans.is_correct ? '✅ 1/1 अंक' : '❌ 0/1 अंक'}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '0.84rem', marginTop: '4px' }}>
+                              छात्र का चयन: <strong style={{ color: ans.is_correct ? '#166534' : '#b91c1c' }}>{ans.selected_answer || '(अनुत्तरित / कोई विकल्प नहीं चुना)'}</strong>
+                            </div>
+                            {!ans.is_correct && (
+                              <div style={{ fontSize: '0.82rem', color: '#166534', backgroundColor: '#dcfce7', padding: '4px 8px', borderRadius: '6px', marginTop: '6px', fontWeight: 700 }}>
+                                🎯 सही उत्तर: {ans.correct_answer}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                      विवरण देखने के लिए बाएँ से किसी छात्र का चयन करें।
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
