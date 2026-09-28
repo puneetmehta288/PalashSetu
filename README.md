@@ -485,7 +485,7 @@ PalashSetu/
 
 ## 10. Team & Acknowledgments
 
-- **Team**: Psyduck
+- **Team**: Team Psyduck
 - **Hackathon**: Smart India Hackathon 2026
 - **Problem Statement**: SIH 26042
 - **Beneficiary**: Department of School Education and Literacy, Government of Jharkhand
